@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barbearia Agenda</title>
+<title>Agenda Barbearia Firebase</title>
 
 <style>
 
@@ -11,103 +11,64 @@
 
 body{
 margin:0;
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
+font-family:Arial,Helvetica,sans-serif;
 background:#0b0b0b;
-color:#f2f2f2;
+color:#eee;
 }
 
 header{
 padding:18px;
 text-align:center;
-font-weight:700;
-letter-spacing:2px;
 background:#000;
 border-bottom:1px solid #222;
+letter-spacing:2px;
+font-weight:bold;
 }
 
 .card{
 margin:14px;
 padding:16px;
-border-radius:16px;
+border-radius:14px;
 background:#151515;
 border:1px solid #262626;
-box-shadow:0 10px 30px rgba(0,0,0,.6);
 }
 
 h2{
-margin:0 0 12px 0;
-font-size:16px;
+margin:0 0 10px 0;
 color:#f1d27a;
-}
-
-label{
-font-size:12px;
-opacity:.8;
+font-size:16px;
 }
 
 input,select{
 width:100%;
 padding:12px;
 margin:6px 0 12px 0;
-border-radius:12px;
+border-radius:10px;
 border:1px solid #333;
 background:#101010;
-color:white;
-font-size:14px;
+color:#fff;
 }
 
 button{
 width:100%;
-padding:13px;
-border-radius:14px;
+padding:12px;
+border-radius:12px;
 border:none;
-font-weight:700;
+font-weight:bold;
 background:linear-gradient(135deg,#d4af37,#f5d77a);
 color:#111;
 cursor:pointer;
-}
-
-button:active{
-transform:scale(.98);
 }
 
 .item{
 background:#101010;
 border:1px solid #262626;
 padding:10px;
-border-radius:12px;
+border-radius:10px;
 margin:8px 0;
-font-size:14px;
 }
 
 .hidden{display:none}
-
-.adminBtn{
-position:fixed;
-bottom:14px;
-right:14px;
-font-size:24px;
-opacity:.25;
-cursor:pointer;
-}
-
-.modal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.7);
-display:flex;
-align-items:center;
-justify-content:center;
-}
-
-.modalBox{
-width:92%;
-max-width:420px;
-background:#111;
-border-radius:18px;
-padding:16px;
-border:1px solid #333;
-}
 
 .grid{
 display:grid;
@@ -124,20 +85,36 @@ text-align:center;
 cursor:pointer;
 }
 
-.slot.sel{
-background:#f5d77a;
-color:#000;
-font-weight:700;
+.adminBtn{
+position:fixed;
+bottom:14px;
+right:14px;
+opacity:.3;
+font-size:24px;
+cursor:pointer;
 }
 
-.slot.off{
-opacity:.35;
-text-decoration:line-through;
-cursor:not-allowed;
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.7);
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.modalBox{
+width:92%;
+max-width:420px;
+background:#111;
+border-radius:16px;
+padding:16px;
+border:1px solid #333;
 }
 
 </style>
 </head>
+
 <body>
 
 <header>AGENDA BARBEARIA</header>
@@ -146,23 +123,19 @@ cursor:not-allowed;
 <div class="card" id="loginBox">
 <h2>Entrar</h2>
 
-<label>Nome</label>
-<input id="cliNome">
-
-<label>WhatsApp</label>
-<input id="cliTel">
+<input id="cliNome" placeholder="Nome">
+<input id="cliTel" placeholder="WhatsApp">
 
 <button onclick="loginCliente()">Entrar</button>
 </div>
 
 
 
-<!-- APP CLIENTE -->
+<!-- AREA CLIENTE -->
 
-<div id="appCliente" class="hidden">
+<div id="areaCliente" class="hidden">
 
 <div class="card">
-
 <h2>Novo Agendamento</h2>
 
 <label>Barbeiro</label>
@@ -175,11 +148,10 @@ cursor:not-allowed;
 <input type="date" id="dataInp">
 
 <label>Horário</label>
-<input id="horaView" readonly placeholder="Escolher horário">
-<button onclick="abrirHoras()">Selecionar Horário</button>
+<input id="horaView" readonly>
+<button onclick="abrirHoras()">Escolher Horário</button>
 
-<button onclick="confirmarAg()">Confirmar</button>
-
+<button onclick="confirmarAgendamento()">Confirmar</button>
 </div>
 
 
@@ -202,30 +174,29 @@ cursor:not-allowed;
 
 <div class="card hidden" id="adminLogin">
 <h2>Painel Admin</h2>
-
 <input type="password" id="admSenha" placeholder="Senha">
 <button onclick="loginAdmin()">Entrar</button>
 </div>
 
 
 
-<!-- ADMIN APP -->
+<!-- AREA ADMIN -->
 
-<div id="adminArea" class="hidden">
+<div id="areaAdmin" class="hidden">
 
 <div class="card">
 <h2>Barbeiros</h2>
-<input id="novoBarb">
-<button onclick="addBarb()">Adicionar</button>
-<div id="listaBarb"></div>
+<input id="novoBarbeiro">
+<button onclick="addBarbeiro()">Adicionar</button>
+<div id="listaBarbeiros"></div>
 </div>
 
 
 <div class="card">
 <h2>Serviços</h2>
-<input id="novoServ">
-<button onclick="addServ()">Adicionar</button>
-<div id="listaServ"></div>
+<input id="novoServico">
+<button onclick="addServico()">Adicionar</button>
+<div id="listaServicos"></div>
 </div>
 
 
@@ -233,7 +204,7 @@ cursor:not-allowed;
 <h2>Horários do Dia</h2>
 <input type="date" id="admData">
 <input type="time" id="admHora">
-<button onclick="addDisp()">Liberar Horário</button>
+<button onclick="addDisponivel()">Liberar Horário</button>
 <div id="listaDisp"></div>
 </div>
 
@@ -248,51 +219,94 @@ cursor:not-allowed;
 
 <h2>Escolher Horário</h2>
 <div class="grid" id="gridHoras"></div>
+
 <button onclick="fecharHoras()">Fechar</button>
 
 </div>
 </div>
-<script>
+<!-- FIREBASE SDK -->
 
-// =======================
-// BANCO LOCAL
-// =======================
+<script type="module">
 
-function dbGet(k,def){
-return JSON.parse(localStorage.getItem(k) || JSON.stringify(def));
-}
-
-function dbSet(k,v){
-localStorage.setItem(k,JSON.stringify(v));
-}
-
-
-// =======================
-// DADOS INICIAIS
-// =======================
-
-if(!localStorage.getItem("barbeiros")){
-dbSet("barbeiros",["Carlos","João"]);
-}
-
-if(!localStorage.getItem("servicos")){
-dbSet("servicos",["Corte","Barba"]);
-}
-
-if(!localStorage.getItem("agendamentos")){
-dbSet("agendamentos",[]);
-}
-
-if(!localStorage.getItem("disponibilidade")){
-dbSet("disponibilidade",[]);
-}
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+getFirestore,
+collection,
+addDoc,
+doc,
+setDoc,
+deleteDoc,
+onSnapshot,
+query,
+where
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
 // =======================
-// ESTADO
+// FIREBASE CONFIG
+// =======================
+
+const firebaseConfig = {
+apiKey: "AIzaSyDQxyKbp3vrHW0JJEh9mo0sDHc7Zpp5IP8",
+authDomain: "agenda-barbearia-a5cd8.firebaseapp.com",
+projectId: "agenda-barbearia-a5cd8",
+storageBucket: "agenda-barbearia-a5cd8.firebasestorage.app",
+messagingSenderId: "1007861244973",
+appId: "1:1007861244973:web:dc7c2fed43431e281e84a4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+
+// =======================
+// ESTADO GLOBAL
 // =======================
 
 let horaSel = null;
+let cacheBarbeiros = [];
+let cacheServicos = [];
+let cacheDisp = [];
+let cacheAg = [];
+
+
+// =======================
+// REFERÊNCIAS
+// =======================
+
+const colBarb = collection(db,"barbeiros");
+const colServ = collection(db,"servicos");
+const colDisp = collection(db,"disponibilidade");
+const colAg   = collection(db,"agendamentos");
+// =======================
+// LISTENERS REALTIME
+// =======================
+
+// barbeiros
+onSnapshot(colBarb, snap=>{
+cacheBarbeiros = snap.docs.map(d=>({id:d.id,...d.data()}));
+renderBarbeirosSelect();
+renderBarbeirosAdmin();
+});
+
+// serviços
+onSnapshot(colServ, snap=>{
+cacheServicos = snap.docs.map(d=>({id:d.id,...d.data()}));
+renderServicosSelect();
+renderServicosAdmin();
+});
+
+// disponibilidade
+onSnapshot(colDisp, snap=>{
+cacheDisp = snap.docs.map(d=>({id:d.id,...d.data()}));
+renderDispAdmin();
+});
+
+// agendamentos
+onSnapshot(colAg, snap=>{
+cacheAg = snap.docs.map(d=>({id:d.id,...d.data()}));
+renderMeus();
+});
 
 
 // =======================
@@ -313,10 +327,7 @@ localStorage.setItem("cliNome",n);
 localStorage.setItem("cliTel",t);
 
 loginBox.classList.add("hidden");
-appCliente.classList.remove("hidden");
-
-carregarSelects();
-listarMeus();
+areaCliente.classList.remove("hidden");
 }
 
 
@@ -336,9 +347,7 @@ return;
 }
 
 adminLogin.classList.add("hidden");
-adminArea.classList.remove("hidden");
-
-renderAdmin();
+areaAdmin.classList.remove("hidden");
 }
 
 
@@ -346,33 +355,36 @@ renderAdmin();
 // SELECTS
 // =======================
 
-function carregarSelects(){
-
-const bs = dbGet("barbeiros",[]);
+function renderBarbeirosSelect(){
 barbeiro.innerHTML="";
-bs.forEach(b=>barbeiro.innerHTML+=`<option>${b}</option>`);
-
-const ss = dbGet("servicos",[]);
-servico.innerHTML="";
-ss.forEach(s=>servico.innerHTML+=`<option>${s}</option>`);
+cacheBarbeiros.forEach(b=>{
+barbeiro.innerHTML += `<option>${b.nome}</option>`;
+});
 }
 
-
-// =======================
-// INIT
-// =======================
-
-(function(){
-carregarSelects();
-})();
+function renderServicosSelect(){
+servico.innerHTML="";
+cacheServicos.forEach(s=>{
+servico.innerHTML += `<option>${s.nome}</option>`;
+});
+}
 // =======================
 // MODAL HORÁRIOS
 // =======================
 
 function abrirHoras(){
 
-if(!dataInp.value){
+const data = dataInp.value;
+
+if(!data){
 alert("Escolha a data");
+return;
+}
+
+const lista = cacheDisp.filter(d=>d.data===data);
+
+if(lista.length === 0){
+alert("Nenhum horário liberado para este dia");
 return;
 }
 
@@ -380,9 +392,11 @@ modalHoras.classList.remove("hidden");
 renderHoras();
 }
 
+
 function fecharHoras(){
 modalHoras.classList.add("hidden");
 }
+
 
 
 // =======================
@@ -391,37 +405,42 @@ modalHoras.classList.add("hidden");
 
 function renderHoras(){
 
-gridHoras.innerHTML="";
+gridHoras.innerHTML = "";
 horaSel = null;
-horaView.value="";
+horaView.value = "";
 
 const data = dataInp.value;
-const disp = dbGet("disponibilidade",[]);
-const dia = disp.find(x=>x.data===data);
 
-if(!dia || dia.horas.length===0){
+const lista = cacheDisp
+.filter(d=>d.data===data)
+.map(d=>d.hora)
+.sort();
+
+if(lista.length === 0){
 gridHoras.innerHTML =
-"<div style='grid-column:1/-1;opacity:.7'>Sem horários liberados</div>";
+"<div style='grid-column:1/-1;opacity:.7'>Sem horários</div>";
 return;
 }
 
-dia.horas.sort().forEach(h=>{
+lista.forEach(h=>{
 
 gridHoras.innerHTML += `
 <div class="slot"
-onclick="selHora('${h}')">
+onclick="selHora('${h}', this)">
 ${h}
-</div>`;
+</div>
+`;
 
 });
 }
+
 
 
 // =======================
 // SELECIONAR HORA
 // =======================
 
-function selHora(h){
+function selHora(h,el){
 
 horaSel = h;
 horaView.value = h;
@@ -429,62 +448,13 @@ horaView.value = h;
 document.querySelectorAll(".slot")
 .forEach(x=>x.classList.remove("sel"));
 
-event.target.classList.add("sel");
-}
-
-
-
-// =======================
-// ADMIN DISPONIBILIDADE
-// =======================
-
-function addDisp(){
-
-const d = admData.value;
-const h = admHora.value;
-
-if(!d || !h){
-alert("Escolha data/hora");
-return;
-}
-
-let disp = dbGet("disponibilidade",[]);
-let dia = disp.find(x=>x.data===d);
-
-if(!dia){
-dia = {data:d,horas:[]};
-disp.push(dia);
-}
-
-if(!dia.horas.includes(h)){
-dia.horas.push(h);
-}
-
-dbSet("disponibilidade",disp);
-listarDispAdmin();
-}
-
-
-function listarDispAdmin(){
-
-if(!admData.value) return;
-
-const d = admData.value;
-const disp = dbGet("disponibilidade",[]);
-const dia = disp.find(x=>x.data===d);
-
-listaDisp.innerHTML="";
-
-(dia?.horas || []).sort().forEach(h=>{
-listaDisp.innerHTML += `
-<div class="item">${h}</div>`;
-});
+el.classList.add("sel");
 }
 // =======================
 // CONFIRMAR AGENDAMENTO
 // =======================
 
-function confirmarAg(){
+async function confirmarAgendamento(){
 
 const data = dataInp.value;
 
@@ -498,71 +468,68 @@ const serv = servico.value;
 const nome = localStorage.getItem("cliNome");
 const tel  = localStorage.getItem("cliTel");
 
-let lista = dbGet("agendamentos",[]);
 
+// ===== VALIDAR DISPONIBILIDADE =====
 
-// ===== DISPONIBILIDADE =====
+const ok = cacheDisp.some(d =>
+d.data===data && d.hora===horaSel
+);
 
-const disp = dbGet("disponibilidade",[]);
-const dia = disp.find(x=>x.data===data);
-
-if(!dia || !dia.horas.includes(horaSel)){
+if(!ok){
 alert("Horário não disponível");
 return;
 }
 
 
-// ===== CONFLITO SIMPLES =====
+// ===== CONFLITO =====
 
-const ocupado = lista.some(a =>
+const conflito = cacheAg.some(a =>
 a.data===data &&
 a.hora===horaSel &&
 a.barbeiro===barb &&
 a.status==="ativo"
 );
 
-if(ocupado){
+if(conflito){
 alert("Barbeiro ocupado nesse horário");
 return;
 }
 
 
-// ===== SALVAR =====
+// ===== GRAVAR =====
 
-lista.push({
-id: Date.now(),
+await addDoc(colAg,{
 nome:nome,
 tel:tel,
 barbeiro:barb,
 servico:serv,
 data:data,
 hora:horaSel,
-status:"ativo"
+status:"ativo",
+criado: Date.now()
 });
 
-dbSet("agendamentos",lista);
+alert("Agendamento confirmado");
 
-alert("Agendado!");
-
-listarMeus();
 fecharHoras();
 }
-
-
-
 // =======================
-// LISTA CLIENTE
+// LISTA DO CLIENTE
 // =======================
 
-function listarMeus(){
+function renderMeus(){
 
 const tel = localStorage.getItem("cliTel");
-const lista = dbGet("agendamentos",[]);
 
-listaMeus.innerHTML="";
+if(!tel){
+listaMeus.innerHTML = "";
+return;
+}
 
-lista
-.filter(a=>a.tel===tel && a.status==="ativo")
+listaMeus.innerHTML = "";
+
+cacheAg
+.filter(a => a.tel === tel && a.status === "ativo")
 .sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
 .forEach(a=>{
 
@@ -570,7 +537,7 @@ listaMeus.innerHTML += `
 <div class="item">
 ${a.data} ${a.hora}<br>
 ${a.servico} — ${a.barbeiro}
-<button onclick="cancelarAg(${a.id})">Cancelar</button>
+<button onclick="cancelarAg('${a.id}')">Cancelar</button>
 </div>
 `;
 
@@ -580,47 +547,42 @@ ${a.servico} — ${a.barbeiro}
 
 
 // =======================
-// CANCELAR
+// CANCELAR AGENDAMENTO
 // =======================
 
-function cancelarAg(id){
+async function cancelarAg(id){
 
-let lista = dbGet("agendamentos",[]);
+await deleteDoc(doc(db,"agendamentos",id));
 
-lista = lista.map(a=>{
-if(a.id===id) a.status="cancelado";
-return a;
-});
-
-dbSet("agendamentos",lista);
-listarMeus();
 }
 // =======================
 // ADMIN — BARBEIROS
 // =======================
 
-function addBarb(){
+async function addBarbeiro(){
 
-const n = novoBarb.value.trim();
-if(!n) return;
+const nome = novoBarbeiro.value.trim();
+if(!nome) return;
 
-let l = dbGet("barbeiros",[]);
-l.push(n);
-dbSet("barbeiros",l);
-
-novoBarb.value="";
-renderAdmin();
-carregarSelects();
+await addDoc(colBarb,{nome:nome});
+novoBarbeiro.value="";
 }
 
-function delBarb(i){
+function renderBarbeirosAdmin(){
 
-let l = dbGet("barbeiros",[]);
-l.splice(i,1);
-dbSet("barbeiros",l);
+listaBarbeiros.innerHTML="";
 
-renderAdmin();
-carregarSelects();
+cacheBarbeiros.forEach(b=>{
+listaBarbeiros.innerHTML += `
+<div class="item">
+${b.nome}
+<button onclick="delBarbeiro('${b.id}')">Excluir</button>
+</div>`;
+});
+}
+
+async function delBarbeiro(id){
+await deleteDoc(doc(db,"barbeiros",id));
 }
 
 
@@ -629,70 +591,86 @@ carregarSelects();
 // ADMIN — SERVIÇOS
 // =======================
 
-function addServ(){
+async function addServico(){
 
-const n = novoServ.value.trim();
-if(!n) return;
+const nome = novoServico.value.trim();
+if(!nome) return;
 
-let l = dbGet("servicos",[]);
-l.push(n);
-dbSet("servicos",l);
-
-novoServ.value="";
-renderAdmin();
-carregarSelects();
+await addDoc(colServ,{nome:nome});
+novoServico.value="";
 }
 
-function delServ(i){
+function renderServicosAdmin(){
 
-let l = dbGet("servicos",[]);
-l.splice(i,1);
-dbSet("servicos",l);
+listaServicos.innerHTML="";
 
-renderAdmin();
-carregarSelects();
-}
-
-
-
-// =======================
-// RENDER ADMIN
-// =======================
-
-function renderAdmin(){
-
-// barbeiros
-const bs = dbGet("barbeiros",[]);
-listaBarb.innerHTML="";
-bs.forEach((b,i)=>{
-listaBarb.innerHTML += `
+cacheServicos.forEach(s=>{
+listaServicos.innerHTML += `
 <div class="item">
-${b}
-<button onclick="delBarb(${i})">Excluir</button>
+${s.nome}
+<button onclick="delServico('${s.id}')">Excluir</button>
 </div>`;
 });
+}
 
-// serviços
-const ss = dbGet("servicos",[]);
-listaServ.innerHTML="";
-ss.forEach((s,i)=>{
-listaServ.innerHTML += `
-<div class="item">
-${s}
-<button onclick="delServ(${i})">Excluir</button>
-</div>`;
-});
-
-listarDispAdmin();
+async function delServico(id){
+await deleteDoc(doc(db,"servicos",id));
 }
 
 
 
 // =======================
-// AUTO ATUALIZAR DISP ADMIN
+// ADMIN — DISPONIBILIDADE
 // =======================
 
-admData.onchange = listarDispAdmin;
+async function addDisponivel(){
+
+const d = admData.value;
+const h = admHora.value;
+
+if(!d || !h){
+alert("Escolha data/hora");
+return;
+}
+
+await addDoc(colDisp,{
+data:d,
+hora:h
+});
+}
+
+function renderDispAdmin(){
+
+if(!admData.value){
+listaDisp.innerHTML="";
+return;
+}
+
+listaDisp.innerHTML="";
+
+cacheDisp
+.filter(x=>x.data===admData.value)
+.sort((a,b)=>a.hora.localeCompare(b.hora))
+.forEach(x=>{
+listaDisp.innerHTML += `
+<div class="item">
+${x.hora}
+<button onclick="delDisp('${x.id}')">Remover</button>
+</div>`;
+});
+}
+
+async function delDisp(id){
+await deleteDoc(doc(db,"disponibilidade",id));
+}
+
+admData.onchange = renderDispAdmin;
+
+
+
+// =======================
+// FIM SCRIPT
+// =======================
 
 </script>
 
