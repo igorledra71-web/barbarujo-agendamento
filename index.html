@@ -7,16 +7,18 @@
 
 <style>
 
+*{box-sizing:border-box}
+
 body{
 margin:0;
 background:#0b0b0b;
 color:#f2f2f2;
-font-family:Arial, Helvetica, sans-serif;
+font-family:Segoe UI, Arial, sans-serif;
 }
 
 header{
 background:#000;
-padding:22px;
+padding:24px;
 text-align:center;
 border-bottom:3px solid #caa63a;
 }
@@ -24,104 +26,140 @@ border-bottom:3px solid #caa63a;
 header h1{
 margin:0;
 letter-spacing:2px;
+font-weight:600;
 }
 
 .card{
-background:#161616;
-margin:15px;
+background:linear-gradient(180deg,#181818,#101010);
+margin:16px;
 padding:20px;
-border-radius:14px;
+border-radius:16px;
 border:1px solid #2a2a2a;
-box-shadow:0 10px 30px rgba(0,0,0,0.6);
+box-shadow:0 12px 30px rgba(0,0,0,.6);
 }
 
 h2{
 margin-top:0;
 color:#e7c15a;
+font-size:18px;
 }
 
 label{
 font-size:13px;
-opacity:0.9;
+opacity:.9;
 }
 
 input,select{
 width:100%;
-padding:12px;
+padding:13px;
 margin:6px 0 14px 0;
-border-radius:8px;
+border-radius:10px;
 border:1px solid #333;
-background:#101010;
+background:#0f0f0f;
 color:white;
 }
 
 button{
 width:100%;
 padding:14px;
-border-radius:10px;
+border-radius:12px;
 border:none;
-background:#caa63a;
-color:black;
-font-weight:bold;
+background:linear-gradient(90deg,#caa63a,#e7c15a);
+color:#111;
+font-weight:700;
 cursor:pointer;
-margin-top:6px;
+letter-spacing:.5px;
 }
 
 button:hover{
-opacity:0.9;
+opacity:.9;
 transform:translateY(-1px);
 }
 
-.hidden{
-display:none;
-}
+.hidden{display:none}
 
-#horarios{
+.grid{
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:8px;
 }
 
 .hora{
-background:#1f1f1f;
 padding:12px;
 text-align:center;
-border-radius:8px;
-cursor:pointer;
+border-radius:10px;
+background:#1c1c1c;
 border:1px solid #333;
+cursor:pointer;
+font-size:14px;
 }
 
 .hora.sel{
 background:#e7c15a;
-color:black;
-font-weight:bold;
+color:#000;
+font-weight:700;
 }
 
 .hora.ocupado{
 background:#5a1a1a;
-opacity:0.6;
+opacity:.6;
+cursor:not-allowed;
+}
+
+.hora.bloq{
+background:#444;
+opacity:.5;
 cursor:not-allowed;
 }
 
 .item{
-background:#121212;
+background:#141414;
 padding:10px;
-border-radius:8px;
+border-radius:10px;
 margin:6px 0;
 border:1px solid #2a2a2a;
+font-size:14px;
+}
+
+.row{
+display:flex;
+gap:8px;
+}
+
+.row button{
+width:auto;
+padding:8px 10px;
+font-size:12px;
+border-radius:8px;
 }
 
 .adminBtn{
 position:fixed;
-bottom:10px;
-right:10px;
-opacity:0.15;
-font-size:22px;
+bottom:12px;
+right:12px;
+opacity:.18;
+font-size:24px;
 cursor:pointer;
+}
+
+.timeChip{
+display:inline-block;
+padding:8px 10px;
+margin:4px;
+border-radius:8px;
+background:#222;
+border:1px solid #333;
+font-size:13px;
+}
+
+.timeChip.bloq{
+background:#5a1a1a;
+border-color:#772222;
 }
 
 </style>
 </head>
+
 <body>
 
 <header>
@@ -159,9 +197,9 @@ cursor:pointer;
 <input type="date" id="data">
 
 <label>Horário</label>
-<div id="horarios"></div>
+<div id="horarios" class="grid"></div>
 
-<button onclick="confirmarAgendamento()">Confirmar</button>
+<button onclick="confirmarAgendamento()">Confirmar Agendamento</button>
 </div>
 
 
@@ -173,7 +211,7 @@ cursor:pointer;
 </div>
 
 
-<!-- BOTÃO ADMIN ESCONDIDO -->
+<!-- BOTÃO ADMIN -->
 
 <div class="adminBtn" onclick="abrirAdmin()">⚙</div>
 
@@ -187,15 +225,15 @@ cursor:pointer;
 </div>
 
 
-<!-- PAINEL ADMIN -->
+<!-- ÁREA ADMIN -->
 
 <div id="adminArea" class="hidden">
 
 <div class="card">
 <h2>Configuração</h2>
 
-<label>Limite encaixe por horário</label>
-<input id="cfgLimite" value="2">
+<label>Limite de encaixe por horário</label>
+<input id="cfgLimite" type="number">
 
 <button onclick="salvarConfig()">Salvar Config</button>
 </div>
@@ -226,45 +264,79 @@ cursor:pointer;
 <div id="agendaAdmin"></div>
 </div>
 
+
+<!-- CONTROLE AVANÇADO DE HORÁRIOS -->
+
+<div class="card">
+<h2>Controle de Horários</h2>
+
+<label>Data</label>
+<input type="date" id="admData">
+
+<div id="admHorarios"></div>
+
+<label>Bloquear horário manual</label>
+<input type="time" id="admHoraBloq">
+<button onclick="bloquearHorarioManual()">Bloquear</button>
+
+<div>
+<b>Bloqueados:</b>
+<div id="admBloqueados"></div>
+</div>
+
+</div>
+
 </div>
 <script>
 
-// ===== BANCO LOCAL =====
+// =======================
+// BANCO LOCAL
+// =======================
 
-function dbGet(chave, padrao){
-return JSON.parse(localStorage.getItem(chave) || JSON.stringify(padrao));
+function dbGet(k, def){
+return JSON.parse(localStorage.getItem(k) || JSON.stringify(def));
 }
 
-function dbSet(chave, valor){
-localStorage.setItem(chave, JSON.stringify(valor));
+function dbSet(k,v){
+localStorage.setItem(k, JSON.stringify(v));
 }
 
 
-// ===== DADOS INICIAIS =====
+// =======================
+// DADOS INICIAIS
+// =======================
 
 if(!localStorage.getItem("barbeiros")){
-dbSet("barbeiros", ["Carlos","João"]);
+dbSet("barbeiros",["Carlos","João"]);
 }
 
 if(!localStorage.getItem("servicos")){
-dbSet("servicos", ["Corte","Corte + Barba"]);
+dbSet("servicos",["Corte","Corte + Barba"]);
 }
 
 if(!localStorage.getItem("agendamentos")){
-dbSet("agendamentos", []);
+dbSet("agendamentos",[]);
+}
+
+if(!localStorage.getItem("bloqueios")){
+dbSet("bloqueios",[]);
 }
 
 if(!localStorage.getItem("config")){
-dbSet("config", {limite:2});
+dbSet("config",{limite:2});
 }
 
 
-// ===== ESTADO =====
+// =======================
+// ESTADO
+// =======================
 
 let horaSel = null;
 
 
-// ===== LOGIN CLIENTE =====
+// =======================
+// LOGIN CLIENTE
+// =======================
 
 function loginCliente(){
 
@@ -272,12 +344,12 @@ const nome = cliNome.value.trim();
 const tel = cliTel.value.trim();
 
 if(!nome || !tel){
-alert("Preencha os dados");
+alert("Preencha nome e WhatsApp");
 return;
 }
 
-localStorage.setItem("clienteNome", nome);
-localStorage.setItem("clienteTel", tel);
+localStorage.setItem("cliNome", nome);
+localStorage.setItem("cliTel", tel);
 
 loginBox.classList.add("hidden");
 areaCliente.classList.remove("hidden");
@@ -288,26 +360,28 @@ listarMeus();
 }
 
 
-// ===== SELECTS =====
+// =======================
+// SELECTS
+// =======================
 
 function carregarSelects(){
 
-const barbeiros = dbGet("barbeiros",[]);
+const bs = dbGet("barbeiros",[]);
 barbeiro.innerHTML = "";
-
-barbeiros.forEach(b=>{
+bs.forEach(b=>{
 barbeiro.innerHTML += `<option>${b}</option>`;
 });
 
-const servicos = dbGet("servicos",[]);
+const ss = dbGet("servicos",[]);
 servico.innerHTML = "";
-
-servicos.forEach(s=>{
+ss.forEach(s=>{
 servico.innerHTML += `<option>${s}</option>`;
 });
 }
 
-// ===== GERAR HORÁRIOS =====
+// =======================
+// GERAR HORÁRIOS
+// =======================
 
 function gerarHorarios(){
 
@@ -328,21 +402,23 @@ horarios.innerHTML +=
 
 }
 
-document.querySelectorAll(".hora").forEach(el=>{
+document.querySelectorAll(".hora")
+.forEach(el=>{
 el.onclick = ()=>selecionarHora(el);
 });
 
-atualizarOcupacaoVisual();
+atualizarVisualHorarios();
 }
 
 
-// ===== SELECIONAR HORA =====
+// =======================
+// SELECIONAR HORA
+// =======================
 
 function selecionarHora(el){
 
-if(el.classList.contains("ocupado")){
-return;
-}
+if(el.classList.contains("ocupado")) return;
+if(el.classList.contains("bloq")) return;
 
 document.querySelectorAll(".hora")
 .forEach(x=>x.classList.remove("sel"));
@@ -352,31 +428,44 @@ horaSel = el.dataset.h;
 }
 
 
-// ===== OCUPAÇÃO VISUAL =====
+// =======================
+// ATUALIZAR VISUAL HORÁRIOS
+// =======================
 
-function atualizarOcupacaoVisual(){
+function atualizarVisualHorarios(){
 
 const dataSel = data.value;
 if(!dataSel) return;
 
 const lista = dbGet("agendamentos",[]);
+const bloqueios = dbGet("bloqueios",[]);
 const limite = dbGet("config",{}).limite || 2;
 
 let mapa = {};
 
 lista.forEach(a=>{
-if(a.data === dataSel && a.status === "ativo"){
-mapa[a.hora] = (mapa[a.hora] || 0) + 1;
+if(a.data === dataSel && a.status==="ativo"){
+mapa[a.hora] = (mapa[a.hora]||0)+1;
 }
 });
 
 document.querySelectorAll(".hora").forEach(el=>{
 
 const h = el.dataset.h;
+
 el.classList.remove("ocupado");
+el.classList.remove("bloq");
 
 if(mapa[h] >= limite){
 el.classList.add("ocupado");
+}
+
+const bloq = bloqueios.some(b =>
+b.data===dataSel && b.hora===h
+);
+
+if(bloq){
+el.classList.add("bloq");
 }
 
 });
@@ -384,16 +473,18 @@ el.classList.add("ocupado");
 
 
 // atualizar quando muda data
-data.onchange = atualizarOcupacaoVisual;
-// ===== CONFIRMAR AGENDAMENTO =====
+data.onchange = atualizarVisualHorarios;
+// =======================
+// CONFIRMAR AGENDAMENTO
+// =======================
 
 function confirmarAgendamento(){
 
 const dataSel = data.value;
 const barb = barbeiro.value;
 const serv = servico.value;
-const nome = localStorage.getItem("clienteNome");
-const tel = localStorage.getItem("clienteTel");
+const nome = localStorage.getItem("cliNome");
+const tel = localStorage.getItem("cliTel");
 
 if(!dataSel || !horaSel){
 alert("Escolha data e horário");
@@ -401,15 +492,28 @@ return;
 }
 
 const lista = dbGet("agendamentos",[]);
+const bloqueios = dbGet("bloqueios",[]);
 const limite = dbGet("config",{}).limite || 2;
+
+
+// ===== BLOQUEIO ADMIN =====
+
+const bloqueado = bloqueios.some(b =>
+b.data===dataSel && b.hora===horaSel
+);
+
+if(bloqueado){
+alert("Horário bloqueado pelo admin");
+return;
+}
 
 
 // ===== LIMITE ENCAIXE =====
 
 const qtdHora = lista.filter(a =>
-a.data === dataSel &&
-a.hora === horaSel &&
-a.status === "ativo"
+a.data===dataSel &&
+a.hora===horaSel &&
+a.status==="ativo"
 ).length;
 
 if(qtdHora >= limite){
@@ -420,15 +524,15 @@ return;
 
 // ===== BARBEIRO OCUPADO =====
 
-const barbOcupado = lista.some(a =>
-a.data === dataSel &&
-a.hora === horaSel &&
-a.barbeiro === barb &&
-a.status === "ativo"
+const barbBusy = lista.some(a =>
+a.data===dataSel &&
+a.hora===horaSel &&
+a.barbeiro===barb &&
+a.status==="ativo"
 );
 
-if(barbOcupado){
-alert("Barbeiro ocupado nesse horário");
+if(barbBusy){
+alert("Barbeiro já ocupado nesse horário");
 return;
 }
 
@@ -437,40 +541,46 @@ return;
 
 lista.push({
 id: Date.now(),
-nome: nome,
-tel: tel,
-barbeiro: barb,
-servico: serv,
-data: dataSel,
-hora: horaSel,
-status: "ativo",
-criado: Date.now()
+nome:nome,
+tel:tel,
+barbeiro:barb,
+servico:serv,
+data:dataSel,
+hora:horaSel,
+status:"ativo",
+criado:Date.now()
 });
 
 dbSet("agendamentos", lista);
 
-alert("Agendado com sucesso");
+alert("Agendamento confirmado");
 
 listarMeus();
-atualizarOcupacaoVisual();
+atualizarVisualHorarios();
+listarAgendaAdmin();
 }
-// ===== LISTAR MEUS AGENDAMENTOS =====
+// =======================
+// LISTAR MEUS AGENDAMENTOS
+// =======================
 
 function listarMeus(){
 
-const tel = localStorage.getItem("clienteTel");
+const tel = localStorage.getItem("cliTel");
 const lista = dbGet("agendamentos",[]);
 
 listaMeus.innerHTML = "";
 
 lista
-.filter(a => a.tel === tel && a.status === "ativo")
+.filter(a => a.tel===tel && a.status==="ativo")
+.sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
 .forEach(a => {
 
 listaMeus.innerHTML += `
 <div class="item">
 ${a.data} ${a.hora} — ${a.servico} — ${a.barbeiro}
+<div class="row">
 <button onclick="cancelarAg(${a.id})">Cancelar</button>
+</div>
 </div>
 `;
 
@@ -478,14 +588,16 @@ ${a.data} ${a.hora} — ${a.servico} — ${a.barbeiro}
 }
 
 
-// ===== CANCELAR =====
+// =======================
+// CANCELAR AGENDAMENTO
+// =======================
 
 function cancelarAg(id){
 
 let lista = dbGet("agendamentos",[]);
 
-lista = lista.map(a => {
-if(a.id === id){
+lista = lista.map(a=>{
+if(a.id===id){
 a.status = "cancelado";
 }
 return a;
@@ -494,16 +606,21 @@ return a;
 dbSet("agendamentos", lista);
 
 listarMeus();
-atualizarOcupacaoVisual();
+atualizarVisualHorarios();
+listarAgendaAdmin();
 }
-// ===== ABRIR ADMIN =====
+// =======================
+// ABRIR ADMIN
+// =======================
 
 function abrirAdmin(){
 adminLogin.classList.remove("hidden");
 }
 
 
-// ===== LOGIN ADMIN =====
+// =======================
+// LOGIN ADMIN
+// =======================
 
 function loginAdmin(){
 
@@ -519,7 +636,9 @@ carregarAdmin();
 }
 
 
-// ===== SALVAR CONFIG =====
+// =======================
+// CONFIG ADMIN
+// =======================
 
 function salvarConfig(){
 
@@ -529,22 +648,53 @@ cfg.limite = parseInt(cfgLimite.value) || 2;
 dbSet("config", cfg);
 
 alert("Config salva");
-atualizarOcupacaoVisual();
+
+atualizarVisualHorarios();
 }
 
 
-// ===== CARREGAR ADMIN =====
+// =======================
+// CARREGAR ADMIN
+// =======================
 
 function carregarAdmin(){
+
+const cfg = dbGet("config",{});
+cfgLimite.value = cfg.limite || 2;
 
 listarBarbeirosAdmin();
 listarServicosAdmin();
 listarAgendaAdmin();
-
-const cfg = dbGet("config",{});
-cfgLimite.value = cfg.limite || 2;
+carregarPainelHorariosAdmin();
 }
-// ===== BARBEIROS ADMIN =====
+
+
+// =======================
+// AGENDA GERAL ADMIN
+// =======================
+
+function listarAgendaAdmin(){
+
+const lista = dbGet("agendamentos",[]);
+
+agendaAdmin.innerHTML = "";
+
+lista
+.filter(a => a.status==="ativo")
+.sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
+.forEach(a => {
+
+agendaAdmin.innerHTML += `
+<div class="item">
+${a.data} ${a.hora} — ${a.nome} — ${a.servico} — ${a.barbeiro}
+</div>
+`;
+
+});
+}
+// =======================
+// BARBEIROS ADMIN
+// =======================
 
 function addBarbeiro(){
 
@@ -553,7 +703,6 @@ if(!nome) return;
 
 const lista = dbGet("barbeiros",[]);
 lista.push(nome);
-
 dbSet("barbeiros", lista);
 
 novoBarbeiro.value = "";
@@ -572,7 +721,9 @@ lista.forEach((b,i)=>{
 listaBarbeiros.innerHTML += `
 <div class="item">
 ${b}
+<div class="row">
 <button onclick="delBarbeiro(${i})">Excluir</button>
+</div>
 </div>
 `;
 });
@@ -590,7 +741,10 @@ carregarSelects();
 }
 
 
-// ===== SERVIÇOS ADMIN =====
+
+// =======================
+// SERVIÇOS ADMIN
+// =======================
 
 function addServico(){
 
@@ -599,7 +753,6 @@ if(!nome) return;
 
 const lista = dbGet("servicos",[]);
 lista.push(nome);
-
 dbSet("servicos", lista);
 
 novoServico.value = "";
@@ -618,7 +771,9 @@ lista.forEach((s,i)=>{
 listaServicos.innerHTML += `
 <div class="item">
 ${s}
+<div class="row">
 <button onclick="delServico(${i})">Excluir</button>
+</div>
 </div>
 `;
 });
@@ -634,31 +789,105 @@ dbSet("servicos", lista);
 listarServicosAdmin();
 carregarSelects();
 }
-// ===== AGENDA ADMIN =====
+// =======================
+// PAINEL HORÁRIOS ADMIN
+// =======================
 
-function listarAgendaAdmin(){
+admData.onchange = carregarPainelHorariosAdmin;
 
+function carregarPainelHorariosAdmin(){
+
+if(!admData.value) return;
+
+const dataSel = admData.value;
 const lista = dbGet("agendamentos",[]);
+const bloqueios = dbGet("bloqueios",[]);
 
-agendaAdmin.innerHTML = "";
+admHorarios.innerHTML = "";
+admBloqueados.innerHTML = "";
+
+// horários com agendamento
 
 lista
-.filter(a => a.status === "ativo")
-.sort((a,b)=> (a.data + a.hora).localeCompare(b.data + b.hora))
+.filter(a => a.data===dataSel && a.status==="ativo")
 .forEach(a => {
 
-agendaAdmin.innerHTML += `
-<div class="item">
-${a.data} ${a.hora} — ${a.nome} — ${a.servico} — ${a.barbeiro}
-</div>
-`;
+admHorarios.innerHTML +=
+`<span class="timeChip">
+${a.hora} — ${a.nome}
+</span>`;
+
+});
+
+// bloqueados
+
+bloqueios
+.filter(b => b.data===dataSel)
+.forEach(b => {
+
+admBloqueados.innerHTML +=
+`<span class="timeChip bloq">
+${b.hora}
+<button onclick="removerBloqueio('${b.data}','${b.hora}')">x</button>
+</span>`;
 
 });
 }
 
 
 
-// ===== CANCELAMENTO AUTOMÁTICO (30 min sem confirmação) =====
+// =======================
+// BLOQUEAR HORÁRIO MANUAL
+// =======================
+
+function bloquearHorarioManual(){
+
+const dataSel = admData.value;
+const hora = admHoraBloq.value;
+
+if(!dataSel || !hora){
+alert("Escolha data e hora");
+return;
+}
+
+const lista = dbGet("bloqueios",[]);
+
+lista.push({
+data:dataSel,
+hora:hora
+});
+
+dbSet("bloqueios", lista);
+
+carregarPainelHorariosAdmin();
+atualizarVisualHorarios();
+}
+
+
+
+// =======================
+// REMOVER BLOQUEIO
+// =======================
+
+function removerBloqueio(dataSel,hora){
+
+let lista = dbGet("bloqueios",[]);
+
+lista = lista.filter(b =>
+!(b.data===dataSel && b.hora===hora)
+);
+
+dbSet("bloqueios", lista);
+
+carregarPainelHorariosAdmin();
+atualizarVisualHorarios();
+}
+
+
+
+// =======================
+// AUTO CANCELAMENTO (30min)
+// =======================
 
 setInterval(()=>{
 
@@ -667,30 +896,29 @@ let mudou = false;
 
 lista.forEach(a => {
 
-if(a.status === "ativo"){
-
-const diff = Date.now() - a.criado;
-
-if(diff > 30 * 60 * 1000){
+if(a.status==="ativo"){
+if(Date.now() - a.criado > 30*60*1000){
 a.status = "cancelado_auto";
 mudou = true;
 }
-
 }
 
 });
 
 if(mudou){
 dbSet("agendamentos", lista);
-atualizarOcupacaoVisual();
 listarMeus();
+listarAgendaAdmin();
+atualizarVisualHorarios();
 }
 
 },60000);
 
 
 
-// ===== INIT =====
+// =======================
+// INIT FINAL
+// =======================
 
 (function init(){
 
