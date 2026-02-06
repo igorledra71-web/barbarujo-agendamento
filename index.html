@@ -1,52 +1,148 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Barbarujo Agenda Pro</title>
 
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
+<style>
 
-<!-- Firebase compat -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+body{
+margin:0;
+background:#0b0b0b;
+color:#f2f2f2;
+font-family:Arial, Helvetica, sans-serif;
+}
 
-<!-- Chart -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+header{
+background:#000;
+padding:22px;
+text-align:center;
+border-bottom:3px solid #caa63a;
+}
 
+header h1{
+margin:0;
+letter-spacing:2px;
+}
+
+.card{
+background:#161616;
+margin:15px;
+padding:20px;
+border-radius:14px;
+border:1px solid #2a2a2a;
+box-shadow:0 10px 30px rgba(0,0,0,0.6);
+}
+
+h2{
+margin-top:0;
+color:#e7c15a;
+}
+
+label{
+font-size:13px;
+opacity:0.9;
+}
+
+input,select{
+width:100%;
+padding:12px;
+margin:6px 0 14px 0;
+border-radius:8px;
+border:1px solid #333;
+background:#101010;
+color:white;
+}
+
+button{
+width:100%;
+padding:14px;
+border-radius:10px;
+border:none;
+background:#caa63a;
+color:black;
+font-weight:bold;
+cursor:pointer;
+margin-top:6px;
+}
+
+button:hover{
+opacity:0.9;
+transform:translateY(-1px);
+}
+
+.hidden{
+display:none;
+}
+
+#horarios{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
+}
+
+.hora{
+background:#1f1f1f;
+padding:12px;
+text-align:center;
+border-radius:8px;
+cursor:pointer;
+border:1px solid #333;
+}
+
+.hora.sel{
+background:#e7c15a;
+color:black;
+font-weight:bold;
+}
+
+.hora.ocupado{
+background:#5a1a1a;
+opacity:0.6;
+cursor:not-allowed;
+}
+
+.item{
+background:#121212;
+padding:10px;
+border-radius:8px;
+margin:6px 0;
+border:1px solid #2a2a2a;
+}
+
+.adminBtn{
+position:fixed;
+bottom:10px;
+right:10px;
+opacity:0.15;
+font-size:22px;
+cursor:pointer;
+}
+
+</style>
 </head>
-
 <body>
 
 <header>
-<h1 id="tituloSistema">Barbarujo Agenda Pro</h1>
+<h1>BARBARUJO AGENDA PRO</h1>
 </header>
-
-<!-- SETUP INICIAL -->
-
-<div class="card" id="setupInicial">
-<h2>Configuração Inicial</h2>
-<input id="setupNome" placeholder="Nome da barbearia">
-<input id="setupWhats" placeholder="WhatsApp">
-<input id="setupSenhaAdmin" placeholder="Senha admin">
-<button onclick="rodarSetup()">Concluir Setup</button>
-</div>
-
 <!-- LOGIN CLIENTE -->
 
-<div class="card" id="clienteLoginBox">
+<div class="card" id="loginBox">
 <h2>Entrar</h2>
-<input id="cliNome" placeholder="Seu nome">
-<input id="cliTel" placeholder="WhatsApp">
-<button onclick="clienteLogin()">Entrar</button>
+
+<label>Nome</label>
+<input id="cliNome">
+
+<label>WhatsApp</label>
+<input id="cliTel">
+
+<button onclick="loginCliente()">Entrar</button>
 </div>
 
-<!-- AREA CLIENTE -->
+
+<!-- ÁREA CLIENTE -->
 
 <div id="areaCliente" class="hidden">
 
@@ -63,631 +159,184 @@
 <input type="date" id="data">
 
 <label>Horário</label>
-<div id="gradeHorarios"></div>
+<div id="horarios"></div>
 
-<button onclick="confirmarAgendamento()">Confirmar Agendamento</button>
-<button onclick="pagarPix()">Pagar PIX</button>
-<button onclick="pagarCartao()">Pagar Cartão</button>
-
+<button onclick="confirmarAgendamento()">Confirmar</button>
 </div>
+
 
 <div class="card">
 <h2>Meus Agendamentos</h2>
-<div id="meusAgendamentos"></div>
-</div>
-
-<div class="card">
-<h2>Check-in no Local</h2>
-<button onclick="checkinCliente()">Fazer Check-in</button>
-<div id="checkinStatus"></div>
-</div>
-
-<div class="card">
-<h2>Fila de Espera</h2>
-<button onclick="entrarFila()">Entrar na fila</button>
-<div id="filaPos"></div>
-</div>
-
-<div class="card">
-<h2>Avaliar Atendimento</h2>
-<select id="notaAtendimento">
-<option value="5">5 estrelas</option>
-<option value="4">4 estrelas</option>
-<option value="3">3 estrelas</option>
-<option value="2">2 estrelas</option>
-<option value="1">1 estrela</option>
-</select>
-<button onclick="enviarAvaliacao()">Enviar Avaliação</button>
+<div id="listaMeus"></div>
 </div>
 
 </div>
+
 
 <!-- BOTÃO ADMIN ESCONDIDO -->
 
-<div id="adminAccessBtn" onclick="mostrarAdminLogin()">⚙</div>
+<div class="adminBtn" onclick="abrirAdmin()">⚙</div>
+
 
 <!-- LOGIN ADMIN -->
 
-<div class="card hidden" id="adminLoginBox">
+<div class="card hidden" id="adminLogin">
 <h2>Painel Admin</h2>
 <input type="password" id="adminSenha" placeholder="Senha">
-<button onclick="adminLogin()">Entrar</button>
+<button onclick="loginAdmin()">Entrar</button>
 </div>
+
 
 <!-- PAINEL ADMIN -->
 
-<div id="adminPanel" class="hidden">
+<div id="adminArea" class="hidden">
 
 <div class="card">
-<h2>Config Sistema</h2>
-<label>Limite encaixe</label>
-<input id="cfgLimite">
-<label>Cancelamento auto (min)</label>
-<input id="cfgCancelamento">
-<button onclick="salvarConfig()">Salvar</button>
+<h2>Configuração</h2>
+
+<label>Limite encaixe por horário</label>
+<input id="cfgLimite" value="2">
+
+<button onclick="salvarConfig()">Salvar Config</button>
 </div>
+
+
+<div class="card">
+<h2>Barbeiros</h2>
+
+<input id="novoBarbeiro" placeholder="Nome barbeiro">
+<button onclick="addBarbeiro()">Adicionar</button>
+
+<div id="listaBarbeiros"></div>
+</div>
+
+
+<div class="card">
+<h2>Serviços</h2>
+
+<input id="novoServico" placeholder="Nome serviço">
+<button onclick="addServico()">Adicionar</button>
+
+<div id="listaServicos"></div>
+</div>
+
 
 <div class="card">
 <h2>Agenda Geral</h2>
 <div id="agendaAdmin"></div>
 </div>
 
-<div class="card">
-<h2>Barbeiros</h2>
-<input id="novoBarbeiroNome" placeholder="Nome">
-<button onclick="addBarbeiro()">Adicionar</button>
-<div id="listaBarbeiros"></div>
 </div>
-
-<div class="card">
-<h2>Serviços</h2>
-<input id="novoServicoNome" placeholder="Nome">
-<input id="novoServicoPreco" placeholder="Preço">
-<input id="novoServicoDuracao" placeholder="Duração">
-<button onclick="addServico()">Adicionar</button>
-<div id="listaServicos"></div>
-</div>
-
-<div class="card">
-<h2>Bloqueios</h2>
-<input type="date" id="bloqueioDia">
-<button onclick="bloquearDia()">Bloquear Dia</button>
-<input type="date" id="bloqueioDataHora">
-<input type="time" id="bloqueioHora">
-<button onclick="bloquearHorario()">Bloquear Hora</button>
-</div>
-
-<div class="card">
-<h2>Financeiro</h2>
-<div id="financeiroResumo"></div>
-<button onclick="exportarBackup()">Exportar Backup</button>
-</div>
-
-<div class="card">
-<h2>Dashboard</h2>
-<canvas id="graficoAtendimentos"></canvas>
-</div>
-
-<div class="card">
-<h2>Ranking Barbeiros</h2>
-<div id="rankingBarbeiros"></div>
-</div>
-
-<div class="card">
-<h2>IA Operacional</h2>
-<button onclick="rodarIA()">Rodar IA</button>
-<div id="iaBox"></div>
-</div>
-
-<div class="card">
-<h2>Painel TV</h2>
-<button onclick="abrirPainelTV()">Modo TV</button>
-</div>
-
-</div>
-
-<div id="painelTV" class="hidden">
-<h1 id="tvChamada">Aguardando</h1>
-</div>
-
-<script src="config.js"></script>
-<script src="app.js"></script>
-
 <script>
-if("serviceWorker" in navigator){
-navigator.serviceWorker.register("sw.js");
-}
-</script>
 
-</body>
-</html>
-:root {
---cor-principal: #caa63a;
---bg: #0b0b0b;
---card: #161616;
---card2: #101010;
---borda: #2a2a2a;
---texto: #f2f2f2;
+// ===== BANCO LOCAL =====
+
+function dbGet(chave, padrao){
+return JSON.parse(localStorage.getItem(chave) || JSON.stringify(padrao));
 }
 
-* {
-box-sizing: border-box;
+function dbSet(chave, valor){
+localStorage.setItem(chave, JSON.stringify(valor));
 }
 
-body {
-margin: 0;
-background: var(--bg);
-font-family: "Segoe UI", Arial, sans-serif;
-color: var(--texto);
+
+// ===== DADOS INICIAIS =====
+
+if(!localStorage.getItem("barbeiros")){
+dbSet("barbeiros", ["Carlos","João"]);
 }
 
-/* HEADER */
-
-header {
-background: linear-gradient(90deg,#000,#1a1a1a);
-padding: 22px;
-text-align: center;
-border-bottom: 2px solid var(--cor-principal);
+if(!localStorage.getItem("servicos")){
+dbSet("servicos", ["Corte","Corte + Barba"]);
 }
 
-header h1 {
-margin: 0;
-font-weight: 600;
-letter-spacing: 2px;
-font-size: 20px;
+if(!localStorage.getItem("agendamentos")){
+dbSet("agendamentos", []);
 }
 
-/* CARDS */
-
-.card {
-background: linear-gradient(180deg,var(--card),var(--card2));
-margin: 18px;
-padding: 20px;
-border-radius: 16px;
-border: 1px solid var(--borda);
-box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+if(!localStorage.getItem("config")){
+dbSet("config", {limite:2});
 }
 
-.card h2 {
-margin-top: 0;
-color: var(--cor-principal);
-font-size: 18px;
-}
 
-/* FORM */
+// ===== ESTADO =====
 
-label {
-font-size: 13px;
-opacity: 0.85;
-}
+let horaSel = null;
 
-input, select {
-width: 100%;
-padding: 14px;
-margin: 8px 0 16px 0;
-border-radius: 10px;
-border: 1px solid var(--borda);
-background: #0f0f0f;
-color: white;
-font-size: 14px;
-}
-
-/* BUTTON */
-
-button {
-width: 100%;
-padding: 14px;
-border-radius: 12px;
-border: none;
-background: linear-gradient(90deg,var(--cor-principal),#e7c15a);
-color: #111;
-font-weight: 700;
-letter-spacing: 1px;
-cursor: pointer;
-margin-bottom: 8px;
-}
-
-button:hover {
-opacity: 0.9;
-transform: translateY(-1px);
-}
-
-/* HORÁRIOS */
-
-#gradeHorarios {
-display: grid;
-grid-template-columns: repeat(3,1fr);
-gap: 10px;
-}
-
-.hora {
-padding: 12px;
-background: #1c1c1c;
-border-radius: 10px;
-text-align: center;
-cursor: pointer;
-border: 1px solid var(--borda);
-font-size: 14px;
-}
-
-.hora.sel {
-background: var(--cor-principal);
-color: black;
-font-weight: 700;
-}
-
-.hora.ocupado {
-background: #5a1a1a;
-cursor: not-allowed;
-opacity: 0.6;
-}
-
-/* LISTAS ADMIN */
-
-.itemAdmin {
-background: #141414;
-padding: 10px;
-margin: 6px 0;
-border-radius: 8px;
-display: flex;
-justify-content: space-between;
-align-items: center;
-border: 1px solid var(--borda);
-}
-
-.btnMini {
-width: auto;
-padding: 6px 10px;
-font-size: 12px;
-border-radius: 6px;
-}
-
-/* RANK */
-
-.rankItem {
-display: flex;
-justify-content: space-between;
-padding: 8px;
-background: #151515;
-margin: 6px 0;
-border-radius: 8px;
-border: 1px solid var(--borda);
-}
-
-/* IA */
-
-.iaLinha {
-padding: 8px;
-margin: 6px 0;
-background: #101417;
-border-radius: 8px;
-border: 1px solid #1f2a33;
-font-size: 13px;
-}
-
-/* CALENDÁRIO */
-
-.calItem {
-padding: 10px;
-margin: 6px 0;
-border-radius: 8px;
-background: #101010;
-border: 1px solid var(--borda);
-}
-
-/* FINANCEIRO */
-
-.finLinha {
-display: flex;
-justify-content: space-between;
-margin: 6px 0;
-}
-
-/* ADMIN ACCESS BUTTON */
-
-#adminAccessBtn {
-position: fixed;
-bottom: 10px;
-right: 10px;
-opacity: 0.15;
-font-size: 22px;
-cursor: pointer;
-user-select: none;
-}
-
-/* HIDDEN */
-
-.hidden {
-display: none;
-}
-
-/* PAINEL TV */
-
-#painelTV {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: black;
-color: var(--cor-principal);
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 48px;
-z-index: 9999;
-text-align: center;
-padding: 20px;
-}
-
-/* GERENTE */
-
-#painelGerente .card {
-border: 1px solid #3a2a00;
-background: linear-gradient(180deg,#161616,#0f0f0f);
-}
-
-/* RESPONSIVO */
-
-@media (max-width:600px) {
-
-#gradeHorarios {
-grid-template-columns: repeat(2,1fr);
-}
-
-header h1 {
-font-size: 16px;
-}
-
-.card {
-margin: 12px;
-padding: 16px;
-}
-
-}
-// ===== CONFIG GLOBAL BARBARUJO AGENDA PRO =====
-
-window.APP_CONFIG = {
-
-nomeSistema: "Barbarujo Agenda Pro",
-
-moeda: "BRL",
-
-horario: {
-abertura: 8,
-fechamento: 20,
-slotMinutos: 30
-},
-
-whatsapp: {
-numeroPadrao: "5599999999999"
-},
-
-pagamentos: {
-pixLink: "https://seu-link-pix-aqui",
-stripeLink: "https://buy.stripe.com/seu_link_aqui"
-},
-
-planos: {
-basic: {
-maxAgendamentosMes: 120
-},
-pro: {
-maxAgendamentosMes: 400
-},
-premium: {
-maxAgendamentosMes: 9999
-}
-},
-
-ia: {
-riscoFaltaAlto: 0.4,
-janelaLembreteMs: 2 * 60 * 60 * 1000
-},
-
-firebase: {
-apiKey: "COLE_AQUI",
-authDomain: "COLE_AQUI",
-projectId: "COLE_AQUI",
-storageBucket: "COLE_AQUI",
-messagingSenderId: "COLE_AQUI",
-appId: "COLE_AQUI"
-}
-
-};
-// ===== INIT FIREBASE =====
-
-const firebaseConfig = APP_CONFIG.firebase;
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// ===== ESTADO GLOBAL =====
-
-let horaEscolhida = null;
-let CONFIG_SISTEMA = {
-limiteEncaixe: 2,
-minCancelamento: 30
-};
-
-let CACHE_BARBEIROS = [];
-let CACHE_SERVICOS = [];
-
-// ===== UTIL =====
-
-function hojeISO(){
-return new Date().toISOString().slice(0,10);
-}
-
-function agoraMs(){
-return Date.now();
-}
-
-// ===== SETUP INICIAL =====
-
-async function rodarSetup(){
-
-const nome = setupNome.value.trim();
-const whats = setupWhats.value.trim();
-const senha = setupSenhaAdmin.value.trim();
-
-if(!nome || !senha){
-alert("Preencha dados setup");
-return;
-}
-
-await db.collection("config").doc("setup").set({
-nome: nome,
-whats: whats,
-criado: agoraMs()
-});
-
-await db.collection("admins").add({
-user: "admin",
-senha: senha,
-nivel: "super"
-});
-
-setupInicial.style.display = "none";
-alert("Setup concluído");
-}
 
 // ===== LOGIN CLIENTE =====
 
-async function clienteLogin(){
-
-await verificarBloqueioSistema();
+function loginCliente(){
 
 const nome = cliNome.value.trim();
 const tel = cliTel.value.trim();
 
 if(!nome || !tel){
-alert("Preencha nome e WhatsApp");
+alert("Preencha os dados");
 return;
 }
 
-localStorage.setItem("cliNome", nome);
-localStorage.setItem("cliTel", tel);
+localStorage.setItem("clienteNome", nome);
+localStorage.setItem("clienteTel", tel);
 
-clienteLoginBox.classList.add("hidden");
+loginBox.classList.add("hidden");
 areaCliente.classList.remove("hidden");
 
-await carregarConfigSistema();
-await carregarBarbeiros();
-await carregarServicos();
+carregarSelects();
 gerarHorarios();
-listarMeusAgendamentos();
-verificarLembretesCliente();
+listarMeus();
 }
 
-// ===== BLOQUEIO SISTEMA =====
 
-async function verificarBloqueioSistema(){
+// ===== SELECTS =====
 
-const doc = await db.collection("config")
-.doc("bloqueio").get();
+function carregarSelects(){
 
-if(doc.exists && doc.data().ativo === true){
-alert("Sistema bloqueado");
-throw new Error("bloqueado");
-}
-}
-
-// ===== CONFIG SISTEMA =====
-
-async function carregarConfigSistema(){
-
-const doc = await db.collection("config")
-.doc("sistema").get();
-
-if(doc.exists){
-CONFIG_SISTEMA = doc.data();
-}
-
-if(typeof cfgLimite !== "undefined"){
-cfgLimite.value = CONFIG_SISTEMA.limiteEncaixe;
-}
-
-if(typeof cfgCancelamento !== "undefined"){
-cfgCancelamento.value = CONFIG_SISTEMA.minCancelamento;
-}
-}
-
-async function salvarConfig(){
-
-CONFIG_SISTEMA.limiteEncaixe = parseInt(cfgLimite.value);
-CONFIG_SISTEMA.minCancelamento = parseInt(cfgCancelamento.value);
-
-await db.collection("config")
-.doc("sistema")
-.set(CONFIG_SISTEMA);
-
-alert("Config salva");
-}
-
-// ===== BARBEIROS =====
-
-async function carregarBarbeiros(){
-
-const snap = await db.collection("barbeiros").get();
-
-CACHE_BARBEIROS = snap.docs.map(d => ({
-id: d.id,
-...d.data()
-}));
-
+const barbeiros = dbGet("barbeiros",[]);
 barbeiro.innerHTML = "";
 
-CACHE_BARBEIROS.forEach(b => {
-barbeiro.innerHTML += `<option value="${b.nome}">${b.nome}</option>`;
+barbeiros.forEach(b=>{
+barbeiro.innerHTML += `<option>${b}</option>`;
 });
-}
 
-// ===== SERVIÇOS =====
-
-async function carregarServicos(){
-
-const snap = await db.collection("servicos").get();
-
-CACHE_SERVICOS = snap.docs.map(d => ({
-id: d.id,
-...d.data()
-}));
-
+const servicos = dbGet("servicos",[]);
 servico.innerHTML = "";
 
-CACHE_SERVICOS.forEach(s => {
-servico.innerHTML += `<option value="${s.nome}">${s.nome}</option>`;
+servicos.forEach(s=>{
+servico.innerHTML += `<option>${s}</option>`;
 });
 }
 
-// ===== HORÁRIOS =====
+// ===== GERAR HORÁRIOS =====
 
 function gerarHorarios(){
 
-horaEscolhida = null;
-gradeHorarios.innerHTML = "";
+horaSel = null;
+horarios.innerHTML = "";
 
-const hIni = APP_CONFIG.horario.abertura;
-const hFim = APP_CONFIG.horario.fechamento;
+for(let h=8; h<=20; h++){
 
-for(let h = hIni; h <= hFim; h++){
-
-["00","30"].forEach(m => {
+["00","30"].forEach(m=>{
 
 const hh = h.toString().padStart(2,"0");
-const hora = `${hh}:${m}`;
+const hora = hh + ":" + m;
 
-gradeHorarios.innerHTML +=
-`<div class="hora" data-hora="${hora}">${hora}</div>`;
+horarios.innerHTML +=
+`<div class="hora" data-h="${hora}">${hora}</div>`;
 
 });
 
 }
 
-document.querySelectorAll(".hora").forEach(el => {
-el.onclick = () => selecionarHora(el);
+document.querySelectorAll(".hora").forEach(el=>{
+el.onclick = ()=>selecionarHora(el);
 });
+
+atualizarOcupacaoVisual();
 }
+
+
+// ===== SELECIONAR HORA =====
 
 function selecionarHora(el){
 
@@ -696,117 +345,37 @@ return;
 }
 
 document.querySelectorAll(".hora")
-.forEach(x => x.classList.remove("sel"));
+.forEach(x=>x.classList.remove("sel"));
 
 el.classList.add("sel");
-horaEscolhida = el.dataset.hora;
-}
-// ===== BLOQUEIOS =====
-
-async function isDiaBloqueado(dataSel){
-
-const snap = await db.collection("bloqueios")
-.where("tipo","==","dia")
-.where("data","==",dataSel)
-.get();
-
-return !snap.empty;
-}
-
-async function isHoraBloqueada(dataSel, horaSel){
-
-const snap = await db.collection("bloqueios")
-.where("tipo","==","hora")
-.where("data","==",dataSel)
-.where("hora","==",horaSel)
-.get();
-
-return !snap.empty;
+horaSel = el.dataset.h;
 }
 
 
-// ===== LIMITE PLANO =====
+// ===== OCUPAÇÃO VISUAL =====
 
-async function limitePlanoAtingido(){
+function atualizarOcupacaoVisual(){
 
-const doc = await db.collection("config")
-.doc("plano")
-.get();
+const dataSel = data.value;
+if(!dataSel) return;
 
-if(!doc.exists){
-return false;
+const lista = dbGet("agendamentos",[]);
+const limite = dbGet("config",{}).limite || 2;
+
+let mapa = {};
+
+lista.forEach(a=>{
+if(a.data === dataSel && a.status === "ativo"){
+mapa[a.hora] = (mapa[a.hora] || 0) + 1;
 }
-
-const plano = doc.data().plano || "premium";
-const limite = APP_CONFIG.planos[plano].maxAgendamentosMes;
-
-const mes = new Date().toISOString().slice(0,7);
-
-const snap = await db.collection("agendamentos")
-.where("data",">=",mes+"-01")
-.get();
-
-return snap.size >= limite;
-}
-
-
-// ===== LIMITE ENCAIXE =====
-
-async function horarioLotado(dataSel, horaSel){
-
-const snap = await db.collection("agendamentos")
-.where("data","==",dataSel)
-.where("hora","==",horaSel)
-.where("status","==","ativo")
-.get();
-
-return snap.size >= CONFIG_SISTEMA.limiteEncaixe;
-}
-
-
-// ===== BARBEIRO OCUPADO =====
-
-async function barbeiroOcupado(dataSel, horaSel, barb){
-
-const snap = await db.collection("agendamentos")
-.where("data","==",dataSel)
-.where("hora","==",horaSel)
-.where("barbeiro","==",barb)
-.where("status","==","ativo")
-.get();
-
-return !snap.empty;
-}
-
-
-// ===== ATUALIZAR OCUPAÇÃO VISUAL =====
-
-data.addEventListener("change", atualizarOcupacaoVisual);
-
-async function atualizarOcupacaoVisual(){
-
-if(!data.value){
-return;
-}
-
-const snap = await db.collection("agendamentos")
-.where("data","==",data.value)
-.where("status","==","ativo")
-.get();
-
-const mapa = {};
-
-snap.forEach(d => {
-const h = d.data().hora;
-mapa[h] = (mapa[h] || 0) + 1;
 });
 
-document.querySelectorAll(".hora").forEach(el => {
+document.querySelectorAll(".hora").forEach(el=>{
 
-const h = el.dataset.hora;
+const h = el.dataset.h;
 el.classList.remove("ocupado");
 
-if(mapa[h] >= CONFIG_SISTEMA.limiteEncaixe){
+if(mapa[h] >= limite){
 el.classList.add("ocupado");
 }
 
@@ -814,954 +383,322 @@ el.classList.add("ocupado");
 }
 
 
-// ===== CONFIRMAR AGENDAMENTO — VERSÃO ÚNICA CONSOLIDADA =====
+// atualizar quando muda data
+data.onchange = atualizarOcupacaoVisual;
+// ===== CONFIRMAR AGENDAMENTO =====
 
-async function confirmarAgendamento(){
-
-await verificarBloqueioSistema();
+function confirmarAgendamento(){
 
 const dataSel = data.value;
-const horaSel = horaEscolhida;
 const barb = barbeiro.value;
 const serv = servico.value;
+const nome = localStorage.getItem("clienteNome");
+const tel = localStorage.getItem("clienteTel");
 
 if(!dataSel || !horaSel){
 alert("Escolha data e horário");
 return;
 }
 
-if(await limitePlanoAtingido()){
-alert("Limite do plano atingido");
+const lista = dbGet("agendamentos",[]);
+const limite = dbGet("config",{}).limite || 2;
+
+
+// ===== LIMITE ENCAIXE =====
+
+const qtdHora = lista.filter(a =>
+a.data === dataSel &&
+a.hora === horaSel &&
+a.status === "ativo"
+).length;
+
+if(qtdHora >= limite){
+alert("Horário lotado");
 return;
 }
 
-if(await isDiaBloqueado(dataSel)){
-alert("Dia bloqueado");
+
+// ===== BARBEIRO OCUPADO =====
+
+const barbOcupado = lista.some(a =>
+a.data === dataSel &&
+a.hora === horaSel &&
+a.barbeiro === barb &&
+a.status === "ativo"
+);
+
+if(barbOcupado){
+alert("Barbeiro ocupado nesse horário");
 return;
 }
 
-if(await isHoraBloqueada(dataSel, horaSel)){
-alert("Horário bloqueado");
-return;
-}
 
-if(await horarioLotado(dataSel, horaSel)){
-alert("Sem encaixe disponível");
-return;
-}
+// ===== SALVAR =====
 
-if(await barbeiroOcupado(dataSel, horaSel, barb)){
-alert("Barbeiro ocupado");
-return;
-}
-
-const ag = {
-nome: localStorage.getItem("cliNome"),
-tel: localStorage.getItem("cliTel"),
+lista.push({
+id: Date.now(),
+nome: nome,
+tel: tel,
 barbeiro: barb,
 servico: serv,
 data: dataSel,
 hora: horaSel,
 status: "ativo",
-criado: agoraMs()
-};
+criado: Date.now()
+});
 
-await db.collection("agendamentos").add(ag);
+dbSet("agendamentos", lista);
 
-await addPontosCliente(ag.tel);
-enviarWhatsConfirmacao(ag);
+alert("Agendado com sucesso");
 
-alert("Agendamento confirmado");
+listarMeus();
+atualizarOcupacaoVisual();
+}
+// ===== LISTAR MEUS AGENDAMENTOS =====
 
-listarMeusAgendamentos();
+function listarMeus(){
+
+const tel = localStorage.getItem("clienteTel");
+const lista = dbGet("agendamentos",[]);
+
+listaMeus.innerHTML = "";
+
+lista
+.filter(a => a.tel === tel && a.status === "ativo")
+.forEach(a => {
+
+listaMeus.innerHTML += `
+<div class="item">
+${a.data} ${a.hora} — ${a.servico} — ${a.barbeiro}
+<button onclick="cancelarAg(${a.id})">Cancelar</button>
+</div>
+`;
+
+});
+}
+
+
+// ===== CANCELAR =====
+
+function cancelarAg(id){
+
+let lista = dbGet("agendamentos",[]);
+
+lista = lista.map(a => {
+if(a.id === id){
+a.status = "cancelado";
+}
+return a;
+});
+
+dbSet("agendamentos", lista);
+
+listarMeus();
+atualizarOcupacaoVisual();
+}
+// ===== ABRIR ADMIN =====
+
+function abrirAdmin(){
+adminLogin.classList.remove("hidden");
+}
+
+
+// ===== LOGIN ADMIN =====
+
+function loginAdmin(){
+
+if(adminSenha.value !== "1234"){
+alert("Senha incorreta");
+return;
+}
+
+adminLogin.classList.add("hidden");
+adminArea.classList.remove("hidden");
+
+carregarAdmin();
+}
+
+
+// ===== SALVAR CONFIG =====
+
+function salvarConfig(){
+
+const cfg = dbGet("config",{});
+cfg.limite = parseInt(cfgLimite.value) || 2;
+
+dbSet("config", cfg);
+
+alert("Config salva");
 atualizarOcupacaoVisual();
 }
 
 
+// ===== CARREGAR ADMIN =====
 
-// ===== WHATSAPP CONFIRMAÇÃO =====
+function carregarAdmin(){
 
-function enviarWhatsConfirmacao(a){
-
-const msg =
-`Agendado na Barbarujo
-${a.data} ${a.hora}
-Barbeiro: ${a.barbeiro}`;
-
-const num = APP_CONFIG.whatsapp.numeroPadrao;
-
-window.open(
-`https://wa.me/${num}?text=${encodeURIComponent(msg)}`
-);
-}
-
-
-
-// ===== PAGAMENTOS =====
-
-function pagarPix(){
-window.open(APP_CONFIG.pagamentos.pixLink, "_blank");
-}
-
-function pagarCartao(){
-window.open(APP_CONFIG.pagamentos.stripeLink, "_blank");
-}
-
-
-
-// ===== MEUS AGENDAMENTOS =====
-
-async function listarMeusAgendamentos(){
-
-const tel = localStorage.getItem("cliTel");
-
-const snap = await db.collection("agendamentos")
-.where("tel","==",tel)
-.get();
-
-meusAgendamentos.innerHTML = "";
-
-snap.forEach(doc => {
-
-const a = doc.data();
-
-meusAgendamentos.innerHTML += `
-<div class="card">
-${a.data} ${a.hora} — ${a.servico}
-<button onclick="cancelarAgendamento('${doc.id}')">Cancelar</button>
-</div>
-`;
-
-});
-}
-
-async function cancelarAgendamento(id){
-
-await db.collection("agendamentos")
-.doc(id)
-.update({status:"cancelado"});
-
-listarMeusAgendamentos();
-}
-
-
-
-// ===== CANCELAMENTO AUTOMÁTICO =====
-
-setInterval(async () => {
-
-const snap = await db.collection("agendamentos")
-.where("status","==","ativo")
-.get();
-
-snap.forEach(doc => {
-
-const a = doc.data();
-
-if(agoraMs() - a.criado >
-CONFIG_SISTEMA.minCancelamento * 60000){
-
-doc.ref.update({status:"cancelado_auto"});
-}
-
-});
-
-}, 60000);
-// ===== ADMIN LOGIN =====
-
-function mostrarAdminLogin(){
-adminLoginBox.classList.remove("hidden");
-}
-
-async function adminLogin(){
-
-await verificarBloqueioSistema();
-
-const senha = adminSenha.value.trim();
-
-const snap = await db.collection("admins")
-.where("senha","==",senha)
-.get();
-
-if(snap.empty){
-alert("Senha inválida");
-return;
-}
-
-adminLoginBox.classList.add("hidden");
-adminPanel.classList.remove("hidden");
-
-await carregarConfigSistema();
-listarAgendaAdmin();
 listarBarbeirosAdmin();
 listarServicosAdmin();
-dashboardGrafico();
-rankingBarbeirosAdmin();
-financeiroAdmin();
+listarAgendaAdmin();
+
+const cfg = dbGet("config",{});
+cfgLimite.value = cfg.limite || 2;
 }
-
-
-// ===== AGENDA ADMIN =====
-
-async function listarAgendaAdmin(){
-
-const snap = await db.collection("agendamentos")
-.orderBy("data")
-.get();
-
-agendaAdmin.innerHTML = "";
-
-snap.forEach(doc => {
-
-const a = doc.data();
-
-agendaAdmin.innerHTML += `
-<div class="itemAdmin">
-${a.data} ${a.hora} — ${a.nome} — ${a.barbeiro} — ${a.status}
-</div>
-`;
-
-});
-}
-
-
 // ===== BARBEIROS ADMIN =====
 
-async function addBarbeiro(){
+function addBarbeiro(){
 
-const nome = novoBarbeiroNome.value.trim();
-if(!nome){
-return;
-}
+const nome = novoBarbeiro.value.trim();
+if(!nome) return;
 
-await db.collection("barbeiros").add({nome:nome});
+const lista = dbGet("barbeiros",[]);
+lista.push(nome);
 
-novoBarbeiroNome.value = "";
+dbSet("barbeiros", lista);
+
+novoBarbeiro.value = "";
 
 listarBarbeirosAdmin();
-carregarBarbeiros();
+carregarSelects();
 }
 
-async function listarBarbeirosAdmin(){
 
-const snap = await db.collection("barbeiros").get();
+function listarBarbeirosAdmin(){
+
+const lista = dbGet("barbeiros",[]);
 listaBarbeiros.innerHTML = "";
 
-snap.forEach(doc => {
-
+lista.forEach((b,i)=>{
 listaBarbeiros.innerHTML += `
-<div class="itemAdmin">
-${doc.data().nome}
-<button class="btnMini" onclick="delBarbeiro('${doc.id}')">Excluir</button>
+<div class="item">
+${b}
+<button onclick="delBarbeiro(${i})">Excluir</button>
 </div>
 `;
-
 });
 }
 
-async function delBarbeiro(id){
 
-await db.collection("barbeiros").doc(id).delete();
+function delBarbeiro(i){
+
+const lista = dbGet("barbeiros",[]);
+lista.splice(i,1);
+dbSet("barbeiros", lista);
+
 listarBarbeirosAdmin();
-carregarBarbeiros();
+carregarSelects();
 }
 
 
 // ===== SERVIÇOS ADMIN =====
 
-async function addServico(){
+function addServico(){
 
-const nome = novoServicoNome.value.trim();
-const preco = parseFloat(novoServicoPreco.value);
-const dur = parseInt(novoServicoDuracao.value);
+const nome = novoServico.value.trim();
+if(!nome) return;
 
-if(!nome){
-return;
-}
+const lista = dbGet("servicos",[]);
+lista.push(nome);
 
-await db.collection("servicos").add({
-nome:nome,
-preco:preco || 0,
-duracao:dur || 30
-});
+dbSet("servicos", lista);
 
-novoServicoNome.value = "";
-novoServicoPreco.value = "";
-novoServicoDuracao.value = "";
+novoServico.value = "";
 
 listarServicosAdmin();
-carregarServicos();
+carregarSelects();
 }
 
-async function listarServicosAdmin(){
 
-const snap = await db.collection("servicos").get();
+function listarServicosAdmin(){
+
+const lista = dbGet("servicos",[]);
 listaServicos.innerHTML = "";
 
-snap.forEach(doc => {
-
-const s = doc.data();
-
+lista.forEach((s,i)=>{
 listaServicos.innerHTML += `
-<div class="itemAdmin">
-${s.nome} — R$ ${s.preco || 0}
-<button class="btnMini" onclick="delServico('${doc.id}')">Excluir</button>
+<div class="item">
+${s}
+<button onclick="delServico(${i})">Excluir</button>
 </div>
 `;
-
 });
 }
 
-async function delServico(id){
 
-await db.collection("servicos").doc(id).delete();
+function delServico(i){
+
+const lista = dbGet("servicos",[]);
+lista.splice(i,1);
+dbSet("servicos", lista);
+
 listarServicosAdmin();
-carregarServicos();
+carregarSelects();
 }
+// ===== AGENDA ADMIN =====
 
+function listarAgendaAdmin(){
 
-// ===== BLOQUEIOS ADMIN =====
+const lista = dbGet("agendamentos",[]);
 
-async function bloquearDia(){
+agendaAdmin.innerHTML = "";
 
-if(!bloqueioDia.value){
-return;
-}
+lista
+.filter(a => a.status === "ativo")
+.sort((a,b)=> (a.data + a.hora).localeCompare(b.data + b.hora))
+.forEach(a => {
 
-await db.collection("bloqueios").add({
-tipo:"dia",
-data:bloqueioDia.value
-});
-
-alert("Dia bloqueado");
-}
-
-async function bloquearHorario(){
-
-if(!bloqueioDataHora.value || !bloqueioHora.value){
-return;
-}
-
-await db.collection("bloqueios").add({
-tipo:"hora",
-data:bloqueioDataHora.value,
-hora:bloqueioHora.value
-});
-
-alert("Horário bloqueado");
-}
-
-
-// ===== DASHBOARD GRÁFICO =====
-
-async function dashboardGrafico(){
-
-const snap = await db.collection("agendamentos")
-.where("status","==","ativo")
-.get();
-
-let porDia = {};
-
-snap.forEach(d => {
-const dia = d.data().data;
-porDia[dia] = (porDia[dia] || 0) + 1;
-});
-
-const labels = Object.keys(porDia);
-const valores = Object.values(porDia);
-
-const ctx = document
-.getElementById("graficoAtendimentos")
-.getContext("2d");
-
-new Chart(ctx,{
-type:"bar",
-data:{
-labels:labels,
-datasets:[{
-label:"Atendimentos",
-data:valores
-}]
-}
-});
-}
-
-
-// ===== RANKING BARBEIROS =====
-
-async function rankingBarbeirosAdmin(){
-
-const snap = await db.collection("agendamentos")
-.where("status","==","ativo")
-.get();
-
-let mapa = {};
-
-snap.forEach(d => {
-const b = d.data().barbeiro;
-mapa[b] = (mapa[b] || 0) + 1;
-});
-
-rankingBarbeiros.innerHTML = "";
-
-Object.entries(mapa)
-.sort((a,b)=>b[1]-a[1])
-.forEach(([nome,q]) => {
-
-rankingBarbeiros.innerHTML +=
-`<div class="rankItem">
-<span>${nome}</span>
-<span>${q}</span>
-</div>`;
-
-});
-}
-
-
-// ===== FINANCEIRO =====
-
-async function financeiroAdmin(){
-
-const snap = await db.collection("agendamentos")
-.where("status","==","ativo")
-.get();
-
-let total = 0;
-let qtd = 0;
-
-for(const doc of snap.docs){
-
-const a = doc.data();
-
-const serv = CACHE_SERVICOS
-.find(s => s.nome === a.servico);
-
-if(serv){
-total += serv.preco || 0;
-qtd++;
-}
-
-}
-
-financeiroResumo.innerHTML = `
-<div class="finLinha">
-<span>Atendimentos</span>
-<span>${qtd}</span>
-</div>
-<div class="finLinha">
-<span>Total</span>
-<span>R$ ${total.toFixed(2)}</span>
-</div>
-`;
-}
-// ===== FIDELIDADE =====
-
-async function addPontosCliente(tel){
-
-if(!tel){
-return;
-}
-
-const ref = db.collection("clientes").doc(tel);
-const doc = await ref.get();
-
-let pontos = 0;
-
-if(doc.exists){
-pontos = doc.data().pontos || 0;
-}
-
-await ref.set({
-pontos: pontos + 1,
-atualizado: agoraMs()
-},{merge:true});
-
-await gerarCashbackCliente(tel);
-}
-
-
-async function gerarCashbackCliente(tel){
-
-await db.collection("cashback").add({
-tel: tel,
-valor: 5,
-usado: false,
-criado: agoraMs()
-});
-}
-
-
-// ===== CHECKIN =====
-
-async function checkinCliente(){
-
-const tel = localStorage.getItem("cliTel");
-
-if(!tel){
-return;
-}
-
-await db.collection("checkins").add({
-tel: tel,
-hora: agoraMs()
-});
-
-checkinStatus.innerText = "Check-in confirmado";
-}
-
-
-
-// ===== FILA =====
-
-async function entrarFila(){
-
-const tel = localStorage.getItem("cliTel");
-if(!tel){
-return;
-}
-
-await db.collection("fila").add({
-tel: tel,
-criado: agoraMs()
-});
-
-verPosicaoFila();
-}
-
-async function verPosicaoFila(){
-
-const snap = await db.collection("fila")
-.orderBy("criado")
-.get();
-
-let pos = 1;
-filaPos.innerText = "";
-
-snap.forEach(d => {
-
-if(d.data().tel === localStorage.getItem("cliTel")){
-filaPos.innerText = "Sua posição: " + pos;
-}
-
-pos++;
-
-});
-}
-
-
-
-// ===== PAINEL TV =====
-
-function abrirPainelTV(){
-
-painelTV.classList.remove("hidden");
-
-db.collection("fila")
-.orderBy("criado")
-.limit(1)
-.onSnapshot(snap => {
-
-snap.forEach(d => {
-tvChamada.innerText = "Chamando: " + d.data().tel;
-});
-
-});
-}
-
-
-
-// ===== AVALIAÇÃO =====
-
-async function enviarAvaliacao(){
-
-const tel = localStorage.getItem("cliTel");
-const nota = parseInt(notaAtendimento.value);
-
-await db.collection("avaliacoes").add({
-tel: tel,
-nota: nota,
-criado: agoraMs()
-});
-
-alert("Avaliação enviada");
-}
-
-
-
-// ===== LEMBRETE CLIENTE =====
-
-async function verificarLembretesCliente(){
-
-const tel = localStorage.getItem("cliTel");
-if(!tel){
-return;
-}
-
-const snap = await db.collection("agendamentos")
-.where("tel","==",tel)
-.where("status","==","ativo")
-.get();
-
-const agora = agoraMs();
-
-snap.forEach(doc => {
-
-const a = doc.data();
-const ts = new Date(a.data + "T" + a.hora).getTime();
-const diff = ts - agora;
-
-if(diff > 0 && diff < APP_CONFIG.ia.janelaLembreteMs){
-alert("Você tem horário nas próximas horas");
-}
-
-});
-}
-
-
-
-// ===== IA — SCORE PONTUALIDADE =====
-
-async function iaScorePontualidade(){
-
-const snap = await db.collection("agendamentos").get();
-
-let mapa = {};
-
-snap.forEach(d => {
-
-const a = d.data();
-if(!a.tel){
-return;
-}
-
-if(!mapa[a.tel]){
-mapa[a.tel] = {total:0,noShow:0};
-}
-
-mapa[a.tel].total++;
-
-if(a.status === "cancelado_auto" || a.status === "faltou"){
-mapa[a.tel].noShow++;
-}
-
-});
-
-return mapa;
-}
-
-function iaProbFalta(score){
-
-if(score.total < 3){
-return 0.1;
-}
-
-return score.noShow / score.total;
-}
-
-
-
-// ===== IA — DEMANDA POR HORA =====
-
-async function iaDemandaPorHora(){
-
-const snap = await db.collection("agendamentos").get();
-
-let mapa = {};
-
-snap.forEach(d => {
-const h = d.data().hora;
-mapa[h] = (mapa[h] || 0) + 1;
-});
-
-return mapa;
-}
-
-async function iaMelhorEncaixe(){
-
-const uso = await iaDemandaPorHora();
-
-return Object.entries(uso)
-.sort((a,b)=>a[1]-b[1])[0]?.[0] || null;
-}
-
-
-
-// ===== IA — BARBEIRO RECOMENDADO =====
-
-async function iaBarbeiroRecomendado(serv){
-
-const snap = await db.collection("agendamentos")
-.where("servico","==",serv)
-.get();
-
-let mapa = {};
-
-snap.forEach(d => {
-const b = d.data().barbeiro;
-mapa[b] = (mapa[b] || 0) + 1;
-});
-
-return Object.entries(mapa)
-.sort((a,b)=>b[1]-a[1])[0]?.[0] || null;
-}
-
-
-
-// ===== IA — EXECUÇÃO PRINCIPAL =====
-
-async function rodarIA(){
-
-iaBox.innerHTML = "Processando IA...";
-
-const scores = await iaScorePontualidade();
-
-iaBox.innerHTML = "";
-
-for(const tel in scores){
-
-const prob = iaProbFalta(scores[tel]);
-
-if(prob > APP_CONFIG.ia.riscoFaltaAlto){
-
-iaBox.innerHTML += `
-<div class="iaLinha">
-Risco falta: ${tel} ${(prob*100).toFixed(0)}%
+agendaAdmin.innerHTML += `
+<div class="item">
+${a.data} ${a.hora} — ${a.nome} — ${a.servico} — ${a.barbeiro}
 </div>
 `;
 
-}
-
-}
-
-const encaixe = await iaMelhorEncaixe();
-
-if(encaixe){
-iaBox.innerHTML += `
-<div class="iaLinha">
-Melhor horário encaixe: ${encaixe}
-</div>
-`;
-}
-
-const serv = servico ? servico.value : null;
-
-if(serv){
-
-const barb = await iaBarbeiroRecomendado(serv);
-
-if(barb){
-iaBox.innerHTML += `
-<div class="iaLinha">
-Barbeiro recomendado: ${barb}
-</div>
-`;
-}
-
-}
-}
-{
-"name": "Barbarujo Agenda Pro",
-"short_name": "Barbarujo",
-"display": "standalone",
-"background_color": "#000000",
-"theme_color": "#000000",
-"start_url": "index.html",
-"icons": [
-{
-"src": "icon-192.png",
-"sizes": "192x192",
-"type": "image/png"
-},
-{
-"src": "icon-512.png",
-"sizes": "512x512",
-"type": "image/png"
-}
-]
-}
-const CACHE_NAME = "barbarujo-cache-v1";
-
-const FILES = [
-"/",
-"/index.html",
-"/style.css",
-"/app.js",
-"/config.js",
-"/manifest.json"
-];
-
-self.addEventListener("install", event => {
-event.waitUntil(
-caches.open(CACHE_NAME)
-.then(cache => cache.addAll(FILES))
-);
-});
-
-self.addEventListener("fetch", event => {
-event.respondWith(
-caches.match(event.request)
-.then(resp => resp || fetch(event.request))
-);
-});
-{
-"name": "barbarujo-functions",
-"engines": {
-"node": "18"
-},
-"dependencies": {
-"firebase-admin": "^11.10.0",
-"firebase-functions": "^4.4.0",
-"axios": "^1.6.0",
-"stripe": "^14.0.0"
-}
-}
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
-const axios = require("axios");
-const Stripe = require("stripe");
-
-admin.initializeApp();
-const db = admin.firestore();
-
-const stripe = new Stripe("SUA_STRIPE_SECRET");
-
-const ZAPI_URL = "https://api.z-api.io/instances/SEU_ID/token/SEU_TOKEN/send-text";
-
-async function enviarWhats(numero, msg){
-await axios.post(ZAPI_URL,{
-phone: numero,
-message: msg
 });
 }
 
 
-// ===== WHATSAPP NOVO AGENDAMENTO =====
 
-exports.onNovoAgendamento =
-functions.firestore
-.document("agendamentos/{id}")
-.onCreate(async snap => {
+// ===== CANCELAMENTO AUTOMÁTICO (30 min sem confirmação) =====
 
-const a = snap.data();
+setInterval(()=>{
 
-const msg =
-`Barbarujo confirma:
-${a.data} ${a.hora}
-Barbeiro: ${a.barbeiro}`;
+let lista = dbGet("agendamentos",[]);
+let mudou = false;
 
-if(a.tel){
-await enviarWhats(a.tel, msg);
-}
+lista.forEach(a => {
 
-});
+if(a.status === "ativo"){
 
+const diff = Date.now() - a.criado;
 
-// ===== LEMBRETE AUTOMÁTICO =====
-
-exports.lembreteHorario =
-functions.pubsub.schedule("every 5 minutes")
-.onRun(async () => {
-
-const agora = Date.now();
-
-const snap = await db.collection("agendamentos")
-.where("status","==","ativo")
-.get();
-
-for(const doc of snap.docs){
-
-const a = doc.data();
-const ts = new Date(a.data + "T" + a.hora).getTime();
-const diff = ts - agora;
-
-if(diff < 3600000 && diff > 0){
-if(a.tel){
-await enviarWhats(a.tel,
-"Lembrete: seu horário é em breve na Barbarujo");
-}
+if(diff > 30 * 60 * 1000){
+a.status = "cancelado_auto";
+mudou = true;
 }
 
 }
 
 });
 
-
-// ===== MARCAR ATRASO =====
-
-exports.marcarAtraso =
-functions.pubsub.schedule("every 10 minutes")
-.onRun(async () => {
-
-const agora = Date.now();
-
-const snap = await db.collection("agendamentos")
-.where("status","==","ativo")
-.get();
-
-for(const doc of snap.docs){
-
-const a = doc.data();
-const ts = new Date(a.data + "T" + a.hora).getTime();
-
-if(agora - ts > 15 * 60000){
-await doc.ref.update({status:"atrasado"});
+if(mudou){
+dbSet("agendamentos", lista);
+atualizarOcupacaoVisual();
+listarMeus();
 }
 
-}
-
-});
+},60000);
 
 
-// ===== CUPOM PÓS CORTE =====
 
-exports.cupomPosCorte =
-functions.firestore
-.document("agendamentos/{id}")
-.onUpdate(async change => {
+// ===== INIT =====
 
-const antes = change.before.data();
-const depois = change.after.data();
+(function init(){
 
-if(antes.status !== "concluido" && depois.status === "concluido"){
+carregarSelects();
 
-const cupom = "RET" + Math.floor(Math.random()*9999);
+})();
 
-if(depois.tel){
-await enviarWhats(depois.tel,
-"Cupom retorno: " + cupom);
-}
+</script>
 
-await db.collection("cupons").add({
-tel: depois.tel,
-codigo: cupom,
-criado: Date.now()
-});
-}
-
-});
-
-
-// ===== STRIPE CHECKOUT =====
-
-exports.criarCheckout =
-functions.https.onRequest(async (req,res) => {
-
-const session = await stripe.checkout.sessions.create({
-mode: "payment",
-line_items: [{
-price_data: {
-currency: "brl",
-product_data: {
-name: "Corte Barbarujo"
-},
-unit_amount: 4000
-},
-quantity: 1
-}],
-success_url: "https://seusite/sucesso",
-cancel_url: "https://seusite/cancelado"
-});
-
-res.json({url: session.url});
-
-});
+</body>
+</html>
