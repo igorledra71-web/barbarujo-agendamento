@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barbarujo Agenda Pro</title>
+<title>Barbearia Agenda</title>
 
 <style>
 
@@ -12,41 +12,26 @@
 body{
 margin:0;
 font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
-background:
-radial-gradient(circle at 20% 10%,#1a1a1a,transparent 40%),
-radial-gradient(circle at 90% 90%,#141414,transparent 40%),
-#0b0b0b;
+background:#0b0b0b;
 color:#f2f2f2;
 }
 
 header{
-padding:22px 16px;
+padding:18px;
 text-align:center;
 font-weight:700;
 letter-spacing:2px;
-font-size:18px;
-background:linear-gradient(180deg,#000,#111);
-border-bottom:1px solid rgba(255,255,255,.08);
-position:sticky;
-top:0;
-z-index:5;
+background:#000;
+border-bottom:1px solid #222;
 }
 
 .card{
 margin:14px;
-padding:18px;
-border-radius:18px;
-background:linear-gradient(180deg,#1b1b1b,#0f0f0f);
-border:1px solid rgba(255,255,255,.06);
-box-shadow:
-0 20px 40px rgba(0,0,0,.7),
-inset 0 1px 0 rgba(255,255,255,.05);
-animation:fadeUp .35s ease;
-}
-
-@keyframes fadeUp{
-from{opacity:0; transform:translateY(10px)}
-to{opacity:1; transform:translateY(0)}
+padding:16px;
+border-radius:16px;
+background:#151515;
+border:1px solid #262626;
+box-shadow:0 10px 30px rgba(0,0,0,.6);
 }
 
 h2{
@@ -57,49 +42,42 @@ color:#f1d27a;
 
 label{
 font-size:12px;
-opacity:.85;
+opacity:.8;
 }
 
 input,select{
 width:100%;
-padding:14px;
-margin:6px 0 14px 0;
-border-radius:14px;
-border:1px solid rgba(255,255,255,.08);
-background:#121212;
+padding:12px;
+margin:6px 0 12px 0;
+border-radius:12px;
+border:1px solid #333;
+background:#101010;
 color:white;
-font-size:15px;
+font-size:14px;
 }
 
 button{
 width:100%;
-padding:15px;
-border-radius:16px;
+padding:13px;
+border-radius:14px;
 border:none;
 font-weight:700;
-letter-spacing:.5px;
 background:linear-gradient(135deg,#d4af37,#f5d77a);
 color:#111;
 cursor:pointer;
-box-shadow:0 10px 22px rgba(212,175,55,.35);
 }
 
 button:active{
-transform:scale(.97);
+transform:scale(.98);
 }
 
 .item{
-background:#141414;
-border:1px solid rgba(255,255,255,.06);
-padding:12px;
-border-radius:14px;
+background:#101010;
+border:1px solid #262626;
+padding:10px;
+border-radius:12px;
 margin:8px 0;
 font-size:14px;
-}
-
-.row{
-display:flex;
-gap:8px;
 }
 
 .hidden{display:none}
@@ -108,75 +86,51 @@ gap:8px;
 position:fixed;
 bottom:14px;
 right:14px;
-font-size:26px;
-opacity:.18;
+font-size:24px;
+opacity:.25;
 cursor:pointer;
 }
 
 .modal{
 position:fixed;
 inset:0;
-background:rgba(0,0,0,.65);
+background:rgba(0,0,0,.7);
 display:flex;
 align-items:center;
 justify-content:center;
-z-index:20;
 }
 
 .modalBox{
 width:92%;
 max-width:420px;
-background:#0f0f0f;
-border-radius:20px;
-padding:18px;
-border:1px solid rgba(255,255,255,.08);
-box-shadow:0 30px 60px rgba(0,0,0,.8);
+background:#111;
+border-radius:18px;
+padding:16px;
+border:1px solid #333;
 }
 
-.calGrid{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-gap:6px;
-}
-
-.calCell{
-padding:10px;
-border-radius:10px;
-text-align:center;
-background:#181818;
-border:1px solid #2a2a2a;
-cursor:pointer;
-font-size:13px;
-}
-
-.calCell.sel{
-background:#f5d77a;
-color:#000;
-font-weight:700;
-}
-
-.clockGrid{
+.grid{
 display:grid;
 grid-template-columns:repeat(4,1fr);
 gap:8px;
 }
 
-.clockBtn{
-padding:12px;
-border-radius:12px;
-background:#1c1c1c;
+.slot{
+padding:10px;
+border-radius:10px;
+background:#1a1a1a;
 border:1px solid #333;
 text-align:center;
 cursor:pointer;
 }
 
-.clockBtn.sel{
+.slot.sel{
 background:#f5d77a;
 color:#000;
 font-weight:700;
 }
 
-.clockBtn.off{
+.slot.off{
 opacity:.35;
 text-decoration:line-through;
 cursor:not-allowed;
@@ -186,7 +140,7 @@ cursor:not-allowed;
 </head>
 <body>
 
-<header>BARBARUJO AGENDA PRO</header>
+<header>AGENDA BARBEARIA</header>
 <!-- LOGIN CLIENTE -->
 
 <div class="card" id="loginBox">
@@ -218,14 +172,13 @@ cursor:not-allowed;
 <select id="servico"></select>
 
 <label>Data</label>
-<input id="dataView" readonly placeholder="Toque para escolher">
-<button onclick="abrirCalendario()">Selecionar Data</button>
+<input type="date" id="dataInp">
 
 <label>Horário</label>
-<input id="horaView" readonly placeholder="Toque para escolher">
-<button onclick="abrirRelogio()">Selecionar Horário</button>
+<input id="horaView" readonly placeholder="Escolher horário">
+<button onclick="abrirHoras()">Selecionar Horário</button>
 
-<button onclick="confirmarAgendamento()">Confirmar Agendamento</button>
+<button onclick="confirmarAg()">Confirmar</button>
 
 </div>
 
@@ -250,102 +203,52 @@ cursor:not-allowed;
 <div class="card hidden" id="adminLogin">
 <h2>Painel Admin</h2>
 
-<input type="password" id="adminSenha" placeholder="Senha">
+<input type="password" id="admSenha" placeholder="Senha">
 <button onclick="loginAdmin()">Entrar</button>
-
 </div>
 
 
 
 <!-- ADMIN APP -->
 
-<div id="adminApp" class="hidden">
-
-<div class="card">
-<h2>Configuração</h2>
-
-<label>Limite encaixe por horário</label>
-<input type="number" id="cfgLimite">
-
-<button onclick="salvarConfig()">Salvar Config</button>
-</div>
-
-
+<div id="adminArea" class="hidden">
 
 <div class="card">
 <h2>Barbeiros</h2>
-
-<input id="novoBarbeiro" placeholder="Nome barbeiro">
-<button onclick="addBarbeiro()">Adicionar</button>
-
-<div id="listaBarbeiros"></div>
+<input id="novoBarb">
+<button onclick="addBarb()">Adicionar</button>
+<div id="listaBarb"></div>
 </div>
-
 
 
 <div class="card">
 <h2>Serviços</h2>
-
-<input id="novoServico" placeholder="Nome serviço">
-<button onclick="addServico()">Adicionar</button>
-
-<div id="listaServicos"></div>
+<input id="novoServ">
+<button onclick="addServ()">Adicionar</button>
+<div id="listaServ"></div>
 </div>
 
 
-
 <div class="card">
-<h2>Agenda Geral</h2>
-<div id="agendaAdmin"></div>
-</div>
-
-
-
-<div class="card">
-
-<h2>Horários Disponíveis do Dia</h2>
-
-<input type="date" id="admDataDisp">
-
-<label>Adicionar horário</label>
-<input type="time" id="admHoraDisp">
-<button onclick="addHoraDisponivel()">Adicionar</button>
-
+<h2>Horários do Dia</h2>
+<input type="date" id="admData">
+<input type="time" id="admHora">
+<button onclick="addDisp()">Liberar Horário</button>
 <div id="listaDisp"></div>
-
 </div>
 
 </div>
 
 
 
-<!-- MODAL CALENDÁRIO -->
+<!-- MODAL HORÁRIOS -->
 
-<div class="modal hidden" id="modalCal">
-<div class="modalBox">
-
-<h2>Escolher Data</h2>
-
-<div id="calTitulo"></div>
-<div class="calGrid" id="calGrid"></div>
-
-<button onclick="fecharCalendario()">Fechar</button>
-
-</div>
-</div>
-
-
-
-<!-- MODAL RELÓGIO -->
-
-<div class="modal hidden" id="modalClock">
+<div class="modal hidden" id="modalHoras">
 <div class="modalBox">
 
 <h2>Escolher Horário</h2>
-
-<div class="clockGrid" id="clockGrid"></div>
-
-<button onclick="fecharRelogio()">Fechar</button>
+<div class="grid" id="gridHoras"></div>
+<button onclick="fecharHoras()">Fechar</button>
 
 </div>
 </div>
@@ -355,12 +258,12 @@ cursor:not-allowed;
 // BANCO LOCAL
 // =======================
 
-function dbGet(k, def){
+function dbGet(k,def){
 return JSON.parse(localStorage.getItem(k) || JSON.stringify(def));
 }
 
 function dbSet(k,v){
-localStorage.setItem(k, JSON.stringify(v));
+localStorage.setItem(k,JSON.stringify(v));
 }
 
 
@@ -373,10 +276,7 @@ dbSet("barbeiros",["Carlos","João"]);
 }
 
 if(!localStorage.getItem("servicos")){
-dbSet("servicos",[
-{nome:"Corte",preco:35,duracao:30},
-{nome:"Corte + Barba",preco:55,duracao:50}
-]);
+dbSet("servicos",["Corte","Barba"]);
 }
 
 if(!localStorage.getItem("agendamentos")){
@@ -387,16 +287,11 @@ if(!localStorage.getItem("disponibilidade")){
 dbSet("disponibilidade",[]);
 }
 
-if(!localStorage.getItem("config")){
-dbSet("config",{limite:2,buffer:5});
-}
-
 
 // =======================
-// ESTADO GLOBAL
+// ESTADO
 // =======================
 
-let dataSel = null;
 let horaSel = null;
 
 
@@ -406,16 +301,16 @@ let horaSel = null;
 
 function loginCliente(){
 
-const nome = cliNome.value.trim();
-const tel = cliTel.value.trim();
+const n = cliNome.value.trim();
+const t = cliTel.value.trim();
 
-if(!nome || !tel){
-alert("Preencha os dados");
+if(!n || !t){
+alert("Preencha");
 return;
 }
 
-localStorage.setItem("cliNome",nome);
-localStorage.setItem("cliTel",tel);
+localStorage.setItem("cliNome",n);
+localStorage.setItem("cliTel",t);
 
 loginBox.classList.add("hidden");
 appCliente.classList.remove("hidden");
@@ -426,7 +321,7 @@ listarMeus();
 
 
 // =======================
-// ADMIN LOGIN
+// LOGIN ADMIN
 // =======================
 
 function abrirAdmin(){
@@ -435,15 +330,15 @@ adminLogin.classList.remove("hidden");
 
 function loginAdmin(){
 
-if(adminSenha.value !== "1234"){
+if(admSenha.value !== "1234"){
 alert("Senha incorreta");
 return;
 }
 
 adminLogin.classList.add("hidden");
-adminApp.classList.remove("hidden");
+adminArea.classList.remove("hidden");
 
-carregarAdmin();
+renderAdmin();
 }
 
 
@@ -459,12 +354,7 @@ bs.forEach(b=>barbeiro.innerHTML+=`<option>${b}</option>`);
 
 const ss = dbGet("servicos",[]);
 servico.innerHTML="";
-ss.forEach(s=>{
-servico.innerHTML+=
-`<option value="${s.nome}">
-${s.nome} — R$${s.preco}
-</option>`;
-});
+ss.forEach(s=>servico.innerHTML+=`<option>${s}</option>`);
 }
 
 
@@ -472,189 +362,89 @@ ${s.nome} — R$${s.preco}
 // INIT
 // =======================
 
-(function init(){
+(function(){
 carregarSelects();
 })();
 // =======================
-// CALENDÁRIO PREMIUM
+// MODAL HORÁRIOS
 // =======================
 
-let calMes = new Date().getMonth();
-let calAno = new Date().getFullYear();
+function abrirHoras(){
 
-function abrirCalendario(){
-modalCal.classList.remove("hidden");
-renderCalendario();
-}
-
-function fecharCalendario(){
-modalCal.classList.add("hidden");
-}
-
-
-// ===== RENDER CALENDÁRIO =====
-
-function renderCalendario(){
-
-const meses = [
-"Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-"Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
-];
-
-calTitulo.innerHTML = `
-<div style="display:flex;justify-content:space-between;align-items:center;">
-<button onclick="calMesAnt()">◀</button>
-<b>${meses[calMes]} ${calAno}</b>
-<button onclick="calMesProx()">▶</button>
-</div>
-`;
-
-calGrid.innerHTML = "";
-
-const primeiroDia = new Date(calAno,calMes,1).getDay();
-const diasMes = new Date(calAno,calMes+1,0).getDate();
-
-for(let i=0;i<primeiroDia;i++){
-calGrid.innerHTML += "<div></div>";
-}
-
-for(let d=1; d<=diasMes; d++){
-
-const dataObj = new Date(calAno,calMes,d);
-const hoje = new Date();
-hoje.setHours(0,0,0,0);
-
-const passado = dataObj < hoje;
-const ds = dataObj.toISOString().slice(0,10);
-
-calGrid.innerHTML += `
-<div class="calCell ${dataSel===ds?'sel':''}"
-style="opacity:${passado?0.35:1}"
-onclick="${passado?'':`selData('${ds}')`}">
-${d}
-</div>
-`;
-
-}
-}
-
-
-// ===== SELECIONAR DATA =====
-
-function selData(ds){
-
-dataSel = ds;
-dataView.value = ds;
-
-fecharCalendario();
-}
-
-
-// ===== NAVEGAÇÃO =====
-
-function calMesAnt(){
-calMes--;
-if(calMes<0){
-calMes=11;
-calAno--;
-}
-renderCalendario();
-}
-
-function calMesProx(){
-calMes++;
-if(calMes>11){
-calMes=0;
-calAno++;
-}
-renderCalendario();
-}
-// =======================
-// RELÓGIO HORÁRIOS
-// =======================
-
-function abrirRelogio(){
-
-if(!dataSel){
-alert("Escolha a data primeiro");
+if(!dataInp.value){
+alert("Escolha a data");
 return;
 }
 
-modalClock.classList.remove("hidden");
-renderRelogio();
+modalHoras.classList.remove("hidden");
+renderHoras();
 }
 
-function fecharRelogio(){
-modalClock.classList.add("hidden");
+function fecharHoras(){
+modalHoras.classList.add("hidden");
 }
 
 
-// ===== RENDER RELÓGIO =====
+// =======================
+// RENDER HORÁRIOS
+// =======================
 
-function renderRelogio(){
+function renderHoras(){
 
-clockGrid.innerHTML = "";
+gridHoras.innerHTML="";
+horaSel = null;
+horaView.value="";
 
-const lista = dbGet("agendamentos",[]);
-const limite = dbGet("config",{}).limite || 2;
-
+const data = dataInp.value;
 const disp = dbGet("disponibilidade",[]);
-const dia = disp.find(x=>x.data===dataSel);
+const dia = disp.find(x=>x.data===data);
 
 if(!dia || dia.horas.length===0){
-clockGrid.innerHTML = "<div>Nenhum horário liberado</div>";
+gridHoras.innerHTML =
+"<div style='grid-column:1/-1;opacity:.7'>Sem horários liberados</div>";
 return;
 }
 
-dia.horas.sort().forEach(hora=>{
+dia.horas.sort().forEach(h=>{
 
-const qtd = lista.filter(a =>
-a.data===dataSel &&
-a.hora===hora &&
-a.status==="ativo"
-).length;
-
-let cls="clockBtn";
-if(qtd>=limite) cls+=" off";
-if(horaSel===hora) cls+=" sel";
-
-clockGrid.innerHTML += `
-<div class="${cls}"
-onclick="selHora('${hora}',${qtd>=limite})">
-${hora}
-</div>
-`;
+gridHoras.innerHTML += `
+<div class="slot"
+onclick="selHora('${h}')">
+${h}
+</div>`;
 
 });
 }
 
 
-// ===== SELECIONAR HORA =====
+// =======================
+// SELECIONAR HORA
+// =======================
 
-function selHora(h,off){
-if(off) return;
+function selHora(h){
+
 horaSel = h;
 horaView.value = h;
-renderRelogio();
+
+document.querySelectorAll(".slot")
+.forEach(x=>x.classList.remove("sel"));
+
+event.target.classList.add("sel");
 }
 
 
 
 // =======================
-// DISPONIBILIDADE ADMIN
+// ADMIN DISPONIBILIDADE
 // =======================
 
-if(typeof admDataDisp !== "undefined"){
-admDataDisp.onchange = listarDispAdmin;
-}
+function addDisp(){
 
-function addHoraDisponivel(){
-
-const d = admDataDisp.value;
-const h = admHoraDisp.value;
+const d = admData.value;
+const h = admHora.value;
 
 if(!d || !h){
-alert("Escolha data e hora");
+alert("Escolha data/hora");
 return;
 }
 
@@ -677,63 +467,28 @@ listarDispAdmin();
 
 function listarDispAdmin(){
 
-if(!admDataDisp.value) return;
+if(!admData.value) return;
 
-const d = admDataDisp.value;
+const d = admData.value;
 const disp = dbGet("disponibilidade",[]);
 const dia = disp.find(x=>x.data===d);
 
 listaDisp.innerHTML="";
 
 (dia?.horas || []).sort().forEach(h=>{
-
 listaDisp.innerHTML += `
-<div class="item">
-${h}
-<button onclick="remHoraDisp('${d}','${h}')">Remover</button>
-</div>
-`;
-
+<div class="item">${h}</div>`;
 });
 }
-
-
-function remHoraDisp(d,h){
-
-let disp = dbGet("disponibilidade",[]);
-
-disp = disp.map(x=>{
-if(x.data===d){
-x.horas = x.horas.filter(y=>y!==h);
-}
-return x;
-});
-
-dbSet("disponibilidade",disp);
-listarDispAdmin();
-}
-// =======================
-// HELPERS TEMPO
-// =======================
-
-function toMin(h){
-const [hh,mm] = h.split(":");
-return parseInt(hh)*60 + parseInt(mm);
-}
-
-function getServico(nome){
-return dbGet("servicos",[])
-.find(s=>s.nome===nome);
-}
-
-
 // =======================
 // CONFIRMAR AGENDAMENTO
 // =======================
 
-function confirmarAgendamento(){
+function confirmarAg(){
 
-if(!dataSel || !horaSel){
+const data = dataInp.value;
+
+if(!data || !horaSel){
 alert("Escolha data e horário");
 return;
 }
@@ -743,16 +498,13 @@ const serv = servico.value;
 const nome = localStorage.getItem("cliNome");
 const tel  = localStorage.getItem("cliTel");
 
-const lista = dbGet("agendamentos",[]);
-const cfg = dbGet("config",{});
-const limite = cfg.limite || 2;
-const buffer = cfg.buffer || 5;
+let lista = dbGet("agendamentos",[]);
 
 
 // ===== DISPONIBILIDADE =====
 
 const disp = dbGet("disponibilidade",[]);
-const dia = disp.find(x=>x.data===dataSel);
+const dia = disp.find(x=>x.data===data);
 
 if(!dia || !dia.horas.includes(horaSel)){
 alert("Horário não disponível");
@@ -760,46 +512,17 @@ return;
 }
 
 
-// ===== LIMITE ENCAIXE =====
+// ===== CONFLITO SIMPLES =====
 
-const qtd = lista.filter(a =>
-a.data===dataSel &&
+const ocupado = lista.some(a =>
+a.data===data &&
 a.hora===horaSel &&
+a.barbeiro===barb &&
 a.status==="ativo"
-).length;
+);
 
-if(qtd >= limite){
-alert("Horário lotado");
-return;
-}
-
-
-// ===== CONFLITO POR DURAÇÃO =====
-
-const servObj = getServico(serv);
-const dur = servObj?.duracao || 30;
-
-const ini1 = toMin(horaSel);
-const fim1 = ini1 + dur + buffer;
-
-const conflito = lista.some(a=>{
-
-if(a.data!==dataSel) return false;
-if(a.barbeiro!==barb) return false;
-if(a.status!=="ativo") return false;
-
-const s2 = getServico(a.servico);
-const dur2 = s2?.duracao || 30;
-
-const ini2 = toMin(a.hora);
-const fim2 = ini2 + dur2 + buffer;
-
-return (ini1 < fim2 && fim1 > ini2);
-
-});
-
-if(conflito){
-alert("Conflito de horário pela duração");
+if(ocupado){
+alert("Barbeiro ocupado nesse horário");
 return;
 }
 
@@ -812,20 +535,21 @@ nome:nome,
 tel:tel,
 barbeiro:barb,
 servico:serv,
-data:dataSel,
+data:data,
 hora:horaSel,
-status:"ativo",
-criado:Date.now()
+status:"ativo"
 });
 
 dbSet("agendamentos",lista);
 
-alert("Agendamento confirmado");
+alert("Agendado!");
 
 listarMeus();
-listarAgendaAdmin();
-fecharRelogio();
+fecharHoras();
 }
+
+
+
 // =======================
 // LISTA CLIENTE
 // =======================
@@ -835,20 +559,17 @@ function listarMeus(){
 const tel = localStorage.getItem("cliTel");
 const lista = dbGet("agendamentos",[]);
 
-listaMeus.innerHTML = "";
+listaMeus.innerHTML="";
 
 lista
-.filter(a => a.tel===tel && a.status==="ativo")
+.filter(a=>a.tel===tel && a.status==="ativo")
 .sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
 .forEach(a=>{
 
-const s = getServico(a.servico);
-
 listaMeus.innerHTML += `
 <div class="item">
-<b>${a.data}</b> • ${a.hora}<br>
-${a.servico} — ${a.barbeiro}<br>
-R$ ${s?.preco || 0}
+${a.data} ${a.hora}<br>
+${a.servico} — ${a.barbeiro}
 <button onclick="cancelarAg(${a.id})">Cancelar</button>
 </div>
 `;
@@ -867,109 +588,38 @@ function cancelarAg(id){
 let lista = dbGet("agendamentos",[]);
 
 lista = lista.map(a=>{
-if(a.id===id){
-a.status="cancelado";
-}
+if(a.id===id) a.status="cancelado";
 return a;
 });
 
 dbSet("agendamentos",lista);
-
 listarMeus();
-listarAgendaAdmin();
 }
-
-
-
-// =======================
-// AGENDA ADMIN
-// =======================
-
-function listarAgendaAdmin(){
-
-if(typeof agendaAdmin === "undefined") return;
-
-const lista = dbGet("agendamentos",[]);
-
-agendaAdmin.innerHTML = "";
-
-lista
-.filter(a=>a.status==="ativo")
-.sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
-.forEach(a=>{
-
-const s = getServico(a.servico);
-
-agendaAdmin.innerHTML += `
-<div class="item">
-${a.data} ${a.hora}<br>
-${a.nome} — ${a.servico}<br>
-${a.barbeiro} • R$ ${s?.preco || 0}
-</div>
-`;
-
-});
-}
-// =======================
-// ADMIN — CONFIG
-// =======================
-
-function salvarConfig(){
-
-const cfg = dbGet("config",{});
-
-cfg.limite = parseInt(cfgLimite.value) || 2;
-cfg.buffer = cfg.buffer || 5;
-
-dbSet("config",cfg);
-
-alert("Config salva");
-}
-
-
-
 // =======================
 // ADMIN — BARBEIROS
 // =======================
 
-function addBarbeiro(){
+function addBarb(){
 
-const nome = novoBarbeiro.value.trim();
-if(!nome) return;
+const n = novoBarb.value.trim();
+if(!n) return;
 
-const l = dbGet("barbeiros",[]);
-l.push(nome);
+let l = dbGet("barbeiros",[]);
+l.push(n);
 dbSet("barbeiros",l);
 
-novoBarbeiro.value="";
-
-listarBarbeirosAdmin();
+novoBarb.value="";
+renderAdmin();
 carregarSelects();
 }
 
-function listarBarbeirosAdmin(){
+function delBarb(i){
 
-if(typeof listaBarbeiros === "undefined") return;
-
-const l = dbGet("barbeiros",[]);
-listaBarbeiros.innerHTML="";
-
-l.forEach((b,i)=>{
-listaBarbeiros.innerHTML += `
-<div class="item">
-${b}
-<button onclick="delBarbeiro(${i})">Excluir</button>
-</div>`;
-});
-}
-
-function delBarbeiro(i){
-
-const l = dbGet("barbeiros",[]);
+let l = dbGet("barbeiros",[]);
 l.splice(i,1);
 dbSet("barbeiros",l);
 
-listarBarbeirosAdmin();
+renderAdmin();
 carregarSelects();
 }
 
@@ -979,99 +629,70 @@ carregarSelects();
 // ADMIN — SERVIÇOS
 // =======================
 
-function addServico(){
+function addServ(){
 
-const nome = novoServico.value.trim();
-if(!nome) return;
+const n = novoServ.value.trim();
+if(!n) return;
 
-const preco = parseFloat(prompt("Preço")) || 35;
-const dur = parseInt(prompt("Duração minutos")) || 30;
-
-const l = dbGet("servicos",[]);
-l.push({
-nome:nome,
-preco:preco,
-duracao:dur
-});
-
+let l = dbGet("servicos",[]);
+l.push(n);
 dbSet("servicos",l);
 
-novoServico.value="";
-
-listarServicosAdmin();
+novoServ.value="";
+renderAdmin();
 carregarSelects();
 }
 
-function listarServicosAdmin(){
+function delServ(i){
 
-if(typeof listaServicos === "undefined") return;
-
-const l = dbGet("servicos",[]);
-listaServicos.innerHTML="";
-
-l.forEach((s,i)=>{
-listaServicos.innerHTML += `
-<div class="item">
-${s.nome} — R$${s.preco} — ${s.duracao}min
-<button onclick="delServico(${i})">Excluir</button>
-</div>`;
-});
-}
-
-function delServico(i){
-
-const l = dbGet("servicos",[]);
+let l = dbGet("servicos",[]);
 l.splice(i,1);
 dbSet("servicos",l);
 
-listarServicosAdmin();
+renderAdmin();
 carregarSelects();
 }
 
 
 
 // =======================
-// CARREGAR ADMIN
+// RENDER ADMIN
 // =======================
 
-function carregarAdmin(){
+function renderAdmin(){
 
-const cfg = dbGet("config",{});
-cfgLimite.value = cfg.limite || 2;
+// barbeiros
+const bs = dbGet("barbeiros",[]);
+listaBarb.innerHTML="";
+bs.forEach((b,i)=>{
+listaBarb.innerHTML += `
+<div class="item">
+${b}
+<button onclick="delBarb(${i})">Excluir</button>
+</div>`;
+});
 
-listarBarbeirosAdmin();
-listarServicosAdmin();
-listarAgendaAdmin();
+// serviços
+const ss = dbGet("servicos",[]);
+listaServ.innerHTML="";
+ss.forEach((s,i)=>{
+listaServ.innerHTML += `
+<div class="item">
+${s}
+<button onclick="delServ(${i})">Excluir</button>
+</div>`;
+});
+
 listarDispAdmin();
 }
 
 
 
 // =======================
-// AUTO CANCELAMENTO
+// AUTO ATUALIZAR DISP ADMIN
 // =======================
 
-setInterval(()=>{
-
-let l = dbGet("agendamentos",[]);
-let mudou = false;
-
-l.forEach(a=>{
-if(a.status==="ativo"){
-if(Date.now() - a.criado > 30*60*1000){
-a.status="cancelado_auto";
-mudou = true;
-}
-}
-});
-
-if(mudou){
-dbSet("agendamentos",l);
-listarMeus();
-listarAgendaAdmin();
-}
-
-},60000);
+admData.onchange = listarDispAdmin;
 
 </script>
 
