@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agenda Barbearia Firebase</title>
+<title>Agenda Barbearia Pro</title>
 
 <style>
 
@@ -11,7 +11,7 @@
 
 body{
 margin:0;
-font-family:Arial,Helvetica,sans-serif;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
 background:#0b0b0b;
 color:#eee;
 }
@@ -28,33 +28,35 @@ font-weight:bold;
 .card{
 margin:14px;
 padding:16px;
-border-radius:14px;
+border-radius:16px;
 background:#151515;
 border:1px solid #262626;
+box-shadow:0 10px 30px rgba(0,0,0,.6);
 }
 
 h2{
-margin:0 0 10px 0;
-color:#f1d27a;
+margin:0 0 12px 0;
 font-size:16px;
+color:#f1d27a;
 }
 
 input,select{
 width:100%;
 padding:12px;
 margin:6px 0 12px 0;
-border-radius:10px;
+border-radius:12px;
 border:1px solid #333;
 background:#101010;
-color:#fff;
+color:white;
+font-size:14px;
 }
 
 button{
 width:100%;
-padding:12px;
-border-radius:12px;
+padding:13px;
+border-radius:14px;
 border:none;
-font-weight:bold;
+font-weight:700;
 background:linear-gradient(135deg,#d4af37,#f5d77a);
 color:#111;
 cursor:pointer;
@@ -64,11 +66,39 @@ cursor:pointer;
 background:#101010;
 border:1px solid #262626;
 padding:10px;
-border-radius:10px;
+border-radius:12px;
 margin:8px 0;
+font-size:14px;
 }
 
 .hidden{display:none}
+
+.adminBtn{
+position:fixed;
+bottom:14px;
+right:14px;
+font-size:24px;
+opacity:.25;
+cursor:pointer;
+}
+
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.75);
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.modalBox{
+width:92%;
+max-width:420px;
+background:#111;
+border-radius:18px;
+padding:16px;
+border:1px solid #333;
+}
 
 .grid{
 display:grid;
@@ -85,39 +115,23 @@ text-align:center;
 cursor:pointer;
 }
 
-.adminBtn{
-position:fixed;
-bottom:14px;
-right:14px;
-opacity:.3;
-font-size:24px;
-cursor:pointer;
+.slot.sel{
+background:#f5d77a;
+color:#000;
+font-weight:700;
 }
 
-.modal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.7);
-display:flex;
-align-items:center;
-justify-content:center;
-}
-
-.modalBox{
-width:92%;
-max-width:420px;
-background:#111;
-border-radius:16px;
-padding:16px;
-border:1px solid #333;
+.slot.off{
+opacity:.35;
+text-decoration:line-through;
+cursor:not-allowed;
 }
 
 </style>
 </head>
-
 <body>
 
-<header>AGENDA BARBEARIA</header>
+<header>AGENDA BARBEARIA PRO</header>
 <!-- LOGIN CLIENTE -->
 
 <div class="card" id="loginBox">
@@ -148,10 +162,10 @@ border:1px solid #333;
 <input type="date" id="dataInp">
 
 <label>Horário</label>
-<input id="horaView" readonly>
-<button onclick="abrirHoras()">Escolher Horário</button>
+<input id="horaView" readonly placeholder="Escolher horário">
+<button onclick="abrirHoras()">Selecionar Horário</button>
 
-<button onclick="confirmarAgendamento()">Confirmar</button>
+<button onclick="confirmarAg()">Confirmar Agendamento</button>
 </div>
 
 
@@ -174,6 +188,7 @@ border:1px solid #333;
 
 <div class="card hidden" id="adminLogin">
 <h2>Painel Admin</h2>
+
 <input type="password" id="admSenha" placeholder="Senha">
 <button onclick="loginAdmin()">Entrar</button>
 </div>
@@ -186,25 +201,25 @@ border:1px solid #333;
 
 <div class="card">
 <h2>Barbeiros</h2>
-<input id="novoBarbeiro">
-<button onclick="addBarbeiro()">Adicionar</button>
-<div id="listaBarbeiros"></div>
+<input id="novoBarb">
+<button onclick="addBarb()">Adicionar</button>
+<div id="listaBarb"></div>
 </div>
 
 
 <div class="card">
 <h2>Serviços</h2>
-<input id="novoServico">
-<button onclick="addServico()">Adicionar</button>
-<div id="listaServicos"></div>
+<input id="novoServ">
+<button onclick="addServ()">Adicionar</button>
+<div id="listaServ"></div>
 </div>
 
 
 <div class="card">
-<h2>Horários do Dia</h2>
+<h2>Horários Disponíveis do Dia</h2>
 <input type="date" id="admData">
 <input type="time" id="admHora">
-<button onclick="addDisponivel()">Liberar Horário</button>
+<button onclick="addDisp()">Liberar Horário</button>
 <div id="listaDisp"></div>
 </div>
 
@@ -224,94 +239,52 @@ border:1px solid #333;
 
 </div>
 </div>
-<!-- FIREBASE SDK -->
+<script>
 
-<script type="module">
+// ======================
+// BANCO LOCAL
+// ======================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-getFirestore,
-collection,
-addDoc,
-doc,
-setDoc,
-deleteDoc,
-onSnapshot,
-query,
-where
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+function dbGet(k,def){
+return JSON.parse(localStorage.getItem(k) || JSON.stringify(def));
+}
+
+function dbSet(k,v){
+localStorage.setItem(k,JSON.stringify(v));
+}
 
 
-// =======================
-// FIREBASE CONFIG
-// =======================
+// ======================
+// DADOS INICIAIS
+// ======================
 
-const firebaseConfig = {
-apiKey: "AIzaSyDQxyKbp3vrHW0JJEh9mo0sDHc7Zpp5IP8",
-authDomain: "agenda-barbearia-a5cd8.firebaseapp.com",
-projectId: "agenda-barbearia-a5cd8",
-storageBucket: "agenda-barbearia-a5cd8.firebasestorage.app",
-messagingSenderId: "1007861244973",
-appId: "1:1007861244973:web:dc7c2fed43431e281e84a4"
-};
+if(!localStorage.getItem("barbeiros")){
+dbSet("barbeiros",["Carlos","João"]);
+}
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+if(!localStorage.getItem("servicos")){
+dbSet("servicos",["Corte","Barba"]);
+}
+
+if(!localStorage.getItem("disponibilidade")){
+dbSet("disponibilidade",[]);
+}
+
+if(!localStorage.getItem("agendamentos")){
+dbSet("agendamentos",[]);
+}
 
 
-// =======================
-// ESTADO GLOBAL
-// =======================
+// ======================
+// ESTADO
+// ======================
 
 let horaSel = null;
-let cacheBarbeiros = [];
-let cacheServicos = [];
-let cacheDisp = [];
-let cacheAg = [];
 
 
-// =======================
-// REFERÊNCIAS
-// =======================
-
-const colBarb = collection(db,"barbeiros");
-const colServ = collection(db,"servicos");
-const colDisp = collection(db,"disponibilidade");
-const colAg   = collection(db,"agendamentos");
-// =======================
-// LISTENERS REALTIME
-// =======================
-
-// barbeiros
-onSnapshot(colBarb, snap=>{
-cacheBarbeiros = snap.docs.map(d=>({id:d.id,...d.data()}));
-renderBarbeirosSelect();
-renderBarbeirosAdmin();
-});
-
-// serviços
-onSnapshot(colServ, snap=>{
-cacheServicos = snap.docs.map(d=>({id:d.id,...d.data()}));
-renderServicosSelect();
-renderServicosAdmin();
-});
-
-// disponibilidade
-onSnapshot(colDisp, snap=>{
-cacheDisp = snap.docs.map(d=>({id:d.id,...d.data()}));
-renderDispAdmin();
-});
-
-// agendamentos
-onSnapshot(colAg, snap=>{
-cacheAg = snap.docs.map(d=>({id:d.id,...d.data()}));
-renderMeus();
-});
-
-
-// =======================
+// ======================
 // LOGIN CLIENTE
-// =======================
+// ======================
 
 function loginCliente(){
 
@@ -319,7 +292,7 @@ const n = cliNome.value.trim();
 const t = cliTel.value.trim();
 
 if(!n || !t){
-alert("Preencha");
+alert("Preencha os dados");
 return;
 }
 
@@ -328,12 +301,15 @@ localStorage.setItem("cliTel",t);
 
 loginBox.classList.add("hidden");
 areaCliente.classList.remove("hidden");
+
+carregarSelects();
+listarMeus();
 }
 
 
-// =======================
+// ======================
 // LOGIN ADMIN
-// =======================
+// ======================
 
 function abrirAdmin(){
 adminLogin.classList.remove("hidden");
@@ -348,42 +324,56 @@ return;
 
 adminLogin.classList.add("hidden");
 areaAdmin.classList.remove("hidden");
+
+renderAdmin();
 }
 
 
-// =======================
+// ======================
 // SELECTS
-// =======================
+// ======================
 
-function renderBarbeirosSelect(){
+function carregarSelects(){
+
+const bs = dbGet("barbeiros",[]);
 barbeiro.innerHTML="";
-cacheBarbeiros.forEach(b=>{
-barbeiro.innerHTML += `<option>${b.nome}</option>`;
+bs.forEach(b=>{
+barbeiro.innerHTML += `<option>${b}</option>`;
+});
+
+const ss = dbGet("servicos",[]);
+servico.innerHTML="";
+ss.forEach(s=>{
+servico.innerHTML += `<option>${s}</option>`;
 });
 }
 
-function renderServicosSelect(){
-servico.innerHTML="";
-cacheServicos.forEach(s=>{
-servico.innerHTML += `<option>${s.nome}</option>`;
-});
-}
-// =======================
+
+// ======================
+// INIT
+// ======================
+
+(function(){
+carregarSelects();
+})();
+
+// ======================
 // MODAL HORÁRIOS
-// =======================
+// ======================
 
 function abrirHoras(){
 
 const data = dataInp.value;
 
 if(!data){
-alert("Escolha a data");
+alert("Escolha a data primeiro");
 return;
 }
 
-const lista = cacheDisp.filter(d=>d.data===data);
+const disp = dbGet("disponibilidade",[]);
+const dia = disp.find(x=>x.data===data);
 
-if(lista.length === 0){
+if(!dia || dia.horas.length===0){
 alert("Nenhum horário liberado para este dia");
 return;
 }
@@ -399,46 +389,40 @@ modalHoras.classList.add("hidden");
 
 
 
-// =======================
+// ======================
 // RENDER HORÁRIOS
-// =======================
+// ======================
 
 function renderHoras(){
 
-gridHoras.innerHTML = "";
+gridHoras.innerHTML="";
 horaSel = null;
-horaView.value = "";
+horaView.value="";
 
 const data = dataInp.value;
+const disp = dbGet("disponibilidade",[]);
+const dia = disp.find(x=>x.data===data);
 
-const lista = cacheDisp
-.filter(d=>d.data===data)
-.map(d=>d.hora)
-.sort();
-
-if(lista.length === 0){
+if(!dia || dia.horas.length===0){
 gridHoras.innerHTML =
 "<div style='grid-column:1/-1;opacity:.7'>Sem horários</div>";
 return;
 }
 
-lista.forEach(h=>{
+dia.horas.sort().forEach(h=>{
 
 gridHoras.innerHTML += `
-<div class="slot"
-onclick="selHora('${h}', this)">
+<div class="slot" onclick="selHora('${h}',this)">
 ${h}
-</div>
-`;
+</div>`;
 
 });
 }
 
 
-
-// =======================
+// ======================
 // SELECIONAR HORA
-// =======================
+// ======================
 
 function selHora(h,el){
 
@@ -450,11 +434,65 @@ document.querySelectorAll(".slot")
 
 el.classList.add("sel");
 }
-// =======================
-// CONFIRMAR AGENDAMENTO
-// =======================
 
-async function confirmarAgendamento(){
+
+
+// ======================
+// ADMIN DISPONIBILIDADE
+// ======================
+
+function addDisp(){
+
+const d = admData.value;
+const h = admHora.value;
+
+if(!d || !h){
+alert("Escolha data e hora");
+return;
+}
+
+let disp = dbGet("disponibilidade",[]);
+let dia = disp.find(x=>x.data===d);
+
+if(!dia){
+dia = {data:d,horas:[]};
+disp.push(dia);
+}
+
+if(!dia.horas.includes(h)){
+dia.horas.push(h);
+}
+
+dbSet("disponibilidade",disp);
+listarDispAdmin();
+}
+
+
+function listarDispAdmin(){
+
+if(!admData.value){
+listaDisp.innerHTML="";
+return;
+}
+
+const d = admData.value;
+const disp = dbGet("disponibilidade",[]);
+const dia = disp.find(x=>x.data===d);
+
+listaDisp.innerHTML="";
+
+(dia?.horas || []).sort().forEach(h=>{
+listaDisp.innerHTML += `
+<div class="item">${h}</div>`;
+});
+}
+
+admData.onchange = listarDispAdmin;
+// ======================
+// CONFIRMAR AGENDAMENTO
+// ======================
+
+function confirmarAg(){
 
 const data = dataInp.value;
 
@@ -468,22 +506,23 @@ const serv = servico.value;
 const nome = localStorage.getItem("cliNome");
 const tel  = localStorage.getItem("cliTel");
 
+let lista = dbGet("agendamentos",[]);
 
-// ===== VALIDAR DISPONIBILIDADE =====
 
-const ok = cacheDisp.some(d =>
-d.data===data && d.hora===horaSel
-);
+// ===== DISPONIBILIDADE =====
 
-if(!ok){
+const disp = dbGet("disponibilidade",[]);
+const dia = disp.find(x=>x.data===data);
+
+if(!dia || !dia.horas.includes(horaSel)){
 alert("Horário não disponível");
 return;
 }
 
 
-// ===== CONFLITO =====
+// ===== CONFLITO BARBEIRO =====
 
-const conflito = cacheAg.some(a =>
+const conflito = lista.some(a =>
 a.data===data &&
 a.hora===horaSel &&
 a.barbeiro===barb &&
@@ -496,40 +535,39 @@ return;
 }
 
 
-// ===== GRAVAR =====
+// ===== SALVAR =====
 
-await addDoc(colAg,{
+lista.push({
+id: Date.now(),
 nome:nome,
 tel:tel,
 barbeiro:barb,
 servico:serv,
 data:data,
 hora:horaSel,
-status:"ativo",
-criado: Date.now()
+status:"ativo"
 });
+
+dbSet("agendamentos",lista);
 
 alert("Agendamento confirmado");
 
+listarMeus();
 fecharHoras();
 }
-// =======================
-// LISTA DO CLIENTE
-// =======================
+// ======================
+// LISTA CLIENTE
+// ======================
 
-function renderMeus(){
+function listarMeus(){
 
 const tel = localStorage.getItem("cliTel");
-
-if(!tel){
-listaMeus.innerHTML = "";
-return;
-}
+const lista = dbGet("agendamentos",[]);
 
 listaMeus.innerHTML = "";
 
-cacheAg
-.filter(a => a.tel === tel && a.status === "ativo")
+lista
+.filter(a => a.tel===tel && a.status==="ativo")
 .sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
 .forEach(a=>{
 
@@ -537,7 +575,7 @@ listaMeus.innerHTML += `
 <div class="item">
 ${a.data} ${a.hora}<br>
 ${a.servico} — ${a.barbeiro}
-<button onclick="cancelarAg('${a.id}')">Cancelar</button>
+<button onclick="cancelarAg(${a.id})">Cancelar</button>
 </div>
 `;
 
@@ -546,131 +584,117 @@ ${a.servico} — ${a.barbeiro}
 
 
 
-// =======================
+// ======================
 // CANCELAR AGENDAMENTO
-// =======================
+// ======================
 
-async function cancelarAg(id){
+function cancelarAg(id){
 
-await deleteDoc(doc(db,"agendamentos",id));
+let lista = dbGet("agendamentos",[]);
 
+lista = lista.map(a=>{
+if(a.id===id){
+a.status = "cancelado";
 }
-// =======================
+return a;
+});
+
+dbSet("agendamentos",lista);
+listarMeus();
+}
+// ======================
 // ADMIN — BARBEIROS
-// =======================
+// ======================
 
-async function addBarbeiro(){
+function addBarb(){
 
-const nome = novoBarbeiro.value.trim();
-if(!nome) return;
+const n = novoBarb.value.trim();
+if(!n) return;
 
-await addDoc(colBarb,{nome:nome});
-novoBarbeiro.value="";
+let l = dbGet("barbeiros",[]);
+l.push(n);
+dbSet("barbeiros",l);
+
+novoBarb.value="";
+renderAdmin();
+carregarSelects();
 }
 
-function renderBarbeirosAdmin(){
+function delBarb(i){
 
-listaBarbeiros.innerHTML="";
+let l = dbGet("barbeiros",[]);
+l.splice(i,1);
+dbSet("barbeiros",l);
 
-cacheBarbeiros.forEach(b=>{
-listaBarbeiros.innerHTML += `
-<div class="item">
-${b.nome}
-<button onclick="delBarbeiro('${b.id}')">Excluir</button>
-</div>`;
-});
-}
-
-async function delBarbeiro(id){
-await deleteDoc(doc(db,"barbeiros",id));
+renderAdmin();
+carregarSelects();
 }
 
 
 
-// =======================
+// ======================
 // ADMIN — SERVIÇOS
-// =======================
+// ======================
 
-async function addServico(){
+function addServ(){
 
-const nome = novoServico.value.trim();
-if(!nome) return;
+const n = novoServ.value.trim();
+if(!n) return;
 
-await addDoc(colServ,{nome:nome});
-novoServico.value="";
+let l = dbGet("servicos",[]);
+l.push(n);
+dbSet("servicos",l);
+
+novoServ.value="";
+renderAdmin();
+carregarSelects();
 }
 
-function renderServicosAdmin(){
+function delServ(i){
 
-listaServicos.innerHTML="";
+let l = dbGet("servicos",[]);
+l.splice(i,1);
+dbSet("servicos",l);
 
-cacheServicos.forEach(s=>{
-listaServicos.innerHTML += `
+renderAdmin();
+carregarSelects();
+}
+
+
+
+// ======================
+// RENDER ADMIN
+// ======================
+
+function renderAdmin(){
+
+// barbeiros
+const bs = dbGet("barbeiros",[]);
+listaBarb.innerHTML="";
+
+bs.forEach((b,i)=>{
+listaBarb.innerHTML += `
 <div class="item">
-${s.nome}
-<button onclick="delServico('${s.id}')">Excluir</button>
+${b}
+<button onclick="delBarb(${i})">Excluir</button>
 </div>`;
 });
-}
-
-async function delServico(id){
-await deleteDoc(doc(db,"servicos",id));
-}
 
 
+// serviços
+const ss = dbGet("servicos",[]);
+listaServ.innerHTML="";
 
-// =======================
-// ADMIN — DISPONIBILIDADE
-// =======================
-
-async function addDisponivel(){
-
-const d = admData.value;
-const h = admHora.value;
-
-if(!d || !h){
-alert("Escolha data/hora");
-return;
-}
-
-await addDoc(colDisp,{
-data:d,
-hora:h
-});
-}
-
-function renderDispAdmin(){
-
-if(!admData.value){
-listaDisp.innerHTML="";
-return;
-}
-
-listaDisp.innerHTML="";
-
-cacheDisp
-.filter(x=>x.data===admData.value)
-.sort((a,b)=>a.hora.localeCompare(b.hora))
-.forEach(x=>{
-listaDisp.innerHTML += `
+ss.forEach((s,i)=>{
+listaServ.innerHTML += `
 <div class="item">
-${x.hora}
-<button onclick="delDisp('${x.id}')">Remover</button>
+${s}
+<button onclick="delServ(${i})">Excluir</button>
 </div>`;
 });
+
+listarDispAdmin();
 }
-
-async function delDisp(id){
-await deleteDoc(doc(db,"disponibilidade",id));
-}
-
-admData.onchange = renderDispAdmin;
-
-
-
-// =======================
-// FIM SCRIPT
-// =======================
 
 </script>
 
