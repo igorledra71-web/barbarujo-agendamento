@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Barbearia Barbarujo — Agendamento</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="style.css">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+
+</head>
+
+<body>
+
+<header>
+<h1>Barbearia Barbarujo</h1>
+</header>
+
+<!-- LOGIN CLIENTE -->
+
+<div class="card" id="loginBox">
+<h2>Login Cliente</h2>
+<input id="loginNome" placeholder="Nome">
+<input id="loginTel" placeholder="WhatsApp">
+<button onclick="loginCliente()">Entrar</button>
+</div>
+
+<!-- AREA CLIENTE -->
+
+<div class="card hidden" id="areaCliente">
+
+<h2>Novo Agendamento</h2>
+
+<input id="nome" placeholder="Nome">
+
+<select id="barbeiro"></select>
+
+<select id="servico"></select>
+
+<input type="date" id="data">
+
+<div id="horarios"></div>
+
+<button onclick="confirmarAgendamento()">Confirmar</button>
+
+</div>
+
+<!-- PAINEL ADMIN -->
+
+<div class="card hidden" id="adminLogin">
+<h2>Painel Admin</h2>
+<input id="senhaAdmin" type="password" placeholder="Senha">
+<button onclick="loginAdmin()">Entrar</button>
+</div>
+
+<div class="card hidden" id="adminPanel">
+
+<h2>Painel Administrativo</h2>
+
+<label>Limite encaixe por horário</label>
+<input id="limiteEncaixe">
+
+<label>Tempo cancelamento automático (min)</label>
+<input id="tempoCancela">
+
+<button onclick="salvarConfig()">Salvar Config</button>
+
+<h3>Agenda do Dia</h3>
+<div id="listaAgenda"></div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
+body {
+background:#111;
+color:white;
+font-family:Arial;
+margin:0;
+}
+
+header {
+background:black;
+padding:20px;
+text-align:center;
+border-bottom:3px solid #c9a227;
+}
+
+.card {
+background:#1b1b1b;
+margin:20px;
+padding:20px;
+border-radius:12px;
+box-shadow:0 0 15px rgba(0,0,0,0.6);
+}
+
+input, select {
+width:100%;
+padding:12px;
+margin:8px 0;
+border-radius:8px;
+border:none;
+}
+
+button {
+width:100%;
+padding:14px;
+background:#c9a227;
+border:none;
+border-radius:10px;
+font-weight:bold;
+font-size:16px;
+cursor:pointer;
+}
+
+button:hover {
+opacity:0.9;
+}
+
+.hidden {
+display:none;
+}
+
+#horarios {
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
+}
+
+.horaBtn {
+background:#333;
+padding:10px;
+border-radius:8px;
+text-align:center;
+cursor:pointer;
+}
+
+.horaBtn.ocupado {
+background:#700;
+}
+
+.horaBtn.selected {
+background:#c9a227;
+color:black;
+}
+// 🔥 CONFIG FIREBASE
+const firebaseConfig = {
+apiKey: "SUA_KEY",
+authDomain: "SEU_DOMAIN",
+projectId: "SEU_ID",
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+// ===== LOGIN CLIENTE =====
+
+function loginCliente(){
+const nome = loginNome.value;
+localStorage.setItem("clienteNome", nome);
+loginBox.classList.add("hidden");
+areaCliente.classList.remove("hidden");
+carregarBarbeiros();
+carregarServicos();
+gerarHorarios();
+}
+
+// ===== BARBEIROS =====
+
+async function carregarBarbeiros(){
+const snap = await db.collection("barbeiros").get();
+barbeiro.innerHTML="";
+snap.forEach(doc=>{
+barbeiro.innerHTML += `<option>${doc.data().nome}</option>`;
+});
+}
+
+// ===== SERVIÇOS =====
+
+async function carregarServicos(){
+const snap = await db.collection("servicos").get();
+servico.innerHTML="";
+snap.forEach(doc=>{
+servico.innerHTML += `<option>${doc.data().nome}</option>`;
+});
+}
+
+// ===== HORÁRIOS =====
+
+function gerarHorarios(){
+horarios.innerHTML="";
+for(let h=8;h<=20;h++){
+["00","30"].forEach(m=>{
+let hora = h+":"+m;
+horarios.innerHTML += `<div class="horaBtn" onclick="selHora(this)">${hora}</div>`;
+});
+}
+}
+
+let horaSelecionada=null;
+
+function selHora(el){
+document.querySelectorAll(".horaBtn").forEach(x=>x.classList.remove("selected"));
+el.classList.add("selected");
+horaSelecionada = el.innerText;
+}
+
+// ===== AGENDAMENTO =====
+
+async function confirmarAgendamento(){
+
+const dados={
+nome:localStorage.getItem("clienteNome"),
+barbeiro:barbeiro.value,
+servico:servico.value,
+data:data.value,
+hora:horaSelecionada,
+status:"ativo",
+criado:Date.now()
+};
+
+await db.collection("agendamentos").add(dados);
+
+enviarWhatsApp(dados);
+
+alert("Agendado!");
+}
+
+// ===== WHATSAPP =====
+
+function enviarWhatsApp(d){
+const msg = `Agendamento confirmado\n${d.nome}\n${d.data} ${d.hora}\nBarbeiro: ${d.barbeiro}`;
+window.open(`https://wa.me/55NUMERO?text=${encodeURIComponent(msg)}`);
+}
+
+// ===== CANCELAMENTO AUTOMÁTICO =====
+
+setInterval(async ()=>{
+const snap = await db.collection("agendamentos")
+.where("status","==","ativo").get();
+
+snap.forEach(doc=>{
+let d = doc.data();
+if(Date.now()-d.criado > 30*60000){
+doc.ref.update({status:"cancelado_auto"});
+}
+});
+},60000);
+
+// ===== ADMIN =====
+
+function loginAdmin(){
+if(senhaAdmin.value==="1234"){
+adminPanel.classList.remove("hidden");
+adminLogin.classList.add("hidden");
+listarAgenda();
+}
+}
+
+// ===== LISTAR AGENDA =====
+
+async function listarAgenda(){
+const snap = await db.collection("agendamentos").get();
+listaAgenda.innerHTML="";
+snap.forEach(doc=>{
+let a=doc.data();
+listaAgenda.innerHTML += `
+<div>
+${a.nome} — ${a.data} ${a.hora}
+<button onclick="cancelar('${doc.id}')">Cancelar</button>
+</div>`;
+});
+}
+
+function cancelar(id){
+db.collection("agendamentos").doc(id).update({status:"cancelado"});
+}
+
+// ===== PAGAMENTO ONLINE (LINK CHECKOUT) =====
+
+function pagarOnline(){
+window.open("https://linkcheckout.com/seu-link");
+}
+barbeiros
+   id_auto
+      nome: "João"
+servicos
+   id_auto
+      nome: "Corte"
+      preco: 40
+      duracao: 30
+config
+   sistema
+      limiteEncaixe: 2
+      tempoCancelamento: 30
