@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>BARBARUJO • Agendamento</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f0f0f">
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 
@@ -12,132 +16,146 @@
 body{background:#0f0f0f;color:#fff}
 header{background:#111;padding:18px;text-align:center;font-size:26px;font-weight:700;border-bottom:2px solid #222;cursor:pointer}
 .container{max-width:900px;margin:auto;padding:18px}
-.card{background:#181818;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 0 12px rgba(0,0,0,.4)}
-.title{font-size:18px;margin-bottom:12px;font-weight:600}
+.card{background:#181818;border-radius:14px;padding:18px;margin-bottom:16px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.btn{background:#d4af37;border:none;padding:14px;border-radius:10px;font-weight:600;cursor:pointer;width:100%}
-.btn-outline{background:transparent;border:2px solid #d4af37;color:#d4af37;padding:12px;border-radius:10px;width:100%;cursor:pointer}
-input,select{width:100%;padding:12px;border-radius:8px;border:none;margin-top:6px}
+.btn{background:#d4af37;border:none;padding:14px;border-radius:10px;font-weight:600;width:100%}
+.btn-outline{background:transparent;border:2px solid #d4af37;color:#d4af37;padding:12px;border-radius:10px;width:100%}
 .slot{background:#222;padding:10px;border-radius:8px;text-align:center;cursor:pointer}
 .slot.booked{background:#401616;opacity:.5;pointer-events:none}
 .slot.selected{outline:3px solid #d4af37}
 .hidden{display:none}
 .badge{background:#d4af37;color:#000;padding:4px 8px;border-radius:6px;font-size:12px}
-footer{text-align:center;padding:30px;opacity:.6;font-size:12px}
 </style>
 </head>
 
 <body>
 
-<header id="topo">💈 BARBARUJO</header>
+<!-- SPLASH -->
+<div id="telaSplash" style="position:fixed;inset:0;background:#0f0f0f;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999">
+<h1 style="font-size:42px;margin-bottom:30px">💈 BARBARUJO</h1>
+<button id="btnEntrar" class="btn" style="max-width:260px">Agende seu horário</button>
+</div>
 
+<header id="topo">💈 BARBARUJO</header>
 <div class="container">
+<!-- =====================
+TELA CLIENTE
+===================== -->
 
 <div id="telaCliente">
 
 <div class="card">
-<div class="title">Escolha o serviço</div>
+<h3>Escolha o serviço</h3>
 <div id="listaServicos" class="grid"></div>
 </div>
 
 <div id="cardBarbeiro" class="card hidden">
-<div class="title">Escolha o barbeiro</div>
+<h3>Escolha o barbeiro</h3>
 <div id="listaBarbeiros" class="grid"></div>
 </div>
 
 <div id="cardData" class="card hidden">
-<div class="title">Escolha a data</div>
+<h3>Escolha a data</h3>
 <input type="date" id="dataEscolhida">
 </div>
 
 <div id="cardHorarios" class="card hidden">
-<div class="title">Horários disponíveis</div>
+<h3>Horários disponíveis</h3>
 <div id="listaHorarios" class="grid"></div>
 </div>
 
 <div id="cardCliente" class="card hidden">
-<div class="title">Seus dados</div>
+<h3>Seus dados</h3>
 <input id="clienteNome" placeholder="Nome">
 <input id="clienteFone" placeholder="WhatsApp">
-<button class="btn" id="btnConfirmar">Confirmar Agendamento</button>
+<button id="btnConfirmar" class="btn">Confirmar agendamento</button>
 </div>
 
 </div>
+
+<!-- =====================
+TELA ADMIN
+===================== -->
+
 <div id="telaAdmin" class="hidden">
 
 <div class="card">
-<div class="title">Painel Administrador</div>
-<button class="btn-outline" id="btnLogout">Sair do Admin</button>
+<h3>Painel Administrador</h3>
+<button id="btnLogout" class="btn-outline">Sair</button>
 </div>
 
 <div class="card">
-<div class="title">Serviços</div>
-
-<label>Nome</label>
-<input id="novoServicoNome">
-
-<label>Preço</label>
-<input id="novoServicoPreco">
-
-<button class="btn" id="btnAddServico">Adicionar serviço</button>
-
+<h3>Serviços</h3>
+<input id="novoServicoNome" placeholder="Nome">
+<input id="novoServicoPreco" placeholder="Preço">
+<button id="btnAddServico" class="btn">Adicionar serviço</button>
 <div id="adminServicos"></div>
 </div>
 
 <div class="card">
-<div class="title">Barbeiros</div>
-
-<label>Nome barbeiro</label>
-<input id="novoBarbeiro">
-
-<button class="btn" id="btnAddBarbeiro">Adicionar barbeiro</button>
-
+<h3>Barbeiros</h3>
+<input id="novoBarbeiro" placeholder="Nome">
+<button id="btnAddBarbeiro" class="btn">Adicionar barbeiro</button>
 <div id="adminBarbeiros"></div>
 </div>
 
 <div class="card">
-<div class="title">Configuração de Funcionamento</div>
-
+<h3>Horário funcionamento</h3>
 <label>Abertura</label>
 <input type="time" id="cfgAbertura">
-
 <label>Fechamento</label>
 <input type="time" id="cfgFechamento">
-
-<label>Intervalo (minutos)</label>
+<label>Intervalo</label>
 <select id="cfgIntervalo">
 <option>15</option>
 <option>30</option>
 <option>45</option>
 <option>60</option>
 </select>
+<button id="btnSalvarCfg" class="btn">Salvar horários</button>
+</div>
 
-<button class="btn" id="btnSalvarCfg">Salvar Configuração</button>
+<!-- =====================
+CALENDÁRIO DIAS LIBERADOS
+===================== -->
+
+<div class="card">
+<h3>Dias disponíveis</h3>
+<input type="date" id="dataLiberar">
+<button id="btnAddDia" class="btn">Liberar dia</button>
+
+<div id="listaDias"></div>
+
+<button id="btnSalvarDias" class="btn">
+Salvar calendário
+</button>
 </div>
 
 <div class="card">
-<div class="title">Ferramentas Premium</div>
-
-<button class="btn" id="btnExportarDia">Copiar agenda do dia</button>
-<button class="btn" id="btnSetup">Setup rápido white-label</button>
-<button class="btn" id="btnDemo">Popular modo demonstração</button>
+<h3>Ferramentas</h3>
+<button id="btnExportarDia" class="btn">Copiar agenda do dia</button>
+<button id="btnSetup" class="btn">Setup rápido</button>
+<button id="btnDemo" class="btn">Modo demonstração</button>
 </div>
 
 <div class="card">
-<div class="title">Agendamentos</div>
+<h3>Agendamentos</h3>
 <div id="listaAgendamentos"></div>
 </div>
 
 </div>
+<!-- =====================
+FIREBASE SDK COMPAT
+===================== -->
 
-<footer>
-Sistema Premium Multi-Barbeiro • BARBARUJO
-</footer>
-<!-- FIREBASE COMPAT -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
+
+// =====================
+// CONFIG FIREBASE (SEU)
+// =====================
 
 const firebaseConfig = {
 apiKey: "AIzaSyBDffb23AqSOoT-8Z94Ao9leB5nTSdIv78",
@@ -152,12 +170,16 @@ appId: "1:735138068544:web:5a1273bd8be9ef7ab487a5"
 firebase.initializeApp(firebaseConfig)
 const db = firebase.database()
 
-// caminhos base
+// =====================
+// REFERÊNCIAS BANCO
+// =====================
+
 const DB = {
 servicos: db.ref("barbarujo/servicos"),
 barbeiros: db.ref("barbarujo/barbeiros"),
 config: db.ref("barbarujo/config"),
-ag: db.ref("barbarujo/agendamentos")
+ag: db.ref("barbarujo/agendamentos"),
+dias: db.ref("barbarujo/dias_liberados")
 }
 
 </script>
@@ -169,19 +191,31 @@ ag: db.ref("barbarujo/agendamentos")
 
 let servicos = []
 let barbeiros = []
+let agendamentos = []
+let diasLiberados = []
+
 let config = {
 abertura: "08:00",
 fechamento: "20:00",
 intervalo: 30
 }
-let agendamentos = []
 
 let servicoSel = null
 let barbeiroSel = null
 let horaSel = null
 
+let salvando = false
+
+// =========================
+// WHITE LABEL
+// =========================
+
 let NOME_BARBEARIA = "BARBARUJO"
 let WHATS_BARBEARIA = "5599999999999"
+
+// =========================
+// ADMIN
+// =========================
 
 const ADMIN_SENHA = "barbarujo123"
 
@@ -193,11 +227,40 @@ function hojeISO(){
 return new Date().toISOString().split("T")[0]
 }
 
+// data mínima cliente
 dataEscolhida.min = hojeISO()
+dataLiberar.min = hojeISO()
 
-clienteFone.addEventListener("input",()=>{
-clienteFone.value = clienteFone.value.replace(/\D/g,"").slice(0,11)
+// máscara telefone
+clienteFone.addEventListener("input", ()=>{
+clienteFone.value =
+clienteFone.value.replace(/\D/g,"").slice(0,11)
 })
+
+// =========================
+// CONTROLE SPLASH
+// =========================
+
+document.querySelector(".container").style.display = "none"
+
+btnEntrar.onclick = ()=>{
+telaSplash.style.display = "none"
+document.querySelector(".container").style.display = "block"
+}
+
+// =========================
+// WHITE LABEL NOME
+// =========================
+
+function aplicarNome(){
+topo.innerText = "💈 " + NOME_BARBEARIA
+document.title = NOME_BARBEARIA + " • Agendamento"
+}
+
+aplicarNome()
+
+</script>
+<script>
 
 // =========================
 // RENDER SERVIÇOS CLIENTE
@@ -252,11 +315,15 @@ adminServicos.innerHTML = ""
 servicos.forEach((s,i)=>{
 let div = document.createElement("div")
 div.className = "card"
+
 div.innerHTML = `
 <b>${s.nome}</b> — R$ ${s.preco}
 <br><br>
-<button class="btn-outline" onclick="removerServico(${i})">Remover</button>
+<button class="btn-outline" onclick="removerServico(${i})">
+Remover
+</button>
 `
+
 adminServicos.appendChild(div)
 })
 }
@@ -271,11 +338,15 @@ adminBarbeiros.innerHTML = ""
 barbeiros.forEach((b,i)=>{
 let div = document.createElement("div")
 div.className = "card"
+
 div.innerHTML = `
 <b>${b}</b>
 <br><br>
-<button class="btn-outline" onclick="removerBarbeiro(${i})">Remover</button>
+<button class="btn-outline" onclick="removerBarbeiro(${i})">
+Remover
+</button>
 `
+
 adminBarbeiros.appendChild(div)
 })
 }
@@ -290,7 +361,7 @@ listaAgendamentos.innerHTML = ""
 
 agendamentos
 .sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
-.forEach((a,i)=>{
+.forEach(a=>{
 
 let div = document.createElement("div")
 div.className = "card"
@@ -312,24 +383,61 @@ listaAgendamentos.appendChild(div)
 })
 }
 
+// =========================
+// RENDER DIAS LIBERADOS ADMIN
+// =========================
+
+function renderDiasAdmin(){
+
+listaDias.innerHTML = ""
+
+diasLiberados.forEach((d,i)=>{
+
+let div = document.createElement("div")
+div.className = "card"
+
+div.innerHTML = `
+${d}
+<br><br>
+<button class="btn-outline" onclick="removerDia(${i})">
+Remover
+</button>
+`
+
+listaDias.appendChild(div)
+
+})
+
+}
+
 </script>
 <script>
 
 // =========================
-// DATA → GERAR HORÁRIOS
+// DATA ESCOLHIDA CLIENTE
 // =========================
 
 dataEscolhida.onchange = ()=>{
+
 if(!barbeiroSel){
 alert("Escolha o barbeiro primeiro")
+dataEscolhida.value = ""
 return
 }
+
+if(!diasLiberados.includes(dataEscolhida.value)){
+alert("Este dia não está disponível")
+dataEscolhida.value = ""
+return
+}
+
 gerarHorarios()
 cardHorarios.classList.remove("hidden")
+
 }
 
 // =========================
-// GERAR HORÁRIOS DINÂMICO
+// GERAR HORÁRIOS
 // =========================
 
 function gerarHorarios(){
@@ -371,7 +479,7 @@ div.classList.add("booked")
 }
 
 // =========================
-// SELEÇÃO VISUAL
+// SELEÇÃO SLOT
 // =========================
 
 div.onclick = ()=>{
@@ -394,17 +502,11 @@ listaHorarios.appendChild(div)
 }
 
 // =========================
-// AUTO ATUALIZA SE DB MUDAR
+// AUTO ATUALIZA HORÁRIOS
 // =========================
 
-DB.ag.on("child_added", ()=>{
-if(cardHorarios && !cardHorarios.classList.contains("hidden")){
-gerarHorarios()
-}
-})
-
-DB.ag.on("child_removed", ()=>{
-if(cardHorarios && !cardHorarios.classList.contains("hidden")){
+DB.ag.on("value", ()=>{
+if(!cardHorarios.classList.contains("hidden")){
 gerarHorarios()
 }
 })
@@ -413,13 +515,7 @@ gerarHorarios()
 <script>
 
 // =========================
-// TRAVA DUPLO CLIQUE
-// =========================
-
-let salvando = false
-
-// =========================
-// WHATS CONFIRMAÇÃO CLIENTE
+// WHATS CONFIRMAÇÃO
 // =========================
 
 function enviarWhatsConfirmacao(ag){
@@ -435,7 +531,8 @@ Valor: R$ ${ag.preco}
 
 Chegue 5 minutos antes.`
 
-let url = "https://wa.me/55" +
+let url =
+"https://wa.me/55" +
 ag.fone.replace(/\D/g,"") +
 "?text=" + encodeURIComponent(msg)
 
@@ -443,7 +540,7 @@ window.open(url,"_blank")
 }
 
 // =========================
-// RESET FLUXO CLIENTE
+// RESET FLUXO
 // =========================
 
 function resetFluxo(){
@@ -484,9 +581,7 @@ salvando = false
 return
 }
 
-// =========================
-// CHECAGEM CONFLITO REAL DB
-// =========================
+// checar conflito realtime
 
 let snap = await DB.ag
 .orderByChild("data")
@@ -509,9 +604,7 @@ salvando = false
 return
 }
 
-// =========================
-// SALVAR NO FIREBASE
-// =========================
+// salvar
 
 let ag = {
 servico: servicoSel.nome,
@@ -526,11 +619,8 @@ ts: Date.now()
 
 await DB.ag.push(ag)
 
-// =========================
-// WHATS AUTO
-// =========================
-
-setTimeout(()=> enviarWhatsConfirmacao(ag), 700)
+// Whats confirmação
+setTimeout(()=> enviarWhatsConfirmacao(ag), 600)
 
 alert("Agendamento confirmado 💈")
 
@@ -540,7 +630,7 @@ salvando = false
 }
 
 // =========================
-// BOTÃO FALAR BARBEARIA
+// BOTÃO WHATS BARBEARIA
 // =========================
 
 let btnZap = document.createElement("button")
@@ -576,7 +666,7 @@ telaCliente.classList.remove("hidden")
 }
 
 // =========================
-// FIREBASE SYNC — SERVIÇOS
+// FIREBASE SYNC SERVIÇOS
 // =========================
 
 DB.servicos.on("value", snap=>{
@@ -586,7 +676,7 @@ servicos = Object.values(snap.val())
 DB.servicos.set([
 {nome:"Corte",preco:40},
 {nome:"Barba",preco:30},
-{nome:"Corte + Barba",preco:65}
+{nome:"Combo",preco:65}
 ])
 }
 renderServicos()
@@ -594,20 +684,20 @@ renderAdminServicos()
 })
 
 // =========================
-// FIREBASE SYNC — BARBEIROS
+// FIREBASE SYNC BARBEIROS
 // =========================
 
 DB.barbeiros.on("value", snap=>{
 if(snap.exists()){
 barbeiros = Object.values(snap.val())
 }else{
-DB.barbeiros.set(["Pedro","Lucas"])
+DB.barbeiros.set(["Carlos","Pedro"])
 }
 renderAdminBarbeiros()
 })
 
 // =========================
-// FIREBASE SYNC — CONFIG
+// FIREBASE SYNC CONFIG
 // =========================
 
 DB.config.on("value", snap=>{
@@ -622,7 +712,7 @@ DB.config.set(config)
 })
 
 // =========================
-// FIREBASE SYNC — AGENDAMENTOS
+// FIREBASE SYNC AGENDAMENTOS
 // =========================
 
 DB.ag.on("value", snap=>{
@@ -631,7 +721,16 @@ renderAdminAgendamentos()
 })
 
 // =========================
-// ADMIN — SERVIÇOS CRUD
+// FIREBASE SYNC DIAS LIBERADOS
+// =========================
+
+DB.dias.on("value", snap=>{
+diasLiberados = snap.exists() ? Object.values(snap.val()) : []
+renderDiasAdmin()
+})
+
+// =========================
+// CRUD SERVIÇOS
 // =========================
 
 btnAddServico.onclick = ()=>{
@@ -643,7 +742,6 @@ preco: Number(novoServicoPreco.value)
 })
 
 DB.servicos.set(servicos)
-
 novoServicoNome.value=""
 novoServicoPreco.value=""
 }
@@ -654,12 +752,11 @@ DB.servicos.set(servicos)
 }
 
 // =========================
-// ADMIN — BARBEIROS CRUD
+// CRUD BARBEIROS
 // =========================
 
 btnAddBarbeiro.onclick = ()=>{
 if(!novoBarbeiro.value) return
-
 barbeiros.push(novoBarbeiro.value)
 DB.barbeiros.set(barbeiros)
 novoBarbeiro.value=""
@@ -671,7 +768,7 @@ DB.barbeiros.set(barbeiros)
 }
 
 // =========================
-// ADMIN — CONFIG SALVAR
+// SALVAR CONFIG HORÁRIO
 // =========================
 
 btnSalvarCfg.onclick = ()=>{
@@ -681,18 +778,39 @@ fechamento: cfgFechamento.value,
 intervalo: Number(cfgIntervalo.value)
 }
 DB.config.set(config)
-alert("Configuração salva")
+alert("Configuração finalizada com sucesso ✅")
 }
 
 // =========================
-// EXPORTAR AGENDA DO DIA
+// CALENDÁRIO DIAS LIBERADOS
+// =========================
+
+btnAddDia.onclick = ()=>{
+if(!dataLiberar.value) return
+if(!diasLiberados.includes(dataLiberar.value)){
+diasLiberados.push(dataLiberar.value)
+renderDiasAdmin()
+}
+}
+
+function removerDia(i){
+diasLiberados.splice(i,1)
+renderDiasAdmin()
+}
+
+btnSalvarDias.onclick = ()=>{
+DB.dias.set(diasLiberados)
+alert("Calendário salvo com sucesso ✅")
+}
+
+// =========================
+// EXPORTAR AGENDA DIA
 // =========================
 
 btnExportarDia.onclick = ()=>{
 
 let hoje = hojeISO()
-
-let lista = agendamentos.filter(a=>a.data === hoje)
+let lista = agendamentos.filter(a=>a.data===hoje)
 
 let txt = `AGENDA ${NOME_BARBEARIA} — ${hoje}\n\n`
 
@@ -707,22 +825,8 @@ Whats: ${a.fone}
 })
 
 navigator.clipboard.writeText(txt)
-alert("Agenda copiada")
+alert("Agenda copiada ✅")
 }
-
-</script>
-<script>
-
-// =========================
-// WHITE LABEL — NOME DINÂMICO
-// =========================
-
-function aplicarNome(){
-topo.innerText = "💈 " + NOME_BARBEARIA
-document.title = NOME_BARBEARIA + " • Agendamento"
-}
-
-aplicarNome()
 
 // =========================
 // SETUP RÁPIDO WHITE LABEL
@@ -731,39 +835,23 @@ aplicarNome()
 btnSetup.onclick = ()=>{
 
 let nome = prompt("Nome da barbearia:")
-if(nome){
-NOME_BARBEARIA = nome.toUpperCase()
-}
+if(nome) NOME_BARBEARIA = nome.toUpperCase()
 
-let zap = prompt("WhatsApp da barbearia (DDD + número):")
-if(zap){
-WHATS_BARBEARIA = "55" + zap.replace(/\D/g,"")
-}
+let zap = prompt("WhatsApp (DDD+número):")
+if(zap) WHATS_BARBEARIA = "55"+zap.replace(/\D/g,"")
 
 aplicarNome()
-
-alert("Setup concluído 💈")
+alert("Setup finalizado ✅")
 
 }
 
 // =========================
-// MODO DEMONSTRAÇÃO VENDEDOR
+// MODO DEMONSTRAÇÃO
 // =========================
 
 btnDemo.onclick = ()=>{
 
 let hoje = hojeISO()
-
-servicos = [
-{nome:"Corte",preco:45},
-{nome:"Barba",preco:30},
-{nome:"Combo",preco:70}
-]
-
-barbeiros = ["Carlos","André","Marcos"]
-
-DB.servicos.set(servicos)
-DB.barbeiros.set(barbeiros)
 
 DB.ag.push({
 servico:"Corte",
@@ -776,44 +864,7 @@ fone:"11999999999",
 ts:Date.now()
 })
 
-alert("Modo demonstração carregado")
+alert("Modo demonstração carregado ✅")
 }
-
-// =========================
-// INSTALAR COMO APP (PWA)
-// =========================
-
-let deferredPrompt = null
-
-window.addEventListener("beforeinstallprompt", e=>{
-e.preventDefault()
-deferredPrompt = e
-})
-
-function instalarApp(){
-if(deferredPrompt){
-deferredPrompt.prompt()
-}
-}
-
-// botão instalar
-let btnInstalar = document.createElement("button")
-btnInstalar.className = "btn"
-btnInstalar.innerText = "Instalar como App"
-btnInstalar.onclick = instalarApp
-
-document.querySelector(".container").appendChild(btnInstalar)
-
-// =========================
-// LOG FINAL
-// =========================
-
-console.log("💈 BARBARUJO PREMIUM carregado")
-console.log("Multi-barbeiro ativo")
-console.log("Firebase realtime ativo")
-console.log("Sistema pronto para venda")
 
 </script>
-
-</body>
-</html>
