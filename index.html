@@ -2,699 +2,816 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agenda Barbearia Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BARBARUJO • Agendamento</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 
 <style>
-
-*{box-sizing:border-box}
-
-body{
-margin:0;
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
-background:#0b0b0b;
-color:#eee;
-}
-
-header{
-padding:18px;
-text-align:center;
-background:#000;
-border-bottom:1px solid #222;
-letter-spacing:2px;
-font-weight:bold;
-}
-
-.card{
-margin:14px;
-padding:16px;
-border-radius:16px;
-background:#151515;
-border:1px solid #262626;
-box-shadow:0 10px 30px rgba(0,0,0,.6);
-}
-
-h2{
-margin:0 0 12px 0;
-font-size:16px;
-color:#f1d27a;
-}
-
-input,select{
-width:100%;
-padding:12px;
-margin:6px 0 12px 0;
-border-radius:12px;
-border:1px solid #333;
-background:#101010;
-color:white;
-font-size:14px;
-}
-
-button{
-width:100%;
-padding:13px;
-border-radius:14px;
-border:none;
-font-weight:700;
-background:linear-gradient(135deg,#d4af37,#f5d77a);
-color:#111;
-cursor:pointer;
-}
-
-.item{
-background:#101010;
-border:1px solid #262626;
-padding:10px;
-border-radius:12px;
-margin:8px 0;
-font-size:14px;
-}
-
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif}
+body{background:#0f0f0f;color:#fff}
+header{background:#111;padding:18px;text-align:center;font-size:26px;font-weight:700;border-bottom:2px solid #222;cursor:pointer}
+.container{max-width:900px;margin:auto;padding:18px}
+.card{background:#181818;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 0 12px rgba(0,0,0,.4)}
+.title{font-size:18px;margin-bottom:12px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.btn{background:#d4af37;border:none;padding:14px;border-radius:10px;font-weight:600;cursor:pointer;width:100%}
+.btn-outline{background:transparent;border:2px solid #d4af37;color:#d4af37;padding:12px;border-radius:10px;width:100%;cursor:pointer}
+input,select{width:100%;padding:12px;border-radius:8px;border:none;margin-top:6px}
+.slot{background:#222;padding:10px;border-radius:8px;text-align:center;cursor:pointer}
+.slot.booked{background:#401616;opacity:.5;pointer-events:none}
+.slot.selected{outline:3px solid #d4af37}
 .hidden{display:none}
-
-.adminBtn{
-position:fixed;
-bottom:14px;
-right:14px;
-font-size:24px;
-opacity:.25;
-cursor:pointer;
-}
-
-.modal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.75);
-display:flex;
-align-items:center;
-justify-content:center;
-}
-
-.modalBox{
-width:92%;
-max-width:420px;
-background:#111;
-border-radius:18px;
-padding:16px;
-border:1px solid #333;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:8px;
-}
-
-.slot{
-padding:10px;
-border-radius:10px;
-background:#1a1a1a;
-border:1px solid #333;
-text-align:center;
-cursor:pointer;
-}
-
-.slot.sel{
-background:#f5d77a;
-color:#000;
-font-weight:700;
-}
-
-.slot.off{
-opacity:.35;
-text-decoration:line-through;
-cursor:not-allowed;
-}
-
+.badge{background:#d4af37;color:#000;padding:4px 8px;border-radius:6px;font-size:12px}
+footer{text-align:center;padding:30px;opacity:.6;font-size:12px}
 </style>
 </head>
+
 <body>
 
-<header>AGENDA BARBEARIA PRO</header>
-<!-- LOGIN CLIENTE -->
+<header id="topo">💈 BARBARUJO</header>
 
-<div class="card" id="loginBox">
-<h2>Entrar</h2>
+<div class="container">
 
-<input id="cliNome" placeholder="Nome">
-<input id="cliTel" placeholder="WhatsApp">
-
-<button onclick="loginCliente()">Entrar</button>
-</div>
-
-
-
-<!-- AREA CLIENTE -->
-
-<div id="areaCliente" class="hidden">
+<div id="telaCliente">
 
 <div class="card">
-<h2>Novo Agendamento</h2>
-
-<label>Barbeiro</label>
-<select id="barbeiro"></select>
-
-<label>Serviço</label>
-<select id="servico"></select>
-
-<label>Data</label>
-<input type="date" id="dataInp">
-
-<label>Horário</label>
-<input id="horaView" readonly placeholder="Escolher horário">
-<button onclick="abrirHoras()">Selecionar Horário</button>
-
-<button onclick="confirmarAg()">Confirmar Agendamento</button>
+<div class="title">Escolha o serviço</div>
+<div id="listaServicos" class="grid"></div>
 </div>
 
+<div id="cardBarbeiro" class="card hidden">
+<div class="title">Escolha o barbeiro</div>
+<div id="listaBarbeiros" class="grid"></div>
+</div>
+
+<div id="cardData" class="card hidden">
+<div class="title">Escolha a data</div>
+<input type="date" id="dataEscolhida">
+</div>
+
+<div id="cardHorarios" class="card hidden">
+<div class="title">Horários disponíveis</div>
+<div id="listaHorarios" class="grid"></div>
+</div>
+
+<div id="cardCliente" class="card hidden">
+<div class="title">Seus dados</div>
+<input id="clienteNome" placeholder="Nome">
+<input id="clienteFone" placeholder="WhatsApp">
+<button class="btn" id="btnConfirmar">Confirmar Agendamento</button>
+</div>
+
+</div>
+<div id="telaAdmin" class="hidden">
 
 <div class="card">
-<h2>Meus Agendamentos</h2>
-<div id="listaMeus"></div>
+<div class="title">Painel Administrador</div>
+<button class="btn-outline" id="btnLogout">Sair do Admin</button>
 </div>
-
-</div>
-
-
-
-<!-- BOTÃO ADMIN -->
-
-<div class="adminBtn" onclick="abrirAdmin()">⚙</div>
-
-
-
-<!-- LOGIN ADMIN -->
-
-<div class="card hidden" id="adminLogin">
-<h2>Painel Admin</h2>
-
-<input type="password" id="admSenha" placeholder="Senha">
-<button onclick="loginAdmin()">Entrar</button>
-</div>
-
-
-
-<!-- AREA ADMIN -->
-
-<div id="areaAdmin" class="hidden">
 
 <div class="card">
-<h2>Barbeiros</h2>
-<input id="novoBarb">
-<button onclick="addBarb()">Adicionar</button>
-<div id="listaBarb"></div>
-</div>
+<div class="title">Serviços</div>
 
+<label>Nome</label>
+<input id="novoServicoNome">
+
+<label>Preço</label>
+<input id="novoServicoPreco">
+
+<button class="btn" id="btnAddServico">Adicionar serviço</button>
+
+<div id="adminServicos"></div>
+</div>
 
 <div class="card">
-<h2>Serviços</h2>
-<input id="novoServ">
-<button onclick="addServ()">Adicionar</button>
-<div id="listaServ"></div>
-</div>
+<div class="title">Barbeiros</div>
 
+<label>Nome barbeiro</label>
+<input id="novoBarbeiro">
+
+<button class="btn" id="btnAddBarbeiro">Adicionar barbeiro</button>
+
+<div id="adminBarbeiros"></div>
+</div>
 
 <div class="card">
-<h2>Horários Disponíveis do Dia</h2>
-<input type="date" id="admData">
-<input type="time" id="admHora">
-<button onclick="addDisp()">Liberar Horário</button>
-<div id="listaDisp"></div>
+<div class="title">Configuração de Funcionamento</div>
+
+<label>Abertura</label>
+<input type="time" id="cfgAbertura">
+
+<label>Fechamento</label>
+<input type="time" id="cfgFechamento">
+
+<label>Intervalo (minutos)</label>
+<select id="cfgIntervalo">
+<option>15</option>
+<option>30</option>
+<option>45</option>
+<option>60</option>
+</select>
+
+<button class="btn" id="btnSalvarCfg">Salvar Configuração</button>
+</div>
+
+<div class="card">
+<div class="title">Ferramentas Premium</div>
+
+<button class="btn" id="btnExportarDia">Copiar agenda do dia</button>
+<button class="btn" id="btnSetup">Setup rápido white-label</button>
+<button class="btn" id="btnDemo">Popular modo demonstração</button>
+</div>
+
+<div class="card">
+<div class="title">Agendamentos</div>
+<div id="listaAgendamentos"></div>
 </div>
 
 </div>
 
+<footer>
+Sistema Premium Multi-Barbeiro • BARBARUJO
+</footer>
+<!-- FIREBASE COMPAT -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-
-<!-- MODAL HORÁRIOS -->
-
-<div class="modal hidden" id="modalHoras">
-<div class="modalBox">
-
-<h2>Escolher Horário</h2>
-<div class="grid" id="gridHoras"></div>
-
-<button onclick="fecharHoras()">Fechar</button>
-
-</div>
-</div>
 <script>
 
-// ======================
-// BANCO LOCAL
-// ======================
-
-function dbGet(k,def){
-return JSON.parse(localStorage.getItem(k) || JSON.stringify(def));
+const firebaseConfig = {
+apiKey: "AIzaSyBDffb23AqSOoT-8Z94Ao9leB5nTSdIv78",
+authDomain: "agenda-barbarujo.firebaseapp.com",
+databaseURL: "https://agenda-barbarujo-default-rtdb.firebaseio.com/",
+projectId: "agenda-barbarujo",
+storageBucket: "agenda-barbarujo.firebasestorage.app",
+messagingSenderId: "735138068544",
+appId: "1:735138068544:web:5a1273bd8be9ef7ab487a5"
 }
 
-function dbSet(k,v){
-localStorage.setItem(k,JSON.stringify(v));
+firebase.initializeApp(firebaseConfig)
+const db = firebase.database()
+
+// caminhos base
+const DB = {
+servicos: db.ref("barbarujo/servicos"),
+barbeiros: db.ref("barbarujo/barbeiros"),
+config: db.ref("barbarujo/config"),
+ag: db.ref("barbarujo/agendamentos")
 }
 
+</script>
+<script>
 
-// ======================
-// DADOS INICIAIS
-// ======================
+// =========================
+// ESTADO GLOBAL
+// =========================
 
-if(!localStorage.getItem("barbeiros")){
-dbSet("barbeiros",["Carlos","João"]);
+let servicos = []
+let barbeiros = []
+let config = {
+abertura: "08:00",
+fechamento: "20:00",
+intervalo: 30
+}
+let agendamentos = []
+
+let servicoSel = null
+let barbeiroSel = null
+let horaSel = null
+
+let NOME_BARBEARIA = "BARBARUJO"
+let WHATS_BARBEARIA = "5599999999999"
+
+const ADMIN_SENHA = "barbarujo123"
+
+// =========================
+// HELPERS
+// =========================
+
+function hojeISO(){
+return new Date().toISOString().split("T")[0]
 }
 
-if(!localStorage.getItem("servicos")){
-dbSet("servicos",["Corte","Barba"]);
+dataEscolhida.min = hojeISO()
+
+clienteFone.addEventListener("input",()=>{
+clienteFone.value = clienteFone.value.replace(/\D/g,"").slice(0,11)
+})
+
+// =========================
+// RENDER SERVIÇOS CLIENTE
+// =========================
+
+function renderServicos(){
+listaServicos.innerHTML = ""
+
+servicos.forEach(s=>{
+let b = document.createElement("button")
+b.className = "btn"
+b.innerHTML = `${s.nome}<br><span class="badge">R$ ${s.preco}</span>`
+
+b.onclick = ()=>{
+servicoSel = s
+cardBarbeiro.classList.remove("hidden")
+renderBarbeiros()
 }
 
-if(!localStorage.getItem("disponibilidade")){
-dbSet("disponibilidade",[]);
+listaServicos.appendChild(b)
+})
 }
 
-if(!localStorage.getItem("agendamentos")){
-dbSet("agendamentos",[]);
+// =========================
+// RENDER BARBEIROS CLIENTE
+// =========================
+
+function renderBarbeiros(){
+listaBarbeiros.innerHTML = ""
+
+barbeiros.forEach(n=>{
+let b = document.createElement("button")
+b.className = "btn-outline"
+b.innerText = n
+
+b.onclick = ()=>{
+barbeiroSel = n
+cardData.classList.remove("hidden")
 }
 
-
-// ======================
-// ESTADO
-// ======================
-
-let horaSel = null;
-
-
-// ======================
-// LOGIN CLIENTE
-// ======================
-
-function loginCliente(){
-
-const n = cliNome.value.trim();
-const t = cliTel.value.trim();
-
-if(!n || !t){
-alert("Preencha os dados");
-return;
+listaBarbeiros.appendChild(b)
+})
 }
 
-localStorage.setItem("cliNome",n);
-localStorage.setItem("cliTel",t);
+// =========================
+// RENDER ADMIN SERVIÇOS
+// =========================
 
-loginBox.classList.add("hidden");
-areaCliente.classList.remove("hidden");
+function renderAdminServicos(){
+adminServicos.innerHTML = ""
 
-carregarSelects();
-listarMeus();
+servicos.forEach((s,i)=>{
+let div = document.createElement("div")
+div.className = "card"
+div.innerHTML = `
+<b>${s.nome}</b> — R$ ${s.preco}
+<br><br>
+<button class="btn-outline" onclick="removerServico(${i})">Remover</button>
+`
+adminServicos.appendChild(div)
+})
 }
 
+// =========================
+// RENDER ADMIN BARBEIROS
+// =========================
 
-// ======================
-// LOGIN ADMIN
-// ======================
+function renderAdminBarbeiros(){
+adminBarbeiros.innerHTML = ""
 
-function abrirAdmin(){
-adminLogin.classList.remove("hidden");
+barbeiros.forEach((b,i)=>{
+let div = document.createElement("div")
+div.className = "card"
+div.innerHTML = `
+<b>${b}</b>
+<br><br>
+<button class="btn-outline" onclick="removerBarbeiro(${i})">Remover</button>
+`
+adminBarbeiros.appendChild(div)
+})
 }
 
-function loginAdmin(){
+// =========================
+// RENDER ADMIN AGENDAMENTOS
+// =========================
 
-if(admSenha.value !== "1234"){
-alert("Senha incorreta");
-return;
+function renderAdminAgendamentos(){
+
+listaAgendamentos.innerHTML = ""
+
+agendamentos
+.sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
+.forEach((a,i)=>{
+
+let div = document.createElement("div")
+div.className = "card"
+
+div.innerHTML = `
+<span class="badge">${a.data} ${a.hora}</span>
+<br><br>
+<b>${a.servico}</b> — R$ ${a.preco}
+<br>
+Barbeiro: ${a.barbeiro}
+<br>
+Cliente: ${a.cliente}
+<br>
+Whats: ${a.fone}
+`
+
+listaAgendamentos.appendChild(div)
+
+})
 }
 
-adminLogin.classList.add("hidden");
-areaAdmin.classList.remove("hidden");
+</script>
+<script>
 
-renderAdmin();
+// =========================
+// DATA → GERAR HORÁRIOS
+// =========================
+
+dataEscolhida.onchange = ()=>{
+if(!barbeiroSel){
+alert("Escolha o barbeiro primeiro")
+return
+}
+gerarHorarios()
+cardHorarios.classList.remove("hidden")
 }
 
+// =========================
+// GERAR HORÁRIOS DINÂMICO
+// =========================
 
-// ======================
-// SELECTS
-// ======================
+function gerarHorarios(){
 
-function carregarSelects(){
+listaHorarios.innerHTML = ""
+horaSel = null
 
-const bs = dbGet("barbeiros",[]);
-barbeiro.innerHTML="";
-bs.forEach(b=>{
-barbeiro.innerHTML += `<option>${b}</option>`;
-});
+if(!config.abertura || !config.fechamento) return
 
-const ss = dbGet("servicos",[]);
-servico.innerHTML="";
-ss.forEach(s=>{
-servico.innerHTML += `<option>${s}</option>`;
-});
+let [ha,ma] = config.abertura.split(":").map(Number)
+let [hf,mf] = config.fechamento.split(":").map(Number)
+
+let inicio = ha*60 + ma
+let fim = hf*60 + mf
+let intervalo = Number(config.intervalo || 30)
+
+for(let t=inicio; t<fim; t+=intervalo){
+
+let h = Math.floor(t/60).toString().padStart(2,"0")
+let m = (t%60).toString().padStart(2,"0")
+let hora = h+":"+m
+
+let div = document.createElement("div")
+div.className = "slot"
+div.innerText = hora
+
+// =========================
+// BLOQUEIO POR BARBEIRO
+// =========================
+
+let ocupado = agendamentos.find(a=>
+a.data === dataEscolhida.value &&
+a.hora === hora &&
+a.barbeiro === barbeiroSel
+)
+
+if(ocupado){
+div.classList.add("booked")
 }
 
+// =========================
+// SELEÇÃO VISUAL
+// =========================
 
-// ======================
-// INIT
-// ======================
+div.onclick = ()=>{
 
-(function(){
-carregarSelects();
-})();
-
-// ======================
-// MODAL HORÁRIOS
-// ======================
-
-function abrirHoras(){
-
-const data = dataInp.value;
-
-if(!data){
-alert("Escolha a data primeiro");
-return;
-}
-
-const disp = dbGet("disponibilidade",[]);
-const dia = disp.find(x=>x.data===data);
-
-if(!dia || dia.horas.length===0){
-alert("Nenhum horário liberado para este dia");
-return;
-}
-
-modalHoras.classList.remove("hidden");
-renderHoras();
-}
-
-
-function fecharHoras(){
-modalHoras.classList.add("hidden");
-}
-
-
-
-// ======================
-// RENDER HORÁRIOS
-// ======================
-
-function renderHoras(){
-
-gridHoras.innerHTML="";
-horaSel = null;
-horaView.value="";
-
-const data = dataInp.value;
-const disp = dbGet("disponibilidade",[]);
-const dia = disp.find(x=>x.data===data);
-
-if(!dia || dia.horas.length===0){
-gridHoras.innerHTML =
-"<div style='grid-column:1/-1;opacity:.7'>Sem horários</div>";
-return;
-}
-
-dia.horas.sort().forEach(h=>{
-
-gridHoras.innerHTML += `
-<div class="slot" onclick="selHora('${h}',this)">
-${h}
-</div>`;
-
-});
-}
-
-
-// ======================
-// SELECIONAR HORA
-// ======================
-
-function selHora(h,el){
-
-horaSel = h;
-horaView.value = h;
+if(div.classList.contains("booked")) return
 
 document.querySelectorAll(".slot")
-.forEach(x=>x.classList.remove("sel"));
+.forEach(s=>s.classList.remove("selected"))
 
-el.classList.add("sel");
+div.classList.add("selected")
+horaSel = hora
+cardCliente.classList.remove("hidden")
+
 }
 
+listaHorarios.appendChild(div)
 
-
-// ======================
-// ADMIN DISPONIBILIDADE
-// ======================
-
-function addDisp(){
-
-const d = admData.value;
-const h = admHora.value;
-
-if(!d || !h){
-alert("Escolha data e hora");
-return;
 }
 
-let disp = dbGet("disponibilidade",[]);
-let dia = disp.find(x=>x.data===d);
-
-if(!dia){
-dia = {data:d,horas:[]};
-disp.push(dia);
 }
 
-if(!dia.horas.includes(h)){
-dia.horas.push(h);
+// =========================
+// AUTO ATUALIZA SE DB MUDAR
+// =========================
+
+DB.ag.on("child_added", ()=>{
+if(cardHorarios && !cardHorarios.classList.contains("hidden")){
+gerarHorarios()
+}
+})
+
+DB.ag.on("child_removed", ()=>{
+if(cardHorarios && !cardHorarios.classList.contains("hidden")){
+gerarHorarios()
+}
+})
+
+</script>
+<script>
+
+// =========================
+// TRAVA DUPLO CLIQUE
+// =========================
+
+let salvando = false
+
+// =========================
+// WHATS CONFIRMAÇÃO CLIENTE
+// =========================
+
+function enviarWhatsConfirmacao(ag){
+
+let msg =
+`💈 ${NOME_BARBEARIA} — Agendamento Confirmado
+
+Serviço: ${ag.servico}
+Barbeiro: ${ag.barbeiro}
+Data: ${ag.data}
+Hora: ${ag.hora}
+Valor: R$ ${ag.preco}
+
+Chegue 5 minutos antes.`
+
+let url = "https://wa.me/55" +
+ag.fone.replace(/\D/g,"") +
+"?text=" + encodeURIComponent(msg)
+
+window.open(url,"_blank")
 }
 
-dbSet("disponibilidade",disp);
-listarDispAdmin();
+// =========================
+// RESET FLUXO CLIENTE
+// =========================
+
+function resetFluxo(){
+
+servicoSel = null
+barbeiroSel = null
+horaSel = null
+
+cardBarbeiro.classList.add("hidden")
+cardData.classList.add("hidden")
+cardHorarios.classList.add("hidden")
+cardCliente.classList.add("hidden")
+
+clienteNome.value = ""
+clienteFone.value = ""
+dataEscolhida.value = ""
+
 }
 
-
-function listarDispAdmin(){
-
-if(!admData.value){
-listaDisp.innerHTML="";
-return;
-}
-
-const d = admData.value;
-const disp = dbGet("disponibilidade",[]);
-const dia = disp.find(x=>x.data===d);
-
-listaDisp.innerHTML="";
-
-(dia?.horas || []).sort().forEach(h=>{
-listaDisp.innerHTML += `
-<div class="item">${h}</div>`;
-});
-}
-
-admData.onchange = listarDispAdmin;
-// ======================
+// =========================
 // CONFIRMAR AGENDAMENTO
-// ======================
+// =========================
 
-function confirmarAg(){
+btnConfirmar.onclick = async ()=>{
 
-const data = dataInp.value;
+if(salvando) return
+salvando = true
 
-if(!data || !horaSel){
-alert("Escolha data e horário");
-return;
+if(!servicoSel || !barbeiroSel || !horaSel){
+alert("Selecione serviço, barbeiro e horário")
+salvando = false
+return
 }
 
-const barb = barbeiro.value;
-const serv = servico.value;
-const nome = localStorage.getItem("cliNome");
-const tel  = localStorage.getItem("cliTel");
-
-let lista = dbGet("agendamentos",[]);
-
-
-// ===== DISPONIBILIDADE =====
-
-const disp = dbGet("disponibilidade",[]);
-const dia = disp.find(x=>x.data===data);
-
-if(!dia || !dia.horas.includes(horaSel)){
-alert("Horário não disponível");
-return;
+if(!clienteNome.value || !clienteFone.value){
+alert("Preencha seus dados")
+salvando = false
+return
 }
 
+// =========================
+// CHECAGEM CONFLITO REAL DB
+// =========================
 
-// ===== CONFLITO BARBEIRO =====
+let snap = await DB.ag
+.orderByChild("data")
+.equalTo(dataEscolhida.value)
+.get()
 
-const conflito = lista.some(a =>
-a.data===data &&
-a.hora===horaSel &&
-a.barbeiro===barb &&
-a.status==="ativo"
-);
+let conflito = false
+
+snap.forEach(c=>{
+let a = c.val()
+if(a.hora === horaSel && a.barbeiro === barbeiroSel){
+conflito = true
+}
+})
 
 if(conflito){
-alert("Barbeiro ocupado nesse horário");
-return;
+alert("Horário acabou de ser ocupado — escolha outro")
+gerarHorarios()
+salvando = false
+return
 }
 
+// =========================
+// SALVAR NO FIREBASE
+// =========================
 
-// ===== SALVAR =====
-
-lista.push({
-id: Date.now(),
-nome:nome,
-tel:tel,
-barbeiro:barb,
-servico:serv,
-data:data,
-hora:horaSel,
-status:"ativo"
-});
-
-dbSet("agendamentos",lista);
-
-alert("Agendamento confirmado");
-
-listarMeus();
-fecharHoras();
-}
-// ======================
-// LISTA CLIENTE
-// ======================
-
-function listarMeus(){
-
-const tel = localStorage.getItem("cliTel");
-const lista = dbGet("agendamentos",[]);
-
-listaMeus.innerHTML = "";
-
-lista
-.filter(a => a.tel===tel && a.status==="ativo")
-.sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
-.forEach(a=>{
-
-listaMeus.innerHTML += `
-<div class="item">
-${a.data} ${a.hora}<br>
-${a.servico} — ${a.barbeiro}
-<button onclick="cancelarAg(${a.id})">Cancelar</button>
-</div>
-`;
-
-});
+let ag = {
+servico: servicoSel.nome,
+preco: servicoSel.preco,
+barbeiro: barbeiroSel,
+data: dataEscolhida.value,
+hora: horaSel,
+cliente: clienteNome.value,
+fone: clienteFone.value,
+ts: Date.now()
 }
 
+await DB.ag.push(ag)
 
+// =========================
+// WHATS AUTO
+// =========================
 
-// ======================
-// CANCELAR AGENDAMENTO
-// ======================
+setTimeout(()=> enviarWhatsConfirmacao(ag), 700)
 
-function cancelarAg(id){
+alert("Agendamento confirmado 💈")
 
-let lista = dbGet("agendamentos",[]);
+resetFluxo()
+salvando = false
 
-lista = lista.map(a=>{
-if(a.id===id){
-a.status = "cancelado";
-}
-return a;
-});
-
-dbSet("agendamentos",lista);
-listarMeus();
-}
-// ======================
-// ADMIN — BARBEIROS
-// ======================
-
-function addBarb(){
-
-const n = novoBarb.value.trim();
-if(!n) return;
-
-let l = dbGet("barbeiros",[]);
-l.push(n);
-dbSet("barbeiros",l);
-
-novoBarb.value="";
-renderAdmin();
-carregarSelects();
 }
 
-function delBarb(i){
+// =========================
+// BOTÃO FALAR BARBEARIA
+// =========================
 
-let l = dbGet("barbeiros",[]);
-l.splice(i,1);
-dbSet("barbeiros",l);
+let btnZap = document.createElement("button")
+btnZap.className = "btn"
+btnZap.innerText = "Falar com a barbearia"
 
-renderAdmin();
-carregarSelects();
+btnZap.onclick = ()=>{
+window.open("https://wa.me/" + WHATS_BARBEARIA)
 }
 
+document.querySelector(".container").appendChild(btnZap)
 
+</script>
+<script>
 
-// ======================
-// ADMIN — SERVIÇOS
-// ======================
+// =========================
+// LOGIN ADMIN
+// =========================
 
-function addServ(){
-
-const n = novoServ.value.trim();
-if(!n) return;
-
-let l = dbGet("servicos",[]);
-l.push(n);
-dbSet("servicos",l);
-
-novoServ.value="";
-renderAdmin();
-carregarSelects();
+topo.ondblclick = ()=>{
+let s = prompt("Senha administrador:")
+if(s === ADMIN_SENHA){
+telaCliente.classList.add("hidden")
+telaAdmin.classList.remove("hidden")
+}else{
+alert("Senha incorreta")
+}
 }
 
-function delServ(i){
-
-let l = dbGet("servicos",[]);
-l.splice(i,1);
-dbSet("servicos",l);
-
-renderAdmin();
-carregarSelects();
+btnLogout.onclick = ()=>{
+telaAdmin.classList.add("hidden")
+telaCliente.classList.remove("hidden")
 }
 
+// =========================
+// FIREBASE SYNC — SERVIÇOS
+// =========================
 
-
-// ======================
-// RENDER ADMIN
-// ======================
-
-function renderAdmin(){
-
-// barbeiros
-const bs = dbGet("barbeiros",[]);
-listaBarb.innerHTML="";
-
-bs.forEach((b,i)=>{
-listaBarb.innerHTML += `
-<div class="item">
-${b}
-<button onclick="delBarb(${i})">Excluir</button>
-</div>`;
-});
-
-
-// serviços
-const ss = dbGet("servicos",[]);
-listaServ.innerHTML="";
-
-ss.forEach((s,i)=>{
-listaServ.innerHTML += `
-<div class="item">
-${s}
-<button onclick="delServ(${i})">Excluir</button>
-</div>`;
-});
-
-listarDispAdmin();
+DB.servicos.on("value", snap=>{
+if(snap.exists()){
+servicos = Object.values(snap.val())
+}else{
+DB.servicos.set([
+{nome:"Corte",preco:40},
+{nome:"Barba",preco:30},
+{nome:"Corte + Barba",preco:65}
+])
 }
+renderServicos()
+renderAdminServicos()
+})
+
+// =========================
+// FIREBASE SYNC — BARBEIROS
+// =========================
+
+DB.barbeiros.on("value", snap=>{
+if(snap.exists()){
+barbeiros = Object.values(snap.val())
+}else{
+DB.barbeiros.set(["Pedro","Lucas"])
+}
+renderAdminBarbeiros()
+})
+
+// =========================
+// FIREBASE SYNC — CONFIG
+// =========================
+
+DB.config.on("value", snap=>{
+if(snap.exists()){
+config = snap.val()
+cfgAbertura.value = config.abertura
+cfgFechamento.value = config.fechamento
+cfgIntervalo.value = config.intervalo
+}else{
+DB.config.set(config)
+}
+})
+
+// =========================
+// FIREBASE SYNC — AGENDAMENTOS
+// =========================
+
+DB.ag.on("value", snap=>{
+agendamentos = snap.exists() ? Object.values(snap.val()) : []
+renderAdminAgendamentos()
+})
+
+// =========================
+// ADMIN — SERVIÇOS CRUD
+// =========================
+
+btnAddServico.onclick = ()=>{
+if(!novoServicoNome.value || !novoServicoPreco.value) return
+
+servicos.push({
+nome: novoServicoNome.value,
+preco: Number(novoServicoPreco.value)
+})
+
+DB.servicos.set(servicos)
+
+novoServicoNome.value=""
+novoServicoPreco.value=""
+}
+
+function removerServico(i){
+servicos.splice(i,1)
+DB.servicos.set(servicos)
+}
+
+// =========================
+// ADMIN — BARBEIROS CRUD
+// =========================
+
+btnAddBarbeiro.onclick = ()=>{
+if(!novoBarbeiro.value) return
+
+barbeiros.push(novoBarbeiro.value)
+DB.barbeiros.set(barbeiros)
+novoBarbeiro.value=""
+}
+
+function removerBarbeiro(i){
+barbeiros.splice(i,1)
+DB.barbeiros.set(barbeiros)
+}
+
+// =========================
+// ADMIN — CONFIG SALVAR
+// =========================
+
+btnSalvarCfg.onclick = ()=>{
+config = {
+abertura: cfgAbertura.value,
+fechamento: cfgFechamento.value,
+intervalo: Number(cfgIntervalo.value)
+}
+DB.config.set(config)
+alert("Configuração salva")
+}
+
+// =========================
+// EXPORTAR AGENDA DO DIA
+// =========================
+
+btnExportarDia.onclick = ()=>{
+
+let hoje = hojeISO()
+
+let lista = agendamentos.filter(a=>a.data === hoje)
+
+let txt = `AGENDA ${NOME_BARBEARIA} — ${hoje}\n\n`
+
+lista.forEach(a=>{
+txt +=
+`${a.hora} — ${a.servico}
+Barbeiro: ${a.barbeiro}
+Cliente: ${a.cliente}
+Whats: ${a.fone}
+
+`
+})
+
+navigator.clipboard.writeText(txt)
+alert("Agenda copiada")
+}
+
+</script>
+<script>
+
+// =========================
+// WHITE LABEL — NOME DINÂMICO
+// =========================
+
+function aplicarNome(){
+topo.innerText = "💈 " + NOME_BARBEARIA
+document.title = NOME_BARBEARIA + " • Agendamento"
+}
+
+aplicarNome()
+
+// =========================
+// SETUP RÁPIDO WHITE LABEL
+// =========================
+
+btnSetup.onclick = ()=>{
+
+let nome = prompt("Nome da barbearia:")
+if(nome){
+NOME_BARBEARIA = nome.toUpperCase()
+}
+
+let zap = prompt("WhatsApp da barbearia (DDD + número):")
+if(zap){
+WHATS_BARBEARIA = "55" + zap.replace(/\D/g,"")
+}
+
+aplicarNome()
+
+alert("Setup concluído 💈")
+
+}
+
+// =========================
+// MODO DEMONSTRAÇÃO VENDEDOR
+// =========================
+
+btnDemo.onclick = ()=>{
+
+let hoje = hojeISO()
+
+servicos = [
+{nome:"Corte",preco:45},
+{nome:"Barba",preco:30},
+{nome:"Combo",preco:70}
+]
+
+barbeiros = ["Carlos","André","Marcos"]
+
+DB.servicos.set(servicos)
+DB.barbeiros.set(barbeiros)
+
+DB.ag.push({
+servico:"Corte",
+preco:45,
+barbeiro:"Carlos",
+data:hoje,
+hora:"10:00",
+cliente:"Cliente Demo",
+fone:"11999999999",
+ts:Date.now()
+})
+
+alert("Modo demonstração carregado")
+}
+
+// =========================
+// INSTALAR COMO APP (PWA)
+// =========================
+
+let deferredPrompt = null
+
+window.addEventListener("beforeinstallprompt", e=>{
+e.preventDefault()
+deferredPrompt = e
+})
+
+function instalarApp(){
+if(deferredPrompt){
+deferredPrompt.prompt()
+}
+}
+
+// botão instalar
+let btnInstalar = document.createElement("button")
+btnInstalar.className = "btn"
+btnInstalar.innerText = "Instalar como App"
+btnInstalar.onclick = instalarApp
+
+document.querySelector(".container").appendChild(btnInstalar)
+
+// =========================
+// LOG FINAL
+// =========================
+
+console.log("💈 BARBARUJO PREMIUM carregado")
+console.log("Multi-barbeiro ativo")
+console.log("Firebase realtime ativo")
+console.log("Sistema pronto para venda")
 
 </script>
 
