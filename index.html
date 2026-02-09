@@ -14,7 +14,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif}
 body{background:#0e0e0e;color:#fff}
-header{background:#111;padding:20px;text-align:center;font-size:26px;font-weight:700;border-bottom:2px solid #222;cursor:pointer}
+header{background:#111;padding:20px;text-align:center;font-size:26px;font-weight:700;border-bottom:2px solid #222}
 
 .container{max-width:960px;margin:auto;padding:20px;display:none}
 
@@ -26,8 +26,6 @@ h3{margin-bottom:12px}
 .btn{background:#d4af37;border:none;padding:14px;border-radius:12px;font-weight:700;width:100%;cursor:pointer;color:#000}
 .btn-outline{background:transparent;border:2px solid #d4af37;color:#d4af37;padding:12px;border-radius:12px;width:100%;cursor:pointer}
 
-button{-webkit-tap-highlight-color:transparent}
-
 input,select{width:100%;padding:12px;border-radius:10px;border:none;margin-top:6px;color:#000}
 
 .slot{background:#222;padding:12px;border-radius:10px;text-align:center;cursor:pointer;font-weight:700}
@@ -37,7 +35,7 @@ input,select{width:100%;padding:12px;border-radius:10px;border:none;margin-top:6
 .badge{background:#d4af37;color:#000;padding:4px 8px;border-radius:8px;font-size:12px;font-weight:700}
 .hidden{display:none}
 
-/* ===== SPLASH ANIMADA ===== */
+/* ===== SPLASH CENTRAL PREMIUM ===== */
 
 .splash{
 position:fixed;
@@ -48,53 +46,50 @@ flex-direction:column;
 align-items:center;
 justify-content:center;
 z-index:9999;
-padding:20px;
+padding:24px;
 text-align:center;
-animation:splashFade .6s ease;
-}
-
-@keyframes splashFade{
-from{opacity:0}
-to{opacity:1}
 }
 
 .splash-logo{
-width:72vw;
-max-width:460px;
-min-width:240px;
-margin-bottom:26px;
-border-radius:26px;
-box-shadow:0 0 40px rgba(0,0,0,.7);
+width:80vw;
+max-width:520px;
+min-width:260px;
+margin-bottom:28px;
+border-radius:28px;
+box-shadow:0 0 50px rgba(0,0,0,.8);
 animation:logoPop .9s ease;
-position:relative;
 }
 
 @keyframes logoPop{
-0%{transform:scale(.7);opacity:0}
+0%{transform:scale(.75);opacity:0}
 100%{transform:scale(1);opacity:1}
 }
 
-.splash-titulo{
-font-size:clamp(28px,5vw,42px);
-margin-bottom:18px;
-opacity:0;
-animation:titleFade .6s ease .5s forwards;
-}
-
-@keyframes titleFade{
-to{opacity:1}
-}
-
 .splash-btn{
-max-width:340px;
+max-width:360px;
 font-size:18px;
 padding:16px;
-opacity:0;
-animation:btnFade .6s ease 1.1s forwards;
 }
 
-@keyframes btnFade{
-to{opacity:1}
+/* ===== BOTÃO ADMIN FLUTUANTE ===== */
+
+.admin-fab{
+position:fixed;
+top:14px;
+right:14px;
+width:48px;
+height:48px;
+border-radius:50%;
+background:#d4af37;
+color:#000;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+font-weight:900;
+z-index:99999;
+box-shadow:0 4px 18px rgba(0,0,0,.5);
+cursor:pointer;
 }
 
 </style>
@@ -102,13 +97,15 @@ to{opacity:1}
 
 <body>
 
-<!-- SPLASH -->
+<div id="btnAdminFab" class="admin-fab">⚙️</div>
 
 <div id="telaSplash" class="splash">
 
 <img src="logo.png" class="splash-logo">
 
-<h1 class="splash-titulo">💈 BARBARUJO</h1>
+<h1 style="font-size:36px;margin-bottom:18px">
+💈 BARBARUJO
+</h1>
 
 <button id="btnEntrar" class="btn splash-btn">
 Agende seu horário
@@ -169,22 +166,34 @@ Confirmar agendamento
 
 <div class="card">
 <h3>Painel Administrador</h3>
-<button id="btnLogout" class="btn-outline">Sair</button>
+<button id="btnLogout" class="btn-outline">Sair do painel</button>
 </div>
 
 <div class="card">
 <h3>Serviços</h3>
-<input id="novoServicoNome" placeholder="Nome">
+
+<input id="novoServicoNome" placeholder="Nome do serviço">
 <input id="novoServicoPreco" placeholder="Preço">
-<button id="btnAddServico" class="btn">Adicionar</button>
+
+<button id="btnAddServico" class="btn">
+Adicionar serviço
+</button>
+
 <div id="adminServicos"></div>
+
 </div>
 
 <div class="card">
 <h3>Barbeiros</h3>
-<input id="novoBarbeiro" placeholder="Nome">
-<button id="btnAddBarbeiro" class="btn">Adicionar</button>
+
+<input id="novoBarbeiro" placeholder="Nome do barbeiro">
+
+<button id="btnAddBarbeiro" class="btn">
+Adicionar barbeiro
+</button>
+
 <div id="adminBarbeiros"></div>
+
 </div>
 
 <div class="card">
@@ -243,7 +252,7 @@ Setup rápido
 </button>
 
 <button id="btnDemo" class="btn">
-Modo demonstração
+Criar demo
 </button>
 
 <button id="btnInstalarApp" class="btn">
@@ -283,7 +292,7 @@ firebase.initializeApp(firebaseConfig)
 
 const db = firebase.database()
 
-// ===== REFERÊNCIAS DE DADOS =====
+// ===== REFERÊNCIAS DB =====
 
 const DB = {
 servicos: db.ref("barbarujo/servicos"),
@@ -378,27 +387,18 @@ document.title=NOME_BARBEARIA+" • Agendamento"
 aplicarNome()
 
 // =========================
-// ADMIN — TOUCH + DESKTOP
+// BOTÃO ADMIN ⚙️ FLUTUANTE
 // =========================
 
-let pressTimer
+btnAdminFab.onclick=()=>{
 
-topo.addEventListener("touchstart",()=>{
-pressTimer=setTimeout(()=>abrirAdmin(),2000)
-})
-
-topo.addEventListener("touchend",()=>{
-clearTimeout(pressTimer)
-})
-
-topo.addEventListener("dblclick",abrirAdmin)
-
-function abrirAdmin(){
 let s=prompt("Senha admin")
+
 if(s===ADMIN_SENHA){
 telaCliente.classList.add("hidden")
 telaAdmin.classList.remove("hidden")
 }
+
 }
 
 btnLogout.onclick=()=>{
@@ -485,7 +485,7 @@ listaBarbeiros.appendChild(b)
 }
 
 // =========================
-// RENDER DATAS DISPONÍVEIS CLIENTE
+// RENDER DATAS CLIENTE
 // =========================
 
 function renderDatasCliente(){
@@ -496,7 +496,7 @@ let datas = Object.keys(disponibilidade).sort()
 
 if(datas.length===0){
 let opt=document.createElement("option")
-opt.textContent="Sem dias liberados ainda"
+opt.textContent="Sem datas liberadas"
 dataEscolhida.appendChild(opt)
 return
 }
@@ -601,7 +601,7 @@ ${a.servico} — ${a.barbeiro}
 <br>
 Cliente: ${a.cliente}
 <br>
-WhatsApp: ${a.fone}
+Whats: ${a.fone}
 `
 
 listaAgendamentos.appendChild(div)
@@ -614,7 +614,7 @@ listaAgendamentos.appendChild(div)
 <script>
 
 // =========================
-// ADMIN — GERAR SLOTS POR DATA
+// ADMIN — GERAR HORÁRIOS DO DIA
 // =========================
 
 btnGerarSlots.onclick = ()=>{
@@ -648,12 +648,11 @@ let div=document.createElement("div")
 div.className="slot"
 div.innerText=hora
 
-// se já estava salvo, já marca
+// já marcado se existir no DB
 if(ja.includes(hora)){
 div.classList.add("selected")
 }
 
-// toggle seleção
 div.onclick=()=>{
 div.classList.toggle("selected")
 }
@@ -665,7 +664,7 @@ adminSlotsGrid.appendChild(div)
 }
 
 // =========================
-// ADMIN — SALVAR DISPONIBILIDADE DO DIA
+// ADMIN — SALVAR DISPONIBILIDADE
 // =========================
 
 btnSalvarSlotsDia.onclick = ()=>{
@@ -684,13 +683,13 @@ document
 .forEach(s=>selecionados.push(s.innerText))
 
 if(selecionados.length===0){
-alert("Selecione pelo menos um horário disponível")
+alert("Selecione pelo menos um horário")
 return
 }
 
 DB.dispDia.child(data).set(selecionados)
 
-alert("Disponibilidade do dia salva ✅")
+alert("Disponibilidade salva ✅")
 
 }
 
@@ -715,7 +714,7 @@ alert("Horários do dia resetados ✅")
 }
 
 // =========================
-// SYNC DISPONIBILIDADE FIREBASE
+// SYNC DISPONIBILIDADE
 // =========================
 
 DB.dispDia.on("value",snap=>{
@@ -747,7 +746,7 @@ atualizarResumo()
 }
 
 // =========================
-// CLIENTE — RENDER HORÁRIOS DISPONÍVEIS
+// CLIENTE — RENDER HORÁRIOS
 // =========================
 
 function renderHorariosCliente(){
@@ -803,7 +802,7 @@ listaHorarios.appendChild(div)
 }
 
 // =========================
-// CLIENTE — BOTÃO RESERVAR
+// CLIENTE — RESERVAR
 // =========================
 
 btnReservar.onclick = ()=>{
@@ -812,7 +811,7 @@ if(!escolhaStatus.servico ||
    !escolhaStatus.barbeiro ||
    !escolhaStatus.data ||
    !escolhaStatus.hora){
-alert("Complete serviço, barbeiro, data e horário")
+alert("Complete todas as escolhas")
 return
 }
 
@@ -821,7 +820,7 @@ alert("Preencha nome e WhatsApp")
 return
 }
 
-alert("Horário reservado — confirme abaixo para finalizar")
+alert("Horário reservado — confirme abaixo")
 
 btnReservar.classList.add("hidden")
 btnConfirmar.classList.remove("hidden")
@@ -842,7 +841,7 @@ renderHorariosCliente()
 <script>
 
 // =========================
-// WHATSAPP CONFIRMAÇÃO
+// WHATS CONFIRMAÇÃO
 // =========================
 
 function enviarWhatsConfirmacao(ag){
@@ -882,7 +881,7 @@ salvando=false
 return
 }
 
-// ===== CHECAR CONFLITO REALTIME =====
+// ===== CONFLITO REALTIME =====
 
 let snap = await DB.ag
 .orderByChild("data")
@@ -1057,7 +1056,7 @@ alert("Configuração salva ✅")
 }
 
 // =========================
-// EXPORTAR AGENDA DO DIA
+// EXPORTAR AGENDA
 // =========================
 
 btnExportarDia.onclick = ()=>{
@@ -1078,7 +1077,7 @@ alert("Agenda copiada ✅")
 }
 
 // =========================
-// SETUP RÁPIDO
+// SETUP
 // =========================
 
 btnSetup.onclick = ()=>{
@@ -1089,12 +1088,7 @@ NOME_BARBEARIA=nome.toUpperCase()
 aplicarNome()
 }
 
-let zap=prompt("WhatsApp DDD+número:")
-if(zap){
-WHATS_BARBEARIA="55"+zap.replace(/\D/g,"")
-}
-
-alert("Setup aplicado ✅")
+alert("Setup aplicado")
 
 }
 
@@ -1110,12 +1104,12 @@ preco:40,
 barbeiro:"Carlos",
 data:hojeISO(),
 hora:"10:00",
-cliente:"Cliente Demo",
+cliente:"Demo",
 fone:"11999999999",
 ts:Date.now()
 })
 
-alert("Demo criado ✅")
+alert("Demo criado")
 
 }
 
@@ -1123,7 +1117,7 @@ alert("Demo criado ✅")
 <script>
 
 // =========================
-// SERVICE WORKER REGISTER (PWA)
+// SERVICE WORKER — PWA
 // =========================
 
 if ("serviceWorker" in navigator) {
@@ -1141,9 +1135,10 @@ console.log("Service Worker falhou ❌")
 // LOG FINAL
 // =========================
 
-console.log("💈 BARBARUJO PREMIUM — SISTEMA COMPLETO ATIVO")
-console.log("Agenda online carregada")
-console.log("Admin por toque prolongado ou duplo clique")
+console.log("💈 BARBARUJO — SISTEMA FINAL ATIVO")
+console.log("Splash centralizada ativa")
+console.log("Botão admin flutuante ativo")
+console.log("Agenda online ativa")
 console.log("Disponibilidade por data ativa")
 console.log("Fluxo reservar → confirmar ativo")
 console.log("Firebase realtime conectado")
