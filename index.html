@@ -16,12 +16,16 @@
 body{background:#0e0e0e;color:#fff}
 header{background:#111;padding:20px;text-align:center;font-size:26px;font-weight:700;border-bottom:2px solid #222}
 .container{max-width:960px;margin:auto;padding:20px;display:none}
+
 .card{background:#181818;border-radius:16px;padding:20px;margin-bottom:18px;box-shadow:0 0 18px rgba(0,0,0,.35)}
 h3{margin-bottom:12px}
+
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 
 .btn{background:#d4af37;border:none;padding:14px;border-radius:12px;font-weight:700;width:100%;cursor:pointer;color:#000}
 .btn-outline{background:transparent;border:2px solid #d4af37;color:#d4af37;padding:12px;border-radius:12px;width:100%;cursor:pointer}
+
+input,select{width:100%;padding:12px;border-radius:10px;border:none;margin-top:6px;color:#000}
 
 .slot{background:#222;padding:12px;border-radius:10px;text-align:center;cursor:pointer;font-weight:700}
 .slot.selected{outline:3px solid #d4af37}
@@ -35,15 +39,15 @@ cursor:pointer;
 font-weight:700;
 text-align:center;
 }
-
 .day-btn.selected{
 outline:3px solid #d4af37;
 background:#2a2a2a;
 }
 
-input,select{width:100%;padding:12px;border-radius:10px;border:none;margin-top:6px;color:#000}
 .badge{background:#d4af37;color:#000;padding:4px 8px;border-radius:8px;font-size:12px;font-weight:700}
 .hidden{display:none}
+
+/* SPLASH */
 
 .splash{
 position:fixed;inset:0;background:#0e0e0e;
@@ -59,15 +63,19 @@ box-shadow:0 0 50px rgba(0,0,0,.8);
 transform:translateX(-8%);
 }
 
+/* ADMIN FAB */
+
 .admin-fab{
 position:fixed;top:14px;right:14px;
 width:48px;height:48px;border-radius:50%;
 background:#d4af37;color:#000;
 display:flex;align-items:center;justify-content:center;
-font-size:22px;font-weight:900;z-index:99999;
+font-size:22px;font-weight:900;
+z-index:99999;
 box-shadow:0 4px 18px rgba(0,0,0,.5);
 cursor:pointer;
 }
+
 </style>
 </head>
 
@@ -84,6 +92,8 @@ cursor:pointer;
 <header id="topo">💈 BARBARUJO</header>
 
 <div class="container">
+
+<!-- ================= CLIENTE ================= -->
 
 <div id="telaCliente">
 
@@ -108,12 +118,14 @@ cursor:pointer;
 </div>
 
 <div id="cardCliente" class="card hidden">
-<h3>Resumo</h3>
+<h3>Resumo da reserva</h3>
 <div id="resumoEscolha"></div>
+
 <input id="clienteNome" placeholder="Nome">
 <input id="clienteFone" placeholder="WhatsApp">
-<button id="btnReservar" class="btn">Reservar</button>
-<button id="btnConfirmar" class="btn-outline hidden">Confirmar</button>
+
+<button id="btnReservar" class="btn">Reservar horário</button>
+<button id="btnConfirmar" class="btn-outline hidden">Confirmar agendamento</button>
 </div>
 
 </div>
@@ -128,17 +140,29 @@ cursor:pointer;
 
 <div class="card">
 <h3>Serviços</h3>
+
 <input id="novoServicoNome" placeholder="Nome do serviço">
 <input id="novoServicoPreco" placeholder="Preço">
-<button id="btnAddServico" class="btn">Adicionar serviço</button>
+
+<button id="btnAddServico" class="btn">
+Adicionar serviço
+</button>
+
 <div id="adminServicos"></div>
+
 </div>
 
 <div class="card">
 <h3>Barbeiros</h3>
+
 <input id="novoBarbeiro" placeholder="Nome do barbeiro">
-<button id="btnAddBarbeiro" class="btn">Adicionar barbeiro</button>
+
+<button id="btnAddBarbeiro" class="btn">
+Adicionar barbeiro
+</button>
+
 <div id="adminBarbeiros"></div>
+
 </div>
 
 <div class="card">
@@ -150,7 +174,7 @@ cursor:pointer;
 <label>Fechamento</label>
 <input type="time" id="cfgFechamento">
 
-<label>Intervalo</label>
+<label>Intervalo (min)</label>
 <select id="cfgIntervalo">
 <option value="15">15</option>
 <option value="30">30</option>
@@ -159,12 +183,12 @@ cursor:pointer;
 </select>
 
 <button id="btnSalvarCfg" class="btn">
-Salvar base
+Salvar base de horários
 </button>
 
 </div>
 
-<!-- ===== DISPONIBILIDADE V2 ===== -->
+<!-- ===== DISPONIBILIDADE POR BARBEIRO ===== -->
 
 <div class="card">
 
@@ -187,8 +211,35 @@ Salvar disponibilidade
 </button>
 
 <button id="btnResetDia" class="btn-outline">
-Limpar seleção
+Limpar seleção atual
 </button>
+
+</div>
+
+<!-- ===== RESET AVANÇADO ===== -->
+
+<div class="card">
+
+<h3>Gerenciar / Resetar horários</h3>
+
+<button id="btnAbrirReset" class="btn-outline">
+Abrir gerenciador de horários
+</button>
+
+<div id="resetBox" class="hidden">
+
+<label>Barbeiro</label>
+<select id="resetBarbeiroPick"></select>
+
+<div id="resetDias" class="grid"></div>
+
+<div id="resetHorarios" class="grid"></div>
+
+<button id="btnExcluirHorarios" class="btn">
+Excluir horários selecionados
+</button>
+
+</div>
 
 </div>
 
@@ -208,7 +259,7 @@ Criar demo
 </button>
 
 <button id="btnInstalarApp" class="btn">
-Instalar app
+Instalar como app
 </button>
 
 </div>
@@ -240,26 +291,25 @@ firebase.initializeApp(firebaseConfig)
 
 const db = firebase.database()
 
+// ===== REFS =====
+
 const DB = {
 servicos: db.ref("barbarujo/servicos"),
 barbeiros: db.ref("barbarujo/barbeiros"),
 config: db.ref("barbarujo/config"),
 ag: db.ref("barbarujo/agendamentos"),
-disp: db.ref("barbarujo/disponibilidade") // ✅ V2 por barbeiro
+disp: db.ref("barbarujo/disponibilidade") // barbeiro → data → horarios
 }
 
-</script>
-<script>
-
 // =========================
-// ESTADO GLOBAL V2
+// ESTADO GLOBAL
 // =========================
 
 let servicos=[]
 let barbeiros=[]
 let agendamentos=[]
 
-// disponibilidade V2:
+// disponibilidade V2
 // { barbeiro: { data: [horarios] } }
 let disponibilidade={}
 
@@ -289,8 +339,12 @@ let WHATS_BARBEARIA="5599999999999"
 const ADMIN_SENHA="barbarujo123"
 
 // =========================
-// HELPERS UX
+// HELPERS
 // =========================
+
+function hojeISO(){
+return new Date().toISOString().split("T")[0]
+}
 
 function rolarPara(el){
 setTimeout(()=>{
@@ -298,9 +352,8 @@ el.scrollIntoView({behavior:"smooth",block:"start"})
 },120)
 }
 
-function hojeISO(){
-return new Date().toISOString().split("T")[0]
-}
+</script>
+<script>
 
 // =========================
 // SPLASH
@@ -317,21 +370,26 @@ rolarPara(cardServico)
 // =========================
 
 clienteFone.addEventListener("input",()=>{
-clienteFone.value=
+clienteFone.value =
 clienteFone.value.replace(/\D/g,"").slice(0,11)
 })
 
 // =========================
-// ADMIN BOTÃO MOBILE
+// ADMIN — ACESSO MOBILE
 // =========================
 
 function abrirAdminPainel(){
-let s=prompt("Senha admin")
+
+let s = prompt("Senha admin")
+
 if(s===ADMIN_SENHA){
 telaCliente.classList.add("hidden")
 telaAdmin.classList.remove("hidden")
 rolarPara(telaAdmin)
+}else if(s!==null){
+alert("Senha incorreta")
 }
+
 }
 
 btnAdminFab.addEventListener("click",abrirAdminPainel,{passive:true})
@@ -355,8 +413,23 @@ deferredPrompt=e
 })
 
 btnInstalarApp.onclick=()=>{
-if(deferredPrompt) deferredPrompt.prompt()
+if(!deferredPrompt){
+alert("Instalação não disponível agora")
+return
 }
+deferredPrompt.prompt()
+}
+
+// =========================
+// NOME DINÂMICO
+// =========================
+
+function aplicarNome(){
+topo.innerText="💈 "+NOME_BARBEARIA
+document.title=NOME_BARBEARIA+" • Agendamento"
+}
+
+aplicarNome()
 
 </script>
 <script>
@@ -373,9 +446,15 @@ servicos.forEach(s=>{
 
 let b=document.createElement("button")
 b.className="btn"
-b.innerHTML=`${s.nome}<br><span class="badge">R$ ${s.preco}</span>`
+
+b.innerHTML = `
+${s.nome}
+<br>
+<span class="badge">R$ ${s.preco}</span>
+`
 
 b.onclick=()=>{
+
 servicoSel=s
 escolhaStatus.servico=true
 
@@ -384,6 +463,7 @@ renderBarbeiros()
 atualizarResumo()
 
 rolarPara(cardBarbeiro)
+
 }
 
 listaServicos.appendChild(b)
@@ -426,7 +506,7 @@ listaBarbeiros.appendChild(b)
 }
 
 // =========================
-// RENDER DIAS — CLIENTE V2
+// RENDER DIAS — CLIENTE (BOTÕES)
 // =========================
 
 function renderDiasCliente(){
@@ -481,7 +561,7 @@ listaDias.appendChild(div)
 
 function atualizarResumo(){
 
-resumoEscolha.innerHTML=`
+resumoEscolha.innerHTML = `
 <span class="badge">Serviço</span> ${servicoSel?.nome||"-"}<br>
 <span class="badge">Barbeiro</span> ${barbeiroSel||"-"}<br>
 <span class="badge">Data</span> ${dataSel||"-"}<br>
@@ -494,7 +574,7 @@ resumoEscolha.innerHTML=`
 <script>
 
 // =========================
-// RENDER HORÁRIOS — CLIENTE V2
+// RENDER HORÁRIOS — CLIENTE
 // =========================
 
 function renderHorariosCliente(){
@@ -509,7 +589,7 @@ let lista = (disponibilidade[barbeiroSel] &&
              disponibilidade[barbeiroSel][dataSel]) || []
 
 if(lista.length===0){
-listaHorarios.innerHTML="<div>Sem horários</div>"
+listaHorarios.innerHTML="<div>Sem horários disponíveis</div>"
 return
 }
 
@@ -519,14 +599,19 @@ let div=document.createElement("div")
 div.className="slot"
 div.innerText=hora
 
-// bloqueio por barbeiro + data + hora
+// ===== BLOQUEIO POR CONFLITO =====
+
 let ocupado = agendamentos.find(a =>
 a.data===dataSel &&
 a.hora===hora &&
 a.barbeiro===barbeiroSel
 )
 
-if(ocupado) div.classList.add("booked")
+if(ocupado){
+div.classList.add("booked")
+}
+
+// ===== CLICK =====
 
 div.onclick=()=>{
 
@@ -581,7 +666,7 @@ alert("Confirme o agendamento")
 }
 
 // =========================
-// WHATS LOJA
+// WHATSAPP LOJA
 // =========================
 
 function enviarWhatsConfirmacao(ag){
@@ -603,7 +688,7 @@ window.open(url,"_blank")
 }
 
 // =========================
-// CONFIRMAR
+// CONFIRMAR AGENDAMENTO
 // =========================
 
 btnConfirmar.onclick = async ()=>{
@@ -611,7 +696,15 @@ btnConfirmar.onclick = async ()=>{
 if(salvando) return
 salvando=true
 
-// anti-conflito realtime
+// ===== CONFIRMAÇÃO EXTRA =====
+
+if(!confirm("Confirmar este agendamento?")){
+salvando=false
+return
+}
+
+// ===== ANTI CONFLITO REALTIME =====
+
 let snap = await DB.ag
 .orderByChild("data")
 .equalTo(dataSel)
@@ -621,16 +714,19 @@ let conflito=false
 
 snap.forEach(c=>{
 let a=c.val()
-if(a.hora===horaSel && a.barbeiro===barbeiroSel)
+if(a.hora===horaSel && a.barbeiro===barbeiroSel){
 conflito=true
+}
 })
 
 if(conflito){
-alert("Horário ocupado")
+alert("Horário ocupado — escolha outro")
 renderHorariosCliente()
 salvando=false
 return
 }
+
+// ===== SALVAR =====
 
 let ag={
 servico:servicoSel.nome,
@@ -661,18 +757,28 @@ location.reload()
 // =========================
 
 function atualizarSelectBarbeiroAdmin(){
+
 adminBarbeiroPick.innerHTML=""
+resetBarbeiroPick.innerHTML=""
 
 barbeiros.forEach(b=>{
-let opt=document.createElement("option")
-opt.value=b
-opt.textContent=b
-adminBarbeiroPick.appendChild(opt)
+
+let o1=document.createElement("option")
+o1.value=b
+o1.textContent=b
+adminBarbeiroPick.appendChild(o1)
+
+let o2=document.createElement("option")
+o2.value=b
+o2.textContent=b
+resetBarbeiroPick.appendChild(o2)
+
 })
+
 }
 
 // =========================
-// ADMIN — GERAR HORÁRIOS V2
+// ADMIN — GERAR HORÁRIOS
 // =========================
 
 btnGerarSlots.onclick=()=>{
@@ -690,7 +796,6 @@ alert("Escolha a data")
 return
 }
 
-// horários já salvos
 let ja = (disponibilidade[barbeiro] &&
           disponibilidade[barbeiro][data]) || []
 
@@ -720,6 +825,7 @@ div.classList.add("selected")
 div.onclick=()=>div.classList.toggle("selected")
 
 adminSlotsGrid.appendChild(div)
+
 }
 
 rolarPara(adminSlotsGrid)
@@ -727,7 +833,7 @@ rolarPara(adminSlotsGrid)
 }
 
 // =========================
-// ADMIN — SALVAR DISPONIBILIDADE V2
+// ADMIN — SALVAR DISPONIBILIDADE
 // =========================
 
 btnSalvarSlotsDia.onclick=async()=>{
@@ -755,6 +861,10 @@ alert("Selecione horários")
 return
 }
 
+if(!confirm("Salvar disponibilidade destes horários?")){
+return
+}
+
 await DB.disp
 .child(barbeiro)
 .child(data)
@@ -769,12 +879,157 @@ adminDataPick.value=""
 }
 
 // =========================
-// ADMIN — LIMPAR SELEÇÃO
+// ADMIN — LIMPAR SELEÇÃO ATUAL
 // =========================
 
 btnResetDia.onclick=()=>{
+
+if(!confirm("Limpar seleção atual da tela?")){
+return
+}
+
 adminSlotsGrid.innerHTML=""
 adminDataPick.value=""
+
+}
+
+</script>
+<script>
+
+// =========================
+// RESET AVANÇADO — ABRIR
+// =========================
+
+btnAbrirReset.onclick=()=>{
+
+resetBox.classList.toggle("hidden")
+
+if(!resetBox.classList.contains("hidden")){
+renderResetDias()
+}
+
+}
+
+// =========================
+// RESET — DIAS POR BARBEIRO
+// =========================
+
+function renderResetDias(){
+
+resetDias.innerHTML=""
+resetHorarios.innerHTML=""
+
+let barbeiro = resetBarbeiroPick.value
+if(!barbeiro) return
+
+let diasObj = disponibilidade[barbeiro] || {}
+let dias = Object.keys(diasObj).sort()
+
+if(dias.length===0){
+resetDias.innerHTML="<div>Sem dias cadastrados</div>"
+return
+}
+
+dias.forEach(d=>{
+
+let div=document.createElement("div")
+div.className="day-btn"
+div.innerText=d
+
+div.onclick=()=>{
+
+document.querySelectorAll("#resetDias .day-btn")
+.forEach(x=>x.classList.remove("selected"))
+
+div.classList.add("selected")
+
+renderResetHorarios(barbeiro,d)
+
+}
+
+resetDias.appendChild(div)
+
+})
+
+}
+
+resetBarbeiroPick.onchange=renderResetDias
+
+// =========================
+// RESET — HORÁRIOS DO DIA
+// =========================
+
+function renderResetHorarios(barbeiro,data){
+
+resetHorarios.innerHTML=""
+
+let lista = (disponibilidade[barbeiro] &&
+             disponibilidade[barbeiro][data]) || []
+
+if(lista.length===0){
+resetHorarios.innerHTML="<div>Sem horários</div>"
+return
+}
+
+lista.forEach(h=>{
+
+let div=document.createElement("div")
+div.className="slot"
+div.innerText=h
+
+div.onclick=()=>div.classList.toggle("selected")
+
+resetHorarios.appendChild(div)
+
+})
+
+resetHorarios.dataset.barbeiro=barbeiro
+resetHorarios.dataset.data=data
+
+}
+
+// =========================
+// RESET — EXCLUIR SELECIONADOS
+// =========================
+
+btnExcluirHorarios.onclick=async()=>{
+
+let barbeiro = resetHorarios.dataset.barbeiro
+let data = resetHorarios.dataset.data
+
+if(!barbeiro || !data){
+alert("Selecione barbeiro e dia")
+return
+}
+
+let remover=[]
+document
+.querySelectorAll("#resetHorarios .slot.selected")
+.forEach(s=>remover.push(s.innerText))
+
+if(remover.length===0){
+alert("Selecione horários para excluir")
+return
+}
+
+if(!confirm("Excluir horários selecionados?")){
+return
+}
+
+let atuais = (disponibilidade[barbeiro] &&
+              disponibilidade[barbeiro][data]) || []
+
+let novos = atuais.filter(h=>!remover.includes(h))
+
+await DB.disp
+.child(barbeiro)
+.child(data)
+.set(novos)
+
+alert("Horários removidos com sucesso ✅")
+
+renderResetDias()
+
 }
 
 </script>
@@ -827,7 +1082,7 @@ atualizarSelectBarbeiroAdmin()
 DB.config.on("value",snap=>{
 
 if(snap.exists()){
-config = snap.val()
+config=snap.val()
 cfgAbertura.value=config.abertura
 cfgFechamento.value=config.fechamento
 cfgIntervalo.value=config.intervalo
@@ -842,10 +1097,10 @@ DB.config.set(config)
 // =========================
 
 DB.ag.on("value",snap=>{
-agendamentos = snap.exists()? Object.values(snap.val()):[]
+agendamentos = snap.exists()? Object.values(snap.val()) : []
 renderAdminAgendamentos()
 
-// refresh horários se cliente já estiver vendo
+// refresh cliente se estiver aberto
 if(barbeiroSel && dataSel){
 renderHorariosCliente()
 }
@@ -863,13 +1118,12 @@ if(barbeiroSel){
 renderDiasCliente()
 }
 
+renderResetDias()
+
 })
 
-</script>
-<script>
-
 // =========================
-// ADMIN — RENDER SERVIÇOS
+// ADMIN RENDERS
 // =========================
 
 function renderAdminServicos(){
@@ -895,10 +1149,6 @@ adminServicos.appendChild(div)
 
 }
 
-// =========================
-// ADMIN — RENDER BARBEIROS
-// =========================
-
 function renderAdminBarbeiros(){
 
 adminBarbeiros.innerHTML=""
@@ -921,10 +1171,6 @@ adminBarbeiros.appendChild(div)
 })
 
 }
-
-// =========================
-// ADMIN — RENDER AGENDAMENTOS
-// =========================
 
 function renderAdminAgendamentos(){
 
@@ -974,8 +1220,12 @@ novoServicoPreco.value=""
 }
 
 function removerServico(i){
+
+if(!confirm("Remover serviço?")) return
+
 servicos.splice(i,1)
 DB.servicos.set(servicos)
+
 }
 
 // =========================
@@ -994,15 +1244,21 @@ novoBarbeiro.value=""
 }
 
 function removerBarbeiro(i){
+
+if(!confirm("Remover barbeiro?")) return
+
 barbeiros.splice(i,1)
 DB.barbeiros.set(barbeiros)
+
 }
 
 // =========================
-// SALVAR CONFIG BASE
+// SALVAR CONFIG
 // =========================
 
 btnSalvarCfg.onclick=()=>{
+
+if(!confirm("Salvar configuração base?")) return
 
 config={
 abertura:cfgAbertura.value,
@@ -1011,7 +1267,6 @@ intervalo:Number(cfgIntervalo.value)
 }
 
 DB.config.set(config)
-
 alert("Configuração salva ✅")
 
 }
@@ -1022,9 +1277,9 @@ alert("Configuração salva ✅")
 
 btnExportarDia.onclick=()=>{
 
-let hoje = hojeISO()
+let hoje=hojeISO()
 
-let lista = agendamentos.filter(a=>a.data===hoje)
+let lista=agendamentos.filter(a=>a.data===hoje)
 
 let txt=`AGENDA ${NOME_BARBEARIA} — ${hoje}\n\n`
 
@@ -1047,8 +1302,7 @@ let nome=prompt("Nome da barbearia:")
 
 if(nome){
 NOME_BARBEARIA=nome.toUpperCase()
-topo.innerText="💈 "+NOME_BARBEARIA
-document.title=NOME_BARBEARIA+" • Agendamento"
+aplicarNome()
 }
 
 alert("Setup aplicado")
@@ -1088,7 +1342,7 @@ navigator.serviceWorker.register("sw.js")
 // LOG FINAL
 // =========================
 
-console.log("💈 BARBARUJO V2 — ADMIN POR BARBEIRO ATIVO")
+console.log("💈 BARBARUJO — PROJETO FINAL COMPLETO ATIVO")
 
 </script>
 
