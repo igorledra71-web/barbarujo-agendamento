@@ -18,104 +18,34 @@ header{background:#111;padding:20px;text-align:center;font-size:26px;font-weight
 
 .container{max-width:960px;margin:auto;padding:20px}
 
-.card{
-background:#181818;
-border-radius:16px;
-padding:20px;
-margin-bottom:18px;
-box-shadow:0 0 18px rgba(0,0,0,.35)
-}
-
+.card{background:#181818;border-radius:16px;padding:20px;margin-bottom:18px;box-shadow:0 0 18px rgba(0,0,0,.35)}
 h3{margin-bottom:12px}
 
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:12px
-}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 
-.btn{
-background:#d4af37;
-border:none;
-padding:14px;
-border-radius:12px;
-font-weight:700;
-width:100%;
-cursor:pointer;
-transition:.2s
-}
+.btn{background:#d4af37;border:none;padding:14px;border-radius:12px;font-weight:700;width:100%;cursor:pointer;color:#000}
+.btn-outline{background:transparent;border:2px solid #d4af37;color:#d4af37;padding:12px;border-radius:12px;width:100%;cursor:pointer}
 
-.btn:hover{transform:scale(1.03)}
+button{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
 
-.btn-outline{
-background:transparent;
-border:2px solid #d4af37;
-color:#d4af37;
-padding:12px;
-border-radius:12px;
-width:100%;
-cursor:pointer
-}
+input,select{width:100%;padding:12px;border-radius:10px;border:none;margin-top:6px;color:#000}
 
-input,select{
-width:100%;
-padding:12px;
-border-radius:10px;
-border:none;
-margin-top:6px
-}
+.slot{background:#222;padding:12px;border-radius:10px;text-align:center;cursor:pointer;font-weight:700}
+.slot.booked{background:#402020;opacity:.5;pointer-events:none}
+.slot.selected{outline:3px solid #d4af37}
 
-.slot{
-background:#222;
-padding:12px;
-border-radius:10px;
-text-align:center;
-cursor:pointer;
-font-weight:700;
-transition:.15s
-}
-
-.slot:hover{background:#2a2a2a}
-
-.slot.booked{
-background:#402020;
-opacity:.5;
-pointer-events:none
-}
-
-.slot.selected{
-outline:3px solid #d4af37
-}
-
-.badge{
-background:#d4af37;
-color:#000;
-padding:4px 8px;
-border-radius:8px;
-font-size:12px;
-font-weight:700
-}
-
+.badge{background:#d4af37;color:#000;padding:4px 8px;border-radius:8px;font-size:12px;font-weight:700}
 .hidden{display:none}
 </style>
 </head>
 
 <body>
 
-<!-- SPLASH -->
+<div id="telaSplash" style="position:fixed;inset:0;background:#0e0e0e;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999">
 
-<div id="telaSplash" style="
-position:fixed;
-inset:0;
-background:#0e0e0e;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-z-index:9999">
+<img src="logo.png" style="width:170px;margin-bottom:20px;border-radius:18px">
 
-<h1 style="font-size:46px;margin-bottom:20px">💈 BARBARUJO</h1>
-<p style="opacity:.7;margin-bottom:28px">Agendamento Online</p>
+<h1 style="font-size:34px;margin-bottom:12px">💈 BARBARUJO</h1>
 
 <button id="btnEntrar" class="btn" style="max-width:260px">
 Agende seu horário
@@ -195,8 +125,11 @@ Confirmar agendamento
 
 <div class="card">
 <h3>Funcionamento base</h3>
+<label>Abertura</label>
 <input type="time" id="cfgAbertura">
+<label>Fechamento</label>
 <input type="time" id="cfgFechamento">
+<label>Intervalo (min)</label>
 <select id="cfgIntervalo">
 <option>15</option>
 <option>30</option>
@@ -221,6 +154,10 @@ Gerar horários do dia
 Salvar disponibilidade do dia
 </button>
 
+<button id="btnResetDia" class="btn-outline">
+Resetar horários do dia
+</button>
+
 </div>
 
 <div class="card">
@@ -237,10 +174,15 @@ Salvar disponibilidade do dia
 </div>
 
 </div>
+<!-- ================= FIREBASE ================= -->
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
+
+// ===== CONFIG FIREBASE =====
+// (suas chaves — projeto barbarujo)
 
 const firebaseConfig = {
 apiKey: "AIzaSyBDffb23AqSOoT-8Z94Ao9leB5nTSdIv78",
@@ -252,8 +194,12 @@ messagingSenderId: "735138068544",
 appId: "1:735138068544:web:5a1273bd8be9ef7ab487a5"
 }
 
+// ===== INIT =====
+
 firebase.initializeApp(firebaseConfig)
 const db = firebase.database()
+
+// ===== REFERÊNCIAS DB =====
 
 const DB = {
 servicos: db.ref("barbarujo/servicos"),
@@ -273,7 +219,7 @@ dispDia: db.ref("barbarujo/disponibilidade_por_dia")
 let servicos=[]
 let barbeiros=[]
 let agendamentos=[]
-let disponibilidade={} // {data:[horas]}
+let disponibilidade={} // { data: [horarios] }
 
 let config={
 abertura:"08:00",
@@ -312,16 +258,17 @@ function hojeISO(){
 return new Date().toISOString().split("T")[0]
 }
 
-// máscara telefone
+// =========================
+// MÁSCARA TELEFONE
+// =========================
+
 clienteFone.addEventListener("input",()=>{
 clienteFone.value=
 clienteFone.value.replace(/\D/g,"").slice(0,11)
 })
 
-adminDataPick.min=hojeISO()
-
 // =========================
-// SPLASH
+// SPLASH CONTROL
 // =========================
 
 document.querySelector(".container").style.display="none"
@@ -340,6 +287,35 @@ topo.innerText="💈 "+NOME_BARBEARIA
 document.title=NOME_BARBEARIA+" • Agendamento"
 }
 aplicarNome()
+
+// =========================
+// ADMIN — TOUCH + DESKTOP
+// =========================
+
+let pressTimer
+
+topo.addEventListener("touchstart",()=>{
+pressTimer=setTimeout(()=>abrirAdmin(),2000)
+})
+
+topo.addEventListener("touchend",()=>{
+clearTimeout(pressTimer)
+})
+
+topo.addEventListener("dblclick",abrirAdmin)
+
+function abrirAdmin(){
+let s=prompt("Senha admin")
+if(s===ADMIN_SENHA){
+telaCliente.classList.add("hidden")
+telaAdmin.classList.remove("hidden")
+}
+}
+
+btnLogout.onclick=()=>{
+telaAdmin.classList.add("hidden")
+telaCliente.classList.remove("hidden")
+}
 
 // =========================
 // PWA INSTALL CONTROL
@@ -362,27 +338,32 @@ deferredPrompt.prompt()
 <script>
 
 // =========================
-// RENDER SERVIÇOS
+// RENDER SERVIÇOS CLIENTE
 // =========================
 
 function renderServicos(){
+
 listaServicos.innerHTML=""
 
 servicos.forEach(s=>{
+
 let b=document.createElement("button")
 b.className="btn"
-b.innerHTML=`${s.nome}<br><span class=badge>R$ ${s.preco}</span>`
+b.innerHTML=`${s.nome}<br><span class="badge">R$ ${s.preco}</span>`
 
 b.onclick=()=>{
 servicoSel=s
 escolhaStatus.servico=true
+
 cardBarbeiro.classList.remove("hidden")
 renderBarbeiros()
 atualizarResumo()
 }
 
 listaServicos.appendChild(b)
+
 })
+
 }
 
 // =========================
@@ -390,9 +371,11 @@ listaServicos.appendChild(b)
 // =========================
 
 function renderBarbeiros(){
+
 listaBarbeiros.innerHTML=""
 
 barbeiros.forEach(n=>{
+
 let b=document.createElement("button")
 b.className="btn-outline"
 b.innerText=n
@@ -400,13 +383,16 @@ b.innerText=n
 b.onclick=()=>{
 barbeiroSel=n
 escolhaStatus.barbeiro=true
+
 cardData.classList.remove("hidden")
 renderDatasCliente()
 atualizarResumo()
 }
 
 listaBarbeiros.appendChild(b)
+
 })
+
 }
 
 // =========================
@@ -417,9 +403,9 @@ function renderDatasCliente(){
 
 dataEscolhida.innerHTML=""
 
-Object.keys(disponibilidade)
-.sort()
-.forEach(d=>{
+let datas=Object.keys(disponibilidade).sort()
+
+datas.forEach(d=>{
 let opt=document.createElement("option")
 opt.value=d
 opt.textContent=d
@@ -429,17 +415,102 @@ dataEscolhida.appendChild(opt)
 }
 
 // =========================
-// RESUMO ESCOLHA
+// RESUMO ESCOLHA CLIENTE
 // =========================
 
 function atualizarResumo(){
 
 resumoEscolha.innerHTML=`
-<span class=badge>Serviço</span> ${servicoSel?.nome||"-"}<br>
-<span class=badge>Barbeiro</span> ${barbeiroSel||"-"}<br>
-<span class=badge>Data</span> ${dataSel||"-"}<br>
-<span class=badge>Hora</span> ${horaSel||"-"}
+<span class="badge">Serviço</span> ${servicoSel?.nome||"-"}<br>
+<span class="badge">Barbeiro</span> ${barbeiroSel||"-"}<br>
+<span class="badge">Data</span> ${dataSel||"-"}<br>
+<span class="badge">Hora</span> ${horaSel||"-"}
 `
+
+}
+
+// =========================
+// RENDER ADMIN SERVIÇOS
+// =========================
+
+function renderAdminServicos(){
+
+adminServicos.innerHTML=""
+
+servicos.forEach((s,i)=>{
+
+let div=document.createElement("div")
+div.className="card"
+
+div.innerHTML=`
+<b>${s.nome}</b> — R$ ${s.preco}
+<br><br>
+<button class="btn-outline" onclick="removerServico(${i})">
+Remover
+</button>
+`
+
+adminServicos.appendChild(div)
+
+})
+
+}
+
+// =========================
+// RENDER ADMIN BARBEIROS
+// =========================
+
+function renderAdminBarbeiros(){
+
+adminBarbeiros.innerHTML=""
+
+barbeiros.forEach((b,i)=>{
+
+let div=document.createElement("div")
+div.className="card"
+
+div.innerHTML=`
+<b>${b}</b>
+<br><br>
+<button class="btn-outline" onclick="removerBarbeiro(${i})">
+Remover
+</button>
+`
+
+adminBarbeiros.appendChild(div)
+
+})
+
+}
+
+// =========================
+// RENDER ADMIN AGENDAMENTOS
+// =========================
+
+function renderAdminAgendamentos(){
+
+listaAgendamentos.innerHTML=""
+
+agendamentos
+.sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))
+.forEach(a=>{
+
+let div=document.createElement("div")
+div.className="card"
+
+div.innerHTML=`
+<span class="badge">${a.data} ${a.hora}</span>
+<br><br>
+${a.servico} — ${a.barbeiro}
+<br>
+Cliente: ${a.cliente}
+<br>
+Whats: ${a.fone}
+`
+
+listaAgendamentos.appendChild(div)
+
+})
 
 }
 
@@ -447,28 +518,31 @@ resumoEscolha.innerHTML=`
 <script>
 
 // =========================
-// GERAR HORÁRIOS BASE ADMIN
+// GERAR SLOTS BASE DO DIA (ADMIN)
 // =========================
 
-btnGerarSlots.onclick=()=>{
+btnGerarSlots.onclick = ()=>{
 
-let data=adminDataPick.value
+let data = adminDataPick.value
+
 if(!data){
 alert("Escolha a data")
 return
 }
 
-let ja=disponibilidade[data]||[]
+// horários já existentes daquele dia
+let ja = disponibilidade[data] || []
 
-let [ha,ma]=config.abertura.split(":").map(Number)
-let [hf,mf]=config.fechamento.split(":").map(Number)
+let [ha,ma] = config.abertura.split(":").map(Number)
+let [hf,mf] = config.fechamento.split(":").map(Number)
 
-let ini=ha*60+ma
-let fim=hf*60+mf
+let ini = ha*60 + ma
+let fim = hf*60 + mf
+let intervalo = Number(config.intervalo)
 
 adminSlotsGrid.innerHTML=""
 
-for(let t=ini;t<fim;t+=Number(config.intervalo)){
+for(let t=ini; t<fim; t+=intervalo){
 
 let h=Math.floor(t/60).toString().padStart(2,"0")
 let m=(t%60).toString().padStart(2,"0")
@@ -478,10 +552,12 @@ let div=document.createElement("div")
 div.className="slot"
 div.innerText=hora
 
+// já salvo = já marcado
 if(ja.includes(hora)){
 div.classList.add("selected")
 }
 
+// clique liga/desliga
 div.onclick=()=>{
 div.classList.toggle("selected")
 }
@@ -496,36 +572,58 @@ adminSlotsGrid.appendChild(div)
 // SALVAR DISPONIBILIDADE DIA
 // =========================
 
-btnSalvarSlotsDia.onclick=()=>{
+btnSalvarSlotsDia.onclick = ()=>{
 
-let data=adminDataPick.value
+let data = adminDataPick.value
+
 if(!data){
 alert("Escolha a data")
 return
 }
 
-let sel=[]
+let selecionados=[]
+
 document
 .querySelectorAll("#adminSlotsGrid .slot.selected")
-.forEach(s=>sel.push(s.innerText))
+.forEach(s=>selecionados.push(s.innerText))
 
-if(sel.length===0){
-alert("Selecione pelo menos um horário")
+if(selecionados.length===0){
+alert("Selecione pelo menos um horário disponível")
 return
 }
 
-DB.dispDia.child(data).set(sel)
+DB.dispDia.child(data).set(selecionados)
 
-alert("Disponibilidade salva ✅")
+alert("Disponibilidade do dia salva com sucesso ✅")
 
 }
 
 // =========================
-// SYNC DISPONIBILIDADE
+// RESETAR DIA
+// =========================
+
+btnResetDia.onclick = ()=>{
+
+let data = adminDataPick.value
+
+if(!data){
+alert("Escolha a data")
+return
+}
+
+DB.dispDia.child(data).remove()
+adminSlotsGrid.innerHTML=""
+
+alert("Horários do dia resetados ✅")
+
+}
+
+// =========================
+// SYNC DISPONIBILIDADE DB
 // =========================
 
 DB.dispDia.on("value",snap=>{
-disponibilidade=snap.exists()?snap.val():{}
+disponibilidade = snap.exists()? snap.val() : {}
 renderDatasCliente()
 })
 
@@ -533,13 +631,18 @@ renderDatasCliente()
 <script>
 
 // =========================
-// DATA CLIENTE
+// DATA ESCOLHIDA CLIENTE
 // =========================
 
-dataEscolhida.onchange=()=>{
+dataEscolhida.onchange = ()=>{
 
-dataSel=dataEscolhida.value
-escolhaStatus.data=true
+dataSel = dataEscolhida.value
+escolhaStatus.data = true
+
+if(!dataSel){
+cardHorarios.classList.add("hidden")
+return
+}
 
 renderHorariosCliente()
 cardHorarios.classList.remove("hidden")
@@ -548,16 +651,16 @@ atualizarResumo()
 }
 
 // =========================
-// HORÁRIOS CLIENTE
+// RENDER HORÁRIOS CLIENTE
 // =========================
 
 function renderHorariosCliente(){
 
 listaHorarios.innerHTML=""
-horaSel=null
-escolhaStatus.hora=false
+horaSel = null
+escolhaStatus.hora = false
 
-let lista=disponibilidade[dataSel]||[]
+let lista = disponibilidade[dataSel] || []
 
 lista.forEach(hora=>{
 
@@ -565,17 +668,21 @@ let div=document.createElement("div")
 div.className="slot"
 div.innerText=hora
 
-let ocupado=agendamentos.find(a=>
-a.data===dataSel &&
-a.hora===hora &&
-a.barbeiro===barbeiroSel
+// ===== BLOQUEIO POR BARBEIRO =====
+
+let ocupado = agendamentos.find(a=>
+a.data === dataSel &&
+a.hora === hora &&
+a.barbeiro === barbeiroSel
 )
 
 if(ocupado){
 div.classList.add("booked")
 }
 
-div.onclick=()=>{
+// ===== SELEÇÃO =====
+
+div.onclick = ()=>{
 
 if(div.classList.contains("booked")) return
 
@@ -585,8 +692,8 @@ document
 
 div.classList.add("selected")
 
-horaSel=hora
-escolhaStatus.hora=true
+horaSel = hora
+escolhaStatus.hora = true
 
 cardCliente.classList.remove("hidden")
 atualizarResumo()
@@ -600,58 +707,89 @@ listaHorarios.appendChild(div)
 }
 
 // =========================
-// RESERVAR
+// RESERVAR HORÁRIO
 // =========================
 
-btnReservar.onclick=()=>{
+btnReservar.onclick = ()=>{
 
-if(!escolhaStatus.servico||
-   !escolhaStatus.barbeiro||
-   !escolhaStatus.data||
+if(!escolhaStatus.servico ||
+   !escolhaStatus.barbeiro ||
+   !escolhaStatus.data ||
    !escolhaStatus.hora){
-alert("Complete as escolhas")
+alert("Complete todas as escolhas primeiro")
 return
 }
 
-if(!clienteNome.value||!clienteFone.value){
-alert("Preencha seus dados")
+if(!clienteNome.value || !clienteFone.value){
+alert("Preencha nome e WhatsApp")
 return
 }
 
-alert("Horário reservado — confirme abaixo")
+alert("Horário reservado — confirme abaixo para finalizar")
 
 btnReservar.classList.add("hidden")
 btnConfirmar.classList.remove("hidden")
 
 }
 
+// =========================
+// AUTO REFRESH HORÁRIOS
+// =========================
+
+DB.ag.on("value",()=>{
+if(dataSel && !cardHorarios.classList.contains("hidden")){
+renderHorariosCliente()
+}
+})
+
 </script>
 <script>
+
+// =========================
+// WHATS CONFIRMAÇÃO
+// =========================
+
+function enviarWhatsConfirmacao(ag){
+
+let msg =
+`💈 ${NOME_BARBEARIA}
+Agendamento confirmado
+
+Serviço: ${ag.servico}
+Barbeiro: ${ag.barbeiro}
+Data: ${ag.data}
+Hora: ${ag.hora}
+
+Até breve!`
+
+let url =
+"https://wa.me/55"+
+ag.fone.replace(/\D/g,"")+
+"?text="+encodeURIComponent(msg)
+
+window.open(url,"_blank")
+
+}
 
 // =========================
 // CONFIRMAR AGENDAMENTO
 // =========================
 
-function enviarWhats(ag){
-
-let msg=`💈 ${NOME_BARBEARIA}
-Agendamento confirmado
-${ag.data} ${ag.hora}
-${ag.servico}`
-
-window.open(
-"https://wa.me/55"+ag.fone+"?text="+encodeURIComponent(msg),
-"_blank"
-)
-
-}
-
-btnConfirmar.onclick=async()=>{
+btnConfirmar.onclick = async ()=>{
 
 if(salvando) return
-salvando=true
+salvando = true
 
-let snap=await DB.ag
+// validação final
+if(!servicoSel || !barbeiroSel || !dataSel || !horaSel){
+alert("Seleção incompleta")
+salvando=false
+return
+}
+
+// ===== CHECAR CONFLITO REALTIME =====
+
+let snap = await DB.ag
 .orderByChild("data")
 .equalTo(dataSel)
 .get()
@@ -666,11 +804,13 @@ conflito=true
 })
 
 if(conflito){
-alert("Horário ocupado — escolha outro")
+alert("Horário acabou de ser ocupado — escolha outro")
 renderHorariosCliente()
 salvando=false
 return
 }
+
+// ===== SALVAR =====
 
 let ag={
 servico:servicoSel.nome,
@@ -685,7 +825,7 @@ ts:Date.now()
 
 await DB.ag.push(ag)
 
-enviarWhats(ag)
+enviarWhatsConfirmacao(ag)
 
 alert("Agendamento confirmado 💈")
 
@@ -694,52 +834,67 @@ location.reload()
 }
 
 // =========================
-// LOGIN ADMIN
+// SYNC SERVIÇOS
 // =========================
 
-topo.ondblclick=()=>{
-let s=prompt("Senha admin")
-if(s===ADMIN_SENHA){
-telaCliente.classList.add("hidden")
-telaAdmin.classList.remove("hidden")
-}
+DB.servicos.on("value",snap=>{
+
+if(snap.exists()){
+servicos = Object.values(snap.val())
+}else{
+DB.servicos.set([
+{nome:"Corte",preco:40},
+{nome:"Barba",preco:30},
+{nome:"Combo",preco:65}
+])
+return
 }
 
-btnLogout.onclick=()=>{
-telaAdmin.classList.add("hidden")
-telaCliente.classList.remove("hidden")
-}
-
-// =========================
-// SYNC DB
-// =========================
-
-DB.servicos.on("value",s=>{
-servicos=s.exists()?Object.values(s.val()):[]
-if(servicos.length===0){
-DB.servicos.set([{nome:"Corte",preco:40}])
-}
 renderServicos()
 renderAdminServicos()
+
 })
 
-DB.barbeiros.on("value",s=>{
-barbeiros=s.exists()?Object.values(s.val()):[]
-renderBarbeiros()
+// =========================
+// SYNC BARBEIROS
+// =========================
+
+DB.barbeiros.on("value",snap=>{
+
+if(snap.exists()){
+barbeiros = Object.values(snap.val())
+}else{
+DB.barbeiros.set(["Carlos","Pedro"])
+return
+}
+
 renderAdminBarbeiros()
+
 })
 
-DB.config.on("value",s=>{
-if(s.exists()){
-config=s.val()
+// =========================
+// SYNC CONFIG
+// =========================
+
+DB.config.on("value",snap=>{
+
+if(snap.exists()){
+config=snap.val()
 cfgAbertura.value=config.abertura
 cfgFechamento.value=config.fechamento
 cfgIntervalo.value=config.intervalo
+}else{
+DB.config.set(config)
 }
+
 })
 
-DB.ag.on("value",s=>{
-agendamentos=s.exists()?Object.values(s.val()):[]
+// =========================
+// SYNC AGENDAMENTOS
+// =========================
+
+DB.ag.on("value",snap=>{
+agendamentos = snap.exists()? Object.values(snap.val()):[]
 renderAdminAgendamentos()
 })
 
@@ -747,12 +902,20 @@ renderAdminAgendamentos()
 // CRUD SERVIÇOS
 // =========================
 
-btnAddServico.onclick=()=>{
+btnAddServico.onclick = ()=>{
+
+if(!novoServicoNome.value || !novoServicoPreco.value) return
+
 servicos.push({
 nome:novoServicoNome.value,
 preco:Number(novoServicoPreco.value)
 })
+
 DB.servicos.set(servicos)
+
+novoServicoNome.value=""
+novoServicoPreco.value=""
+
 }
 
 function removerServico(i){
@@ -764,9 +927,15 @@ DB.servicos.set(servicos)
 // CRUD BARBEIROS
 // =========================
 
-btnAddBarbeiro.onclick=()=>{
+btnAddBarbeiro.onclick = ()=>{
+
+if(!novoBarbeiro.value) return
+
 barbeiros.push(novoBarbeiro.value)
 DB.barbeiros.set(barbeiros)
+
+novoBarbeiro.value=""
+
 }
 
 function removerBarbeiro(i){
@@ -775,54 +944,112 @@ DB.barbeiros.set(barbeiros)
 }
 
 // =========================
-// EXPORTAR
+// SALVAR CONFIG BASE
 // =========================
 
-btnExportarDia.onclick=()=>{
+btnSalvarCfg.onclick = ()=>{
+
+config={
+abertura:cfgAbertura.value,
+fechamento:cfgFechamento.value,
+intervalo:Number(cfgIntervalo.value)
+}
+
+DB.config.set(config)
+
+alert("Configuração salva ✅")
+
+}
+
+// =========================
+// EXPORTAR AGENDA DO DIA
+// =========================
+
+btnExportarDia.onclick = ()=>{
+
 let hoje=hojeISO()
+
 let lista=agendamentos.filter(a=>a.data===hoje)
-let txt="AGENDA\n"
+
+let txt=`AGENDA ${NOME_BARBEARIA} — ${hoje}\n\n`
+
 lista.forEach(a=>{
-txt+=a.hora+" "+a.cliente+"\n"
+txt+=`${a.hora} — ${a.cliente} — ${a.servico}\n`
 })
+
 navigator.clipboard.writeText(txt)
-alert("Copiado")
+alert("Agenda copiada ✅")
+
 }
 
 // =========================
-// SETUP + DEMO
+// SETUP RÁPIDO
 // =========================
 
-btnSetup.onclick=()=>{
-let n=prompt("Nome barbearia")
-if(n){NOME_BARBEARIA=n;aplicarNome()}
+btnSetup.onclick = ()=>{
+
+let nome=prompt("Nome da barbearia:")
+if(nome){
+NOME_BARBEARIA=nome.toUpperCase()
+aplicarNome()
 }
 
-btnDemo.onclick=()=>{
+let zap=prompt("WhatsApp DDD+número:")
+if(zap){
+WHATS_BARBEARIA="55"+zap.replace(/\D/g,"")
+}
+
+alert("Setup aplicado ✅")
+
+}
+
+// =========================
+// DEMO
+// =========================
+
+btnDemo.onclick = ()=>{
+
 DB.ag.push({
 servico:"Corte",
 preco:40,
 barbeiro:"Carlos",
 data:hojeISO(),
 hora:"10:00",
-cliente:"Demo",
+cliente:"Cliente Demo",
 fone:"11999999999",
 ts:Date.now()
 })
+
+alert("Demo criado ✅")
+
 }
 
 </script>
 <script>
 
 // =========================
-// SERVICE WORKER
+// SERVICE WORKER REGISTER
 // =========================
 
-if("serviceWorker" in navigator){
+if ("serviceWorker" in navigator) {
 navigator.serviceWorker.register("sw.js")
+.then(()=>{
+console.log("Service Worker registrado ✅")
+})
+.catch(()=>{
+console.log("Service Worker falhou ❌")
+})
 }
 
-console.log("💈 BARBARUJO PREMIUM COMPLETO")
+// =========================
+// LOG FINAL SISTEMA
+// =========================
+
+console.log("💈 BARBARUJO PREMIUM CARREGADO")
+console.log("Admin controla datas e horários por dia")
+console.log("Fluxo reservar → confirmar ativo")
+console.log("Firebase realtime ativo")
+console.log("PWA habilitado")
 
 </script>
 
