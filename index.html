@@ -107,7 +107,6 @@ background:#402020;
 border:2px solid #803030;
 color:#ffb3b3;
 }
-
 /* INPUTS */
 
 input,select{
@@ -199,6 +198,27 @@ z-index:99999;
 cursor:pointer;
 }
 
+/* BOTÃO VOLTAR (NOVO) */
+
+.btn-back{
+position:fixed;
+top:16px;
+left:16px;
+width:54px;
+height:54px;
+border-radius:50%;
+background:#2a2a2a;
+border:1px solid #333;
+color:#fff;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+font-weight:700;
+z-index:99998;
+cursor:pointer;
+}
+
 /* STEP LABEL */
 
 .step{
@@ -214,9 +234,10 @@ letter-spacing:.4px;
 </head>
 <body>
 
-<!-- BOTÃO ADMIN -->
+<!-- BOTÕES FLUTUANTES -->
 
 <div id="btnAdminFab" class="admin-fab">⚙️</div>
+<div id="btnBack" class="btn-back">←</div>
 
 <!-- SPLASH -->
 
@@ -241,7 +262,6 @@ Sou barbeiro
 <header id="topo">💈 BARBARUJO</header>
 
 <div class="container">
-
 <!-- ===================================================== -->
 <!-- ===================== CLIENTE ======================= -->
 <!-- ===================================================== -->
@@ -298,7 +318,6 @@ Confirmar agendamento
 </div>
 
 </div>
-
 <!-- ===================================================== -->
 <!-- =================== MODO BARBEIRO =================== -->
 <!-- ===================================================== -->
@@ -328,7 +347,6 @@ Voltar
 </div>
 
 </div>
-
 <!-- ===================================================== -->
 <!-- ======================= ADMIN ======================= -->
 <!-- ===================================================== -->
@@ -339,6 +357,8 @@ Voltar
 <h3>Painel Administrador</h3>
 <button id="btnLogout" class="btn-outline">Sair do painel</button>
 </div>
+
+<!-- SERVIÇOS -->
 
 <div class="card">
 <h3>Serviços</h3>
@@ -353,6 +373,8 @@ Adicionar serviço
 <div id="adminServicos"></div>
 </div>
 
+<!-- BARBEIROS -->
+
 <div class="card">
 <h3>Barbeiros</h3>
 
@@ -364,7 +386,8 @@ Adicionar barbeiro
 
 <div id="adminBarbeiros"></div>
 </div>
-<!-- ===== ADMIN CONTINUA ===== -->
+
+<!-- CONFIG BASE -->
 
 <div class="card">
 <h3>Horário base</h3>
@@ -388,6 +411,8 @@ Salvar configuração
 </button>
 </div>
 
+<!-- WHATS LOJA -->
+
 <div class="card card-sub">
 <h3>WhatsApp da barbearia</h3>
 
@@ -397,6 +422,8 @@ Salvar configuração
 Salvar WhatsApp da loja
 </button>
 </div>
+
+<!-- DISPONIBILIDADE -->
 
 <div class="card">
 <h3>Disponibilidade por barbeiro</h3>
@@ -420,6 +447,8 @@ Limpar
 
 </div>
 
+<!-- RESET GUIADO -->
+
 <div class="card">
 
 <h3>Resetar horários</h3>
@@ -442,6 +471,8 @@ Excluir horários selecionados
 </div>
 </div>
 
+<!-- FERRAMENTAS -->
+
 <div class="card">
 <h3>Ferramentas</h3>
 
@@ -452,13 +483,14 @@ Excluir horários selecionados
 
 </div>
 
+<!-- AGENDAMENTOS -->
+
 <div class="card">
 <h3>Agendamentos</h3>
 <div id="listaAgendamentos"></div>
 </div>
 
-</div> <!-- fecha admin -->
-
+</div>
 <!-- ================= FIREBASE ================= -->
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -517,9 +549,6 @@ let WHATS_BARBEARIA="5599999999999"
 const ADMIN_SENHA="barbarujo123"
 const BARBEIRO_SENHA="barbeiro123"
 
-</script>
-<script>
-
 // ================= HELPERS =================
 
 function hojeISO(){
@@ -528,7 +557,7 @@ return new Date().toISOString().split("T")[0]
 
 function rolarPara(el){
 setTimeout(()=>{
-el.scrollIntoView({behavior:"smooth"})
+if(el) el.scrollIntoView({behavior:"smooth"})
 },120)
 }
 
@@ -539,13 +568,39 @@ document.title=NOME_BARBEARIA+" • Agendamento"
 
 aplicarNome()
 
+// ================= BOTÃO VOLTAR GLOBAL =================
+
+btnBack.onclick=()=>{
+
+if(!telaAdmin.classList.contains("hidden")){
+telaAdmin.classList.add("hidden")
+telaCliente.classList.remove("hidden")
+return
+}
+
+if(!telaBarbeiro.classList.contains("hidden")){
+telaBarbeiro.classList.add("hidden")
+telaCliente.classList.remove("hidden")
+return
+}
+
+window.scrollTo({top:0,behavior:"smooth"})
+
+}
+
 // ================= SPLASH CLIENTE =================
 
 btnEntrar.onclick=()=>{
+
 telaSplash.style.display="none"
 document.querySelector(".container").style.display="block"
+
 telaCliente.classList.remove("hidden")
+telaAdmin.classList.add("hidden")
+telaBarbeiro.classList.add("hidden")
+
 rolarPara(cardServico)
+
 }
 
 // ================= SPLASH BARBEIRO (COM SENHA) =================
@@ -668,7 +723,7 @@ listaBarbeiros.innerHTML=""
 
 barbeiros.forEach(b=>{
 
-let nome = b.nome || b
+let nome=b.nome||b
 
 let btn=document.createElement("button")
 btn.className="btn-outline"
@@ -757,8 +812,6 @@ let div=document.createElement("div")
 div.className="slot"
 div.innerText=hora
 
-// bloqueio ocupado
-
 let ocupado = agendamentos.find(a=>
 a.data===dataSel &&
 a.hora===hora &&
@@ -809,9 +862,6 @@ resumoEscolha.innerHTML=`
 
 }
 
-</script>
-<script>
-
 // =====================================================
 // ================= RESERVAR ==========================
 // =====================================================
@@ -834,6 +884,9 @@ btnConfirmar.classList.remove("hidden")
 alert("Confira e confirme o agendamento")
 
 }
+
+</script>
+<script>
 
 // =====================================================
 // ================= WHATS LOJA ========================
@@ -913,7 +966,7 @@ ts:Date.now()
 
 await DB.ag.push(ag)
 
-// ===== WHATS LOJA =====
+// ===== ENVIA WHATS LOJA =====
 
 enviarWhatsLoja(ag)
 
@@ -1149,11 +1202,8 @@ alert("WhatsApp da loja salvo")
 
 }
 
-</script>
-<script>
-
 // =====================================================
-// ============ POPULAR SELECTS BARBEIRO ===============
+// ================= SELECTS BARBEIRO ==================
 // =====================================================
 
 function popularSelectsBarbeiro(){
@@ -1175,7 +1225,7 @@ barbeiroModoSel.add(new Option(nome,nome))
 }
 
 // =====================================================
-// ============ GERAR HORÁRIOS ADMIN ===================
+// ================= GERAR SLOTS =======================
 // =====================================================
 
 btnGerarSlots.onclick=()=>{
@@ -1226,7 +1276,7 @@ rolarPara(adminSlotsGrid)
 }
 
 // =====================================================
-// ============ SALVAR DISPONIBILIDADE =================
+// ================= SALVAR DISPONIBILIDADE ============
 // =====================================================
 
 btnSalvarSlotsDia.onclick=()=>{
@@ -1310,13 +1360,11 @@ resetDias.appendChild(b)
 
 }
 
-// -----------------------------------------------------
-
 function renderResetHorarios(barbeiro,data){
 
 resetHorarios.innerHTML=""
 
-let lista=
+let lista =
 (disponibilidade[barbeiro] &&
  disponibilidade[barbeiro][data]) || []
 
@@ -1338,10 +1386,6 @@ resetHorarios.dataset.data=data
 rolarPara(resetHorarios)
 
 }
-
-// =====================================================
-// ================= EXCLUIR HORÁRIOS ==================
-// =====================================================
 
 btnExcluirSlots.onclick=()=>{
 
@@ -1365,7 +1409,7 @@ return
 
 if(!confirm("Excluir horários?")) return
 
-let atuais=
+let atuais =
 (disponibilidade[barbeiro] &&
  disponibilidade[barbeiro][data]) || []
 
@@ -1408,7 +1452,34 @@ barbeiroModoSel.appendChild(o)
 }
 
 // =====================================================
-// ================= VER AGENDA ========================
+// ================= LEMBRETE CLIENTE ==================
+// =====================================================
+
+function enviarLembreteCliente(a){
+
+let msg =
+`💈 LEMBRETE — ${NOME_BARBEARIA}
+
+Olá ${a.cliente}!
+Lembrando seu horário:
+
+Serviço: ${a.servico}
+Barbeiro: ${a.barbeiro}
+Data: ${a.data}
+Hora: ${a.hora}
+
+Te esperamos!`
+
+let url =
+"https://wa.me/55"+a.fone+
+"?text="+encodeURIComponent(msg)
+
+window.open(url,"_blank")
+
+}
+
+// =====================================================
+// ================= VER AGENDA BARBEIRO ===============
 // =====================================================
 
 btnVerAgendaBarbeiro.onclick=renderAgendaBarbeiro
@@ -1456,6 +1527,11 @@ Abrir WhatsApp
 onclick="copiarFone('${a.fone}')">
 Copiar telefone
 </button>
+
+<button class="btn"
+onclick='enviarLembreteCliente(${JSON.stringify(a)})'>
+Enviar lembrete
+</button>
 `
 
 listaBarbeiroAgenda.appendChild(div)
@@ -1469,10 +1545,8 @@ listaBarbeiroAgenda.appendChild(div)
 // =====================================================
 
 function copiarFone(f){
-
 navigator.clipboard.writeText(f)
 alert("Telefone copiado")
-
 }
 
 // =====================================================
@@ -1480,15 +1554,10 @@ alert("Telefone copiado")
 // =====================================================
 
 function atualizarModoBarbeiroSeAberto(){
-
 if(!telaBarbeiro.classList.contains("hidden")){
 renderAgendaBarbeiro()
 }
-
 }
-
-</script>
-<script>
 
 // =====================================================
 // ================= SYNC SERVIÇOS =====================
@@ -1558,7 +1627,7 @@ cfgIntervalo.value=config.intervalo
 
 })
 
-// ================= WHATS LOJA =================
+// ===== WHATS LOJA =====
 
 DB.config.child("whats").on("value",snap=>{
 if(snap.exists()){
@@ -1603,7 +1672,7 @@ atualizarModoBarbeiroSeAberto()
 })
 
 // =====================================================
-// ================= EXPORTAR AGENDA ===================
+// ================= EXPORTAR ==========================
 // =====================================================
 
 btnExportarDia.onclick=()=>{
@@ -1676,13 +1745,13 @@ navigator.serviceWorker.register("sw.js")
 // ================= LOG FINAL =========================
 // =====================================================
 
-console.log("💈 BARBARUJO — PROJETO FINAL V2 ATIVO")
+console.log("💈 BARBARUJO — PROJETO FINAL COMPLETO ATIVO")
 console.log("Cliente OK")
 console.log("Admin OK")
-console.log("Modo barbeiro com senha OK")
+console.log("Modo barbeiro OK")
+console.log("Lembrete cliente OK")
 console.log("Disponibilidade por barbeiro OK")
 console.log("Reset guiado OK")
-console.log("Excluir agendamento OK")
 console.log("PWA OK")
 
 </script>
