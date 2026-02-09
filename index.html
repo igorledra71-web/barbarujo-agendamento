@@ -16,7 +16,7 @@
 body{background:#0e0e0e;color:#fff}
 header{background:#111;padding:20px;text-align:center;font-size:26px;font-weight:700;border-bottom:2px solid #222;cursor:pointer}
 
-.container{max-width:960px;margin:auto;padding:20px}
+.container{max-width:960px;margin:auto;padding:20px;display:none}
 
 .card{background:#181818;border-radius:16px;padding:20px;margin-bottom:18px;box-shadow:0 0 18px rgba(0,0,0,.35)}
 h3{margin-bottom:12px}
@@ -26,7 +26,7 @@ h3{margin-bottom:12px}
 .btn{background:#d4af37;border:none;padding:14px;border-radius:12px;font-weight:700;width:100%;cursor:pointer;color:#000}
 .btn-outline{background:transparent;border:2px solid #d4af37;color:#d4af37;padding:12px;border-radius:12px;width:100%;cursor:pointer}
 
-button{color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
+button{-webkit-tap-highlight-color:transparent}
 
 input,select{width:100%;padding:12px;border-radius:10px;border:none;margin-top:6px;color:#000}
 
@@ -36,24 +36,88 @@ input,select{width:100%;padding:12px;border-radius:10px;border:none;margin-top:6
 
 .badge{background:#d4af37;color:#000;padding:4px 8px;border-radius:8px;font-size:12px;font-weight:700}
 .hidden{display:none}
+
+/* ===== SPLASH ANIMADA ===== */
+
+.splash{
+position:fixed;
+inset:0;
+background:#0e0e0e;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:9999;
+padding:20px;
+text-align:center;
+animation:splashFade .6s ease;
+}
+
+@keyframes splashFade{
+from{opacity:0}
+to{opacity:1}
+}
+
+.splash-logo{
+width:72vw;
+max-width:460px;
+min-width:240px;
+margin-bottom:26px;
+border-radius:26px;
+box-shadow:0 0 40px rgba(0,0,0,.7);
+animation:logoPop .9s ease;
+position:relative;
+}
+
+@keyframes logoPop{
+0%{transform:scale(.7);opacity:0}
+100%{transform:scale(1);opacity:1}
+}
+
+.splash-titulo{
+font-size:clamp(28px,5vw,42px);
+margin-bottom:18px;
+opacity:0;
+animation:titleFade .6s ease .5s forwards;
+}
+
+@keyframes titleFade{
+to{opacity:1}
+}
+
+.splash-btn{
+max-width:340px;
+font-size:18px;
+padding:16px;
+opacity:0;
+animation:btnFade .6s ease 1.1s forwards;
+}
+
+@keyframes btnFade{
+to{opacity:1}
+}
+
 </style>
 </head>
 
 <body>
 
-<div id="telaSplash" style="position:fixed;inset:0;background:#0e0e0e;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999">
+<!-- SPLASH -->
 
-<img src="logo.png" style="width:170px;margin-bottom:20px;border-radius:18px">
+<div id="telaSplash" class="splash">
 
-<h1 style="font-size:34px;margin-bottom:12px">💈 BARBARUJO</h1>
+<img src="logo.png" class="splash-logo">
 
-<button id="btnEntrar" class="btn" style="max-width:260px">
+<h1 class="splash-titulo">💈 BARBARUJO</h1>
+
+<button id="btnEntrar" class="btn splash-btn">
 Agende seu horário
 </button>
 
 </div>
 
 <header id="topo">💈 BARBARUJO</header>
+
 <div class="container">
 <!-- ================= CLIENTE ================= -->
 
@@ -125,18 +189,25 @@ Confirmar agendamento
 
 <div class="card">
 <h3>Funcionamento base</h3>
+
 <label>Abertura</label>
 <input type="time" id="cfgAbertura">
+
 <label>Fechamento</label>
 <input type="time" id="cfgFechamento">
-<label>Intervalo (min)</label>
+
+<label>Intervalo (minutos)</label>
 <select id="cfgIntervalo">
-<option>15</option>
-<option>30</option>
-<option>45</option>
-<option>60</option>
+<option value="15">15</option>
+<option value="30">30</option>
+<option value="45">45</option>
+<option value="60">60</option>
 </select>
-<button id="btnSalvarCfg" class="btn">Salvar base</button>
+
+<button id="btnSalvarCfg" class="btn">
+Salvar base de horários
+</button>
+
 </div>
 
 <div class="card">
@@ -162,10 +233,23 @@ Resetar horários do dia
 
 <div class="card">
 <h3>Ferramentas</h3>
-<button id="btnExportarDia" class="btn">Copiar agenda</button>
-<button id="btnSetup" class="btn">Setup rápido</button>
-<button id="btnDemo" class="btn">Modo demo</button>
-<button id="btnInstalarApp" class="btn">Instalar como app</button>
+
+<button id="btnExportarDia" class="btn">
+Copiar agenda do dia
+</button>
+
+<button id="btnSetup" class="btn">
+Setup rápido
+</button>
+
+<button id="btnDemo" class="btn">
+Modo demonstração
+</button>
+
+<button id="btnInstalarApp" class="btn">
+Instalar como app
+</button>
+
 </div>
 
 <div class="card">
@@ -181,8 +265,7 @@ Resetar horários do dia
 
 <script>
 
-// ===== CONFIG FIREBASE =====
-// (suas chaves — projeto barbarujo)
+// ===== CONFIG FIREBASE — BARBARUJO =====
 
 const firebaseConfig = {
 apiKey: "AIzaSyBDffb23AqSOoT-8Z94Ao9leB5nTSdIv78",
@@ -194,12 +277,13 @@ messagingSenderId: "735138068544",
 appId: "1:735138068544:web:5a1273bd8be9ef7ab487a5"
 }
 
-// ===== INIT =====
+// ===== INIT FIREBASE =====
 
 firebase.initializeApp(firebaseConfig)
+
 const db = firebase.database()
 
-// ===== REFERÊNCIAS DB =====
+// ===== REFERÊNCIAS DE DADOS =====
 
 const DB = {
 servicos: db.ref("barbarujo/servicos"),
@@ -268,14 +352,19 @@ clienteFone.value.replace(/\D/g,"").slice(0,11)
 })
 
 // =========================
-// SPLASH CONTROL
+// SPLASH — ENTRAR
 // =========================
 
-document.querySelector(".container").style.display="none"
-
 btnEntrar.onclick=()=>{
+
+telaSplash.style.opacity="0"
+telaSplash.style.transition="opacity .4s"
+
+setTimeout(()=>{
 telaSplash.style.display="none"
 document.querySelector(".container").style.display="block"
+},400)
+
 }
 
 // =========================
@@ -367,21 +456,21 @@ listaServicos.appendChild(b)
 }
 
 // =========================
-// RENDER BARBEIROS
+// RENDER BARBEIROS CLIENTE
 // =========================
 
 function renderBarbeiros(){
 
 listaBarbeiros.innerHTML=""
 
-barbeiros.forEach(n=>{
+barbeiros.forEach(nome=>{
 
 let b=document.createElement("button")
 b.className="btn-outline"
-b.innerText=n
+b.innerText=nome
 
 b.onclick=()=>{
-barbeiroSel=n
+barbeiroSel=nome
 escolhaStatus.barbeiro=true
 
 cardData.classList.remove("hidden")
@@ -396,14 +485,21 @@ listaBarbeiros.appendChild(b)
 }
 
 // =========================
-// RENDER DATAS CLIENTE
+// RENDER DATAS DISPONÍVEIS CLIENTE
 // =========================
 
 function renderDatasCliente(){
 
 dataEscolhida.innerHTML=""
 
-let datas=Object.keys(disponibilidade).sort()
+let datas = Object.keys(disponibilidade).sort()
+
+if(datas.length===0){
+let opt=document.createElement("option")
+opt.textContent="Sem dias liberados ainda"
+dataEscolhida.appendChild(opt)
+return
+}
 
 datas.forEach(d=>{
 let opt=document.createElement("option")
@@ -415,7 +511,7 @@ dataEscolhida.appendChild(opt)
 }
 
 // =========================
-// RESUMO ESCOLHA CLIENTE
+// RESUMO ESCOLHA
 // =========================
 
 function atualizarResumo(){
@@ -505,7 +601,7 @@ ${a.servico} — ${a.barbeiro}
 <br>
 Cliente: ${a.cliente}
 <br>
-Whats: ${a.fone}
+WhatsApp: ${a.fone}
 `
 
 listaAgendamentos.appendChild(div)
@@ -518,7 +614,7 @@ listaAgendamentos.appendChild(div)
 <script>
 
 // =========================
-// GERAR SLOTS BASE DO DIA (ADMIN)
+// ADMIN — GERAR SLOTS POR DATA
 // =========================
 
 btnGerarSlots.onclick = ()=>{
@@ -530,7 +626,7 @@ alert("Escolha a data")
 return
 }
 
-// horários já existentes daquele dia
+// horários já salvos
 let ja = disponibilidade[data] || []
 
 let [ha,ma] = config.abertura.split(":").map(Number)
@@ -552,12 +648,12 @@ let div=document.createElement("div")
 div.className="slot"
 div.innerText=hora
 
-// já salvo = já marcado
+// se já estava salvo, já marca
 if(ja.includes(hora)){
 div.classList.add("selected")
 }
 
-// clique liga/desliga
+// toggle seleção
 div.onclick=()=>{
 div.classList.toggle("selected")
 }
@@ -569,7 +665,7 @@ adminSlotsGrid.appendChild(div)
 }
 
 // =========================
-// SALVAR DISPONIBILIDADE DIA
+// ADMIN — SALVAR DISPONIBILIDADE DO DIA
 // =========================
 
 btnSalvarSlotsDia.onclick = ()=>{
@@ -594,12 +690,12 @@ return
 
 DB.dispDia.child(data).set(selecionados)
 
-alert("Disponibilidade do dia salva com sucesso ✅")
+alert("Disponibilidade do dia salva ✅")
 
 }
 
 // =========================
-// RESETAR DIA
+// ADMIN — RESETAR DIA
 // =========================
 
 btnResetDia.onclick = ()=>{
@@ -619,7 +715,7 @@ alert("Horários do dia resetados ✅")
 }
 
 // =========================
-// SYNC DISPONIBILIDADE DB
+// SYNC DISPONIBILIDADE FIREBASE
 // =========================
 
 DB.dispDia.on("value",snap=>{
@@ -631,7 +727,7 @@ renderDatasCliente()
 <script>
 
 // =========================
-// DATA ESCOLHIDA CLIENTE
+// CLIENTE — DATA SELECIONADA
 // =========================
 
 dataEscolhida.onchange = ()=>{
@@ -651,7 +747,7 @@ atualizarResumo()
 }
 
 // =========================
-// RENDER HORÁRIOS CLIENTE
+// CLIENTE — RENDER HORÁRIOS DISPONÍVEIS
 // =========================
 
 function renderHorariosCliente(){
@@ -707,7 +803,7 @@ listaHorarios.appendChild(div)
 }
 
 // =========================
-// RESERVAR HORÁRIO
+// CLIENTE — BOTÃO RESERVAR
 // =========================
 
 btnReservar.onclick = ()=>{
@@ -716,7 +812,7 @@ if(!escolhaStatus.servico ||
    !escolhaStatus.barbeiro ||
    !escolhaStatus.data ||
    !escolhaStatus.hora){
-alert("Complete todas as escolhas primeiro")
+alert("Complete serviço, barbeiro, data e horário")
 return
 }
 
@@ -746,7 +842,7 @@ renderHorariosCliente()
 <script>
 
 // =========================
-// WHATS CONFIRMAÇÃO
+// WHATSAPP CONFIRMAÇÃO
 // =========================
 
 function enviarWhatsConfirmacao(ag){
@@ -780,7 +876,6 @@ btnConfirmar.onclick = async ()=>{
 if(salvando) return
 salvando = true
 
-// validação final
 if(!servicoSel || !barbeiroSel || !dataSel || !horaSel){
 alert("Seleção incompleta")
 salvando=false
@@ -804,7 +899,7 @@ conflito=true
 })
 
 if(conflito){
-alert("Horário acabou de ser ocupado — escolha outro")
+alert("Horário ocupado — escolha outro")
 renderHorariosCliente()
 salvando=false
 return
@@ -1028,11 +1123,12 @@ alert("Demo criado ✅")
 <script>
 
 // =========================
-// SERVICE WORKER REGISTER
+// SERVICE WORKER REGISTER (PWA)
 // =========================
 
 if ("serviceWorker" in navigator) {
-navigator.serviceWorker.register("sw.js")
+navigator.serviceWorker
+.register("sw.js")
 .then(()=>{
 console.log("Service Worker registrado ✅")
 })
@@ -1042,13 +1138,15 @@ console.log("Service Worker falhou ❌")
 }
 
 // =========================
-// LOG FINAL SISTEMA
+// LOG FINAL
 // =========================
 
-console.log("💈 BARBARUJO PREMIUM CARREGADO")
-console.log("Admin controla datas e horários por dia")
+console.log("💈 BARBARUJO PREMIUM — SISTEMA COMPLETO ATIVO")
+console.log("Agenda online carregada")
+console.log("Admin por toque prolongado ou duplo clique")
+console.log("Disponibilidade por data ativa")
 console.log("Fluxo reservar → confirmar ativo")
-console.log("Firebase realtime ativo")
+console.log("Firebase realtime conectado")
 console.log("PWA habilitado")
 
 </script>
