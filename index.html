@@ -1,209 +1,265 @@
-<script>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
 
-// =====================================================
-// ================= SYNC SERVIÇOS =====================
-// =====================================================
+<meta charset="UTF-8">
 
-DB.servicos.on("value",snap=>{
+<!-- MOBILE APP LOCK -->
+<meta name="viewport"
+content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-if(snap.exists()){
-servicos = Object.values(snap.val())
-}else{
-DB.servicos.set([
-{nome:"Corte",preco:40},
-{nome:"Barba",preco:30},
-{nome:"Combo",preco:65}
-])
-return
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<title>BARBARUJO • Agendamento</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0e0e0e">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+
+/* ================= APP LOCK ================= */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Poppins,sans-serif;
+-webkit-tap-highlight-color: transparent;
+user-select:none;
+-webkit-user-select:none;
 }
 
-renderServicos()
-renderAdminServicos()
-
-})
-
-// =====================================================
-// ================= SYNC BARBEIROS ====================
-// =====================================================
-
-DB.barbeiros.on("value",snap=>{
-
-if(snap.exists()){
-barbeiros = Object.values(snap.val())
-}else{
-DB.barbeiros.set([
-{nome:"Carlos",whats:""},
-{nome:"Pedro",whats:""}
-])
-return
+input, textarea{
+user-select:text;
+-webkit-user-select:text;
 }
 
-renderBarbeiros()
-renderAdminBarbeiros()
-popularSelectsBarbeiro()
-popularModoBarbeiro()
+/* ================= BODY ================= */
 
-})
-
-// =====================================================
-// ================= SYNC CONFIG =======================
-// =====================================================
-
-DB.config.on("value",snap=>{
-
-if(!snap.exists()){
-DB.config.set(config)
-return
+body{
+background:#0e0e0e;
+color:#fff;
+overscroll-behavior:none;
 }
 
-let c=snap.val()
+/* ================= HEADER ================= */
 
-if(c.abertura) config.abertura=c.abertura
-if(c.fechamento) config.fechamento=c.fechamento
-if(c.intervalo) config.intervalo=c.intervalo
-
-cfgAbertura.value=config.abertura
-cfgFechamento.value=config.fechamento
-cfgIntervalo.value=config.intervalo
-
-})
-
-// ================= WHATS LOJA =================
-
-DB.config.child("whats").on("value",snap=>{
-if(snap.exists()){
-WHATS_BARBEARIA=snap.val()
-cfgWhats.value=WHATS_BARBEARIA
-}
-})
-
-// =====================================================
-// ================= SYNC DISPONIBILIDADE ==============
-// =====================================================
-
-DB.disp.on("value",snap=>{
-
-disponibilidade = snap.exists()? snap.val() : {}
-
-if(barbeiroSel){
-renderDatasCliente()
+header{
+background:#111;
+padding:20px;
+text-align:center;
+font-size:22px;
+font-weight:800;
+border-bottom:1px solid #222;
+position:sticky;
+top:0;
+z-index:50;
+letter-spacing:.5px;
 }
 
-renderResetDias()
+/* ================= VOLTAR GLOBAL ================= */
 
-})
-
-// =====================================================
-// ================= SYNC AGENDAMENTOS =================
-// =====================================================
-
-DB.ag.on("value",snap=>{
-
-agendamentosMap = snap.exists()? snap.val() : {}
-agendamentos = Object.values(agendamentosMap)
-
-renderAdminAgendamentos()
-
-if(barbeiroSel && dataSel){
-renderHorariosCliente()
+.btn-back{
+position:fixed;
+left:14px;
+top:14px;
+z-index:9999;
+background:#1c1c1c;
+border:1px solid #333;
+color:#fff;
+width:40px;
+height:40px;
+border-radius:12px;
+font-size:18px;
+font-weight:900;
+display:flex;
+align-items:center;
+justify-content:center;
 }
 
-atualizarModoBarbeiroSeAberto()
+/* ================= ADMIN FAB ================= */
 
-})
-
-// =====================================================
-// ================= EXPORTAR AGENDA ===================
-// =====================================================
-
-btnExportarDia.onclick=()=>{
-
-let hoje=hojeISO()
-
-let lista = agendamentos
-.filter(a=>a.data===hoje)
-.sort((a,b)=>a.hora.localeCompare(b.hora))
-
-let txt=`AGENDA ${NOME_BARBEARIA} — ${hoje}\n\n`
-
-lista.forEach(a=>{
-txt+=`${a.hora} — ${a.cliente} — ${a.servico}\n`
-})
-
-navigator.clipboard.writeText(txt)
-
-alert("Agenda copiada")
-
+.admin-fab{
+position:fixed;
+top:14px;
+right:14px;
+width:46px;
+height:46px;
+border-radius:14px;
+background:#d4af37;
+color:#000;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:20px;
+font-weight:900;
+z-index:9999;
 }
 
-// =====================================================
-// ================= SETUP =============================
-// =====================================================
+/* ================= CONTAINER ================= */
 
-btnSetup.onclick=()=>{
-
-let nome=prompt("Nome da barbearia:")
-
-if(nome){
-NOME_BARBEARIA=nome.toUpperCase()
-aplicarNome()
+.container{
+max-width:1000px;
+margin:auto;
+padding:28px 18px 120px 18px;
+display:none;
 }
 
-alert("Setup aplicado")
+/* ================= CARDS ================= */
 
+.card{
+background:#171717;
+border-radius:22px;
+padding:28px;
+margin-bottom:28px;
+box-shadow:0 10px 30px rgba(0,0,0,.45);
+border:1px solid #232323;
 }
 
-// =====================================================
-// ================= DEMO ==============================
-// =====================================================
-
-btnDemo.onclick=()=>{
-
-DB.ag.push({
-servico:"Corte",
-preco:40,
-barbeiro:"Carlos",
-data:hojeISO(),
-hora:"10:00",
-cliente:"Cliente Demo",
-fone:"11999999999",
-ts:Date.now()
-})
-
-alert("Demo criado")
-
+.card-sub{
+background:#141414;
+border:1px solid #262626;
 }
 
-// =====================================================
-// ================= SERVICE WORKER ====================
-// =====================================================
+/* ================= STEP ================= */
 
-if("serviceWorker" in navigator){
-navigator.serviceWorker.register("sw.js")
-.then(()=>console.log("SW registrado"))
-.catch(()=>console.log("SW erro"))
+.step{
+font-size:12px;
+opacity:.6;
+letter-spacing:1px;
+margin-bottom:10px;
 }
 
-// =====================================================
-// ================= LOG FINAL =========================
-// =====================================================
+/* ================= GRID ================= */
 
-console.log("💈 BARBARUJO — PROJETO FINAL ATIVO")
-console.log("Cliente OK")
-console.log("Admin OK")
-console.log("Modo barbeiro OK")
-console.log("Lembrete cliente OK")
-console.log("Disponibilidade por barbeiro OK")
-console.log("Reset guiado OK")
-console.log("Excluir agendamento OK")
-console.log("Whats loja OK")
-console.log("PWA OK")
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:16px;
+}
 
-</script>
+/* ================= BUTTONS ================= */
 
-</div>
-</body>
-</html>
+.btn{
+background:linear-gradient(135deg,#d4af37,#f1d77a);
+border:none;
+padding:16px;
+border-radius:16px;
+font-weight:800;
+width:100%;
+color:#000;
+font-size:15px;
+letter-spacing:.3px;
+}
+
+.btn:active{
+transform:scale(.97);
+}
+
+.btn-outline{
+background:transparent;
+border:2px solid #d4af37;
+color:#d4af37;
+padding:14px;
+border-radius:16px;
+width:100%;
+font-weight:800;
+}
+
+.btn-dark{
+background:#242424;
+border:1px solid #333;
+color:#fff;
+}
+
+.btn-danger{
+background:#402020;
+border:2px solid #803030;
+color:#ffb3b3;
+}
+
+/* ================= INPUT ================= */
+
+input,select{
+width:100%;
+padding:16px;
+border-radius:14px;
+border:none;
+margin-top:8px;
+margin-bottom:14px;
+color:#000;
+font-size:15px;
+}
+
+/* ================= PREÇO PREMIUM ================= */
+
+.price{
+font-size:20px;
+font-weight:900;
+letter-spacing:.5px;
+color:#d4af37;
+background:#000;
+padding:8px 14px;
+border-radius:12px;
+display:inline-block;
+margin-top:8px;
+box-shadow:0 0 0 1px #2a2a2a inset,
+0 6px 18px rgba(212,175,55,.25);
+}
+
+/* ================= SLOT ================= */
+
+.slot{
+background:#202020;
+padding:14px;
+border-radius:14px;
+text-align:center;
+font-weight:800;
+border:1px solid #2b2b2b;
+}
+
+.slot.selected{
+border:2px solid #d4af37;
+background:#2b2616;
+}
+
+.slot.booked{
+background:#402020;
+opacity:.45;
+pointer-events:none;
+}
+
+/* ================= SPLASH ================= */
+
+.splash{
+position:fixed;
+inset:0;
+background:#0e0e0e;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:99999;
+padding:24px;
+text-align:center;
+}
+
+.splash-logo{
+width:80vw;
+max-width:520px;
+margin-bottom:26px;
+border-radius:28px;
+box-shadow:0 0 60px rgba(0,0,0,.85);
+}
+
+.hidden{display:none}
+
+</style>
+</head>
+<body>
 <!-- ================= BOTÕES FIXOS ================= -->
 
 <button id="btnBack" class="btn-back hidden">←</button>
