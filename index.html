@@ -170,7 +170,6 @@ display:inline-block;
 margin-top:10px;
 box-shadow:0 8px 22px rgba(212,175,55,.35);
 }
-
 .slot{
 background:#202020;
 padding:14px;
@@ -191,6 +190,8 @@ background:#402020;
 opacity:.45;
 pointer-events:none;
 }
+
+/* ================= SPLASH ================= */
 
 .splash{
 position:fixed;
@@ -221,12 +222,67 @@ object-fit:contain;
 
 .hidden{display:none}
 
+/* ================= PAGAMENTO (NOVO) ================= */
+
+.pagamento-box{
+background:#141414;
+border:1px solid #262626;
+border-radius:16px;
+padding:16px;
+margin-top:16px;
+}
+
+.pagamento-grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+margin-top:10px;
+}
+
+.pagamento-btn{
+background:#202020;
+border:1px solid #333;
+border-radius:14px;
+padding:12px;
+font-weight:800;
+text-align:center;
+cursor:pointer;
+}
+
+.pagamento-btn.sel{
+border:2px solid #d4af37;
+background:#2b2616;
+}
+
+.pix-box{
+margin-top:12px;
+padding:12px;
+border-radius:12px;
+background:#1a1a1a;
+border:1px dashed #d4af37;
+font-size:14px;
+line-height:1.5;
+}
+
+.relatorio-btn{
+background:linear-gradient(135deg,#2e7d32,#66bb6a);
+color:#fff;
+border:none;
+padding:16px;
+border-radius:16px;
+font-weight:900;
+width:100%;
+margin-bottom:12px;
+}
+
 </style>
 </head>
 <body>
 
 <button id="btnBack" class="btn-back hidden">←</button>
 <div id="btnAdminFab" class="admin-fab">⚙️</div>
+
+<!-- ================= SPLASH ================= -->
 
 <div id="telaSplash" class="splash">
 
@@ -273,10 +329,10 @@ Sou barbeiro
 
 </div>
 
-
 <header id="topo">💈 BARBARUJO</header>
 
 <div class="container">
+
 <!-- ================= CLIENTE ================= -->
 
 <div id="telaCliente">
@@ -319,14 +375,38 @@ Ver horários deste dia
 
 <input id="clienteNome" placeholder="Nome">
 <input id="clienteFone" placeholder="WhatsApp">
+<!-- ================= PAGAMENTO (NOVO) ================= -->
+
+<div id="boxPagamento" class="pagamento-box hidden">
+
+<b>Forma de pagamento</b>
+
+<div class="pagamento-grid">
+<div class="pagamento-btn" data-pg="pix">PIX</div>
+<div class="pagamento-btn" data-pg="debito">Débito</div>
+<div class="pagamento-btn" data-pg="credito">Crédito</div>
+<div class="pagamento-btn" data-pg="dinheiro">Dinheiro</div>
+</div>
+
+<div id="pixInfo" class="pix-box hidden">
+<b>Pagamento via PIX</b><br>
+Chave: <span id="pixChaveView">49999538762</span><br>
+Valor: R$ <span id="pixValorView">0,00</span><br><br>
+
+<button id="btnCopiarPix" class="btn-outline">
+Copiar chave PIX
+</button>
+</div>
+
+</div>
 
 <button id="btnReservar" class="btn">
 Reservar horário
 </button>
 
-</div>
+</div> <!-- fecha cardCliente -->
 
-</div>
+</div> <!-- fecha telaCliente -->
 
 <!-- ================= MODO BARBEIRO ================= -->
 
@@ -365,9 +445,30 @@ Voltar para cliente
 
 <div class="card card-sub">
 <h3>Painel administrador</h3>
+
 <button id="btnLogout" class="btn-outline">
 Sair do painel
 </button>
+
+</div>
+
+<!-- ================= RELATÓRIO (NOVO) ================= -->
+
+<div class="card">
+
+<h3>Relatórios de vendas</h3>
+
+<button id="btnRelHoje" class="relatorio-btn">
+Relatório de hoje
+</button>
+
+<button id="btnRelPeriodo" class="btn-dark btn">
+Relatório por período
+</button>
+
+<div id="relatorioBox" class="card-sub hidden"
+style="margin-top:16px"></div>
+
 </div>
 
 <!-- SERVIÇOS -->
@@ -398,7 +499,6 @@ Adicionar barbeiro
 
 <div id="adminBarbeiros"></div>
 </div>
-
 <!-- DISPONIBILIDADE -->
 
 <div class="card">
@@ -470,7 +570,7 @@ Abrir tela exclusiva
 <div id="listaAgendamentos"></div>
 </div>
 
-</div>
+</div> <!-- fecha telaAdmin -->
 
 <!-- ================= TELA EXCLUSÃO ================= -->
 
@@ -497,6 +597,7 @@ Carregar
 </div>
 
 </div>
+
 <!-- ================= FIREBASE ================= -->
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -523,7 +624,8 @@ servicos: db.ref("barbarujo/servicos"),
 barbeiros: db.ref("barbarujo/barbeiros"),
 config: db.ref("barbarujo/config"),
 ag: db.ref("barbarujo/agendamentos"),
-disp: db.ref("barbarujo/disponibilidade")
+disp: db.ref("barbarujo/disponibilidade"),
+vendas: db.ref("barbarujo/vendas")
 }
 
 // ================= ESTADO GLOBAL =================
@@ -538,20 +640,14 @@ let servicoSel=null
 let barbeiroSel=null
 let dataSel=null
 let horaSel=null
-let salvando=false
+let pagamentoSel=null
 
 let NOME_BARBEARIA="BARBARUJO"
-
-/* ✅ WHATS LOJA FIXO — CONFORME PEDIDO */
-const WHATS_FIXO_LOJA = "5549999538762"
-
-const ADMIN_SENHA="barbarujo123"
-const BARBEIRO_SENHA="barbeiro123"
+const PIX_CHAVE="49999538762"
 
 let config={intervalo:30}
 
 </script>
-
 <script>
 
 // ================= HELPERS =================
@@ -572,11 +668,11 @@ topo.innerText="💈 "+NOME_BARBEARIA
 document.title=NOME_BARBEARIA+" • Agendamento"
 }
 
-aplicarNome()
-
 function formatarPreco(v){
 return Number(v).toFixed(2).replace(".",",")
 }
+
+aplicarNome()
 
 // ================= BACK =================
 
@@ -628,7 +724,7 @@ btnModoBarbeiro.onclick=()=>{
 
 let s = prompt("Senha barbeiro")
 
-if(s!==BARBEIRO_SENHA){
+if(s!=="barbeiro123"){
 alert("Senha incorreta")
 return
 }
@@ -652,7 +748,7 @@ btnAdminFab.onclick=()=>{
 
 let s = prompt("Senha admin")
 
-if(s!==ADMIN_SENHA){
+if(s!=="barbarujo123"){
 if(s!==null) alert("Senha incorreta")
 return
 }
@@ -682,6 +778,7 @@ clienteFone.value.replace(/\D/g,"").slice(0,11)
 })
 
 </script>
+
 <script>
 
 // =====================================================
@@ -763,6 +860,9 @@ listaBarbeiros.appendChild(btn)
 
 }
 
+</script>
+<script>
+
 // =====================================================
 // ================= DATAS CLIENTE =====================
 // =====================================================
@@ -835,8 +935,6 @@ let div=document.createElement("div")
 div.className="slot"
 div.innerText=hora
 
-// bloquear se ocupado
-
 let ocupado = agendamentos.find(a=>
 a.data===dataSel &&
 a.hora===hora &&
@@ -884,7 +982,11 @@ resumoEscolha.innerHTML=`
 <b>Serviço:</b> ${servicoSel?.nome||"-"}<br>
 <b>Barbeiro:</b> ${barbeiroSel||"-"}<br>
 <b>Data:</b> ${dataSel||"-"}<br>
-<b>Hora:</b> ${horaSel||"-"}
+<b>Hora:</b> ${horaSel||"-"}<br>
+
+<div class="price" style="margin-top:12px">
+R$ ${formatarPreco(servicoSel?.preco||0)}
+</div>
 
 </div>
 
@@ -893,10 +995,68 @@ resumoEscolha.innerHTML=`
 }
 
 // =====================================================
+// ================= PAGAMENTO UI ======================
+// =====================================================
+
+function mostrarPagamentoUI(){
+
+if(document.getElementById("boxPagamento")) return
+
+let div=document.createElement("div")
+div.className="card-sub"
+div.id="boxPagamento"
+div.style.marginTop="16px"
+
+div.innerHTML=`
+
+<h4 style="margin-bottom:10px">Forma de pagamento</h4>
+
+<label><input type="radio" name="pgto" value="debito"> Cartão débito</label><br>
+<label><input type="radio" name="pgto" value="credito"> Cartão crédito</label><br>
+<label><input type="radio" name="pgto" value="dinheiro"> Dinheiro</label><br>
+<label><input type="radio" name="pgto" value="pix"> Pix</label>
+
+<div id="pixBox" class="hidden" style="margin-top:12px">
+<b>Pix chave:</b><br>
+49999538762
+
+<div class="price" style="margin-top:8px">
+Valor: R$ ${formatarPreco(servicoSel.preco)}
+</div>
+</div>
+
+`
+
+cardCliente.appendChild(div)
+
+document
+.querySelectorAll("input[name=pgto]")
+.forEach(r=>{
+r.onchange=()=>{
+
+if(r.value==="pix"){
+document.getElementById("pixBox").classList.remove("hidden")
+}else{
+document.getElementById("pixBox").classList.add("hidden")
+}
+
+}
+})
+
+}
+
+// chama quando entra no card cliente
+const _oldAtualizarResumo = atualizarResumo
+atualizarResumo = function(){
+_oldAtualizarResumo()
+mostrarPagamentoUI()
+}
+
+// =====================================================
 // ================= WHATS LOJA FIXO ===================
 // =====================================================
 
-function enviarWhatsLoja(ag){
+function enviarWhatsLoja(ag,forma){
 
 let msg =
 `💈 BARBARUJO
@@ -908,20 +1068,32 @@ Whats: ${ag.fone}
 Serviço: ${ag.servico}
 Barbeiro: ${ag.barbeiro}
 Data: ${ag.data}
-Hora: ${ag.hora}`
+Hora: ${ag.hora}
+Pagamento: ${forma}
+Valor: R$ ${formatarPreco(ag.preco)}`
 
 let url =
 "https://wa.me/5549999538762?text="+encodeURIComponent(msg)
 
-// delay pequeno evita bloqueio popup no iOS
-setTimeout(()=>{
 window.open(url,"_blank")
-},300)
 
 }
 
 // =====================================================
-// ============ RESERVAR + CONFIRMAR DIRETO ============
+// ================= REGISTRAR VENDA ===================
+// =====================================================
+
+function registrarVenda(ag,forma){
+
+let hoje = ag.data
+let ref = DB.config.child("vendas").child(hoje)
+
+ref.child(forma).transaction(v=>(v||0)+ag.preco)
+
+}
+
+// =====================================================
+// ================= RESERVAR DIRETO ===================
 // =====================================================
 
 btnReservar.onclick = async ()=>{
@@ -936,6 +1108,14 @@ alert("Preencha nome e WhatsApp")
 return
 }
 
+let formaEl = document.querySelector("input[name=pgto]:checked")
+if(!formaEl){
+alert("Escolha a forma de pagamento")
+return
+}
+
+let forma = formaEl.value
+
 let ag={
 servico:servicoSel.nome,
 preco:servicoSel.preco,
@@ -944,36 +1124,21 @@ data:dataSel,
 hora:horaSel,
 cliente:clienteNome.value,
 fone:clienteFone.value,
+pagamento:forma,
 ts:Date.now()
 }
 
-// ✅ monta URL ANTES (dentro do clique)
-let msg =
-`💈 BARBARUJO
-
-Novo agendamento:
-
-Cliente: ${ag.cliente}
-Whats: ${ag.fone}
-Serviço: ${ag.servico}
-Barbeiro: ${ag.barbeiro}
-Data: ${ag.data}
-Hora: ${ag.hora}`
-
-let url = "https://wa.me/5549999538762?text="+encodeURIComponent(msg)
-
-// ✅ abre WhatsApp IMEDIATO (não será bloqueado)
-window.open(url,"_blank")
-
-// grava no firebase depois
 await DB.ag.push(ag)
+
+registrarVenda(ag,forma)
+
+enviarWhatsLoja(ag,forma)
 
 alert("Agendamento confirmado 💈")
 
 location.reload()
 
 }
-
 
 </script>
 <script>
@@ -1155,9 +1320,6 @@ alert("Whats salvo")
 
 }
 
-</script>
-<script>
-
 // =====================================================
 // ========== POPULAR SELECTS BARBEIRO (ADMIN) =========
 // =====================================================
@@ -1192,15 +1354,12 @@ function blocosDiaSemana(dataISO){
 let d = new Date(dataISO+"T00:00:00")
 let dia = d.getDay()
 
-// domingo fechado
 if(dia===0) return []
 
-// sábado
 if(dia===6){
 return [["09:00","17:00"]]
 }
 
-// seg–sex
 return [
 ["09:00","12:00"],
 ["14:00","19:00"]
@@ -1245,7 +1404,7 @@ return lista
 }
 
 // =====================================================
-// ======= ADMIN — BOTÃO GERAR HORÁRIOS (FIX REAL) =====
+// ======= ADMIN — GERAR HORÁRIOS ======================
 // =====================================================
 
 btnGerarSlots.onclick=()=>{
@@ -1292,6 +1451,9 @@ rolarPara(adminSlotsGrid)
 
 }
 
+</script>
+<script>
+
 // =====================================================
 // ======= ADMIN — SALVAR DISPONIBILIDADE ==============
 // =====================================================
@@ -1324,7 +1486,6 @@ DB.disp
 
 alert("Disponibilidade salva")
 
-// limpeza automática (regra sua)
 adminSlotsGrid.innerHTML=""
 adminDataPick.value=""
 
@@ -1338,11 +1499,8 @@ btnLimparGerador.onclick=()=>{
 adminSlotsGrid.innerHTML=""
 }
 
-</script>
-<script>
-
 // =====================================================
-// ================= RESET GUIADO ADMIN =================
+// ================= RESET GUIADO ADMIN ================
 // =====================================================
 
 btnAbrirReset.onclick=()=>{
@@ -1355,8 +1513,6 @@ rolarPara(resetBox)
 }
 
 }
-
-// -----------------------------------------------------
 
 resetBarbeiro.onchange = renderResetDias
 
@@ -1521,6 +1677,7 @@ R$ ${formatarPreco(a.preco||0)}
 <b>${a.cliente}</b><br>
 Serviço: ${a.servico}<br>
 Barbeiro: ${a.barbeiro}<br>
+Pagamento: ${a.pagamento||"-"}<br>
 
 <button class="btn-danger btn"
 style="margin-top:12px"
@@ -1639,7 +1796,8 @@ R$ ${formatarPreco(a.preco||0)}
 
 <b>${a.cliente}</b><br>
 Serviço: ${a.servico}<br>
-Barbeiro: ${a.barbeiro}
+Barbeiro: ${a.barbeiro}<br>
+Pagamento: ${a.pagamento||"-"}
 
 <button class="btn-danger btn"
 style="margin-top:12px"
@@ -1654,9 +1812,6 @@ listaExclusao.appendChild(div)
 })
 
 }
-
-</script>
-<script>
 
 // =====================================================
 // ================= MODO BARBEIRO =====================
@@ -1737,7 +1892,8 @@ R$ ${formatarPreco(a.preco||0)}
 </div>
 
 <b>${a.cliente}</b><br>
-Serviço: ${a.servico}<br><br>
+Serviço: ${a.servico}<br>
+Pagamento: ${a.pagamento||"-"}<br><br>
 
 <button class="btn-dark btn"
 onclick="window.open('https://wa.me/55${a.fone}','_blank')">
@@ -1908,7 +2064,101 @@ if(!telaBarbeiro.classList.contains("hidden")){
 renderAgendaBarbeiro()
 }
 
+renderRelatorioHoje()
+
 })
+
+// =====================================================
+// ================= RELATÓRIO — HOJE ==================
+// =====================================================
+
+function renderRelatorioHoje(){
+
+let hoje = hojeISO()
+
+let lista = agendamentos.filter(a=>a.data===hoje)
+
+let total=0
+let porTipo={
+pix:0,
+debito:0,
+credito:0,
+dinheiro:0
+}
+
+lista.forEach(a=>{
+let v=Number(a.preco||0)
+total+=v
+if(a.pagamento && porTipo[a.pagamento]!=null){
+porTipo[a.pagamento]+=v
+}
+})
+
+relHoje.innerHTML=`
+<b>Hoje (${hoje})</b><br><br>
+PIX: R$ ${formatarPreco(porTipo.pix)}<br>
+Débito: R$ ${formatarPreco(porTipo.debito)}<br>
+Crédito: R$ ${formatarPreco(porTipo.credito)}<br>
+Dinheiro: R$ ${formatarPreco(porTipo.dinheiro)}<br><br>
+<b>Total: R$ ${formatarPreco(total)}</b>
+`
+
+}
+
+// =====================================================
+// ================= RELATÓRIO PERÍODO =================
+// =====================================================
+
+btnRelatorioPeriodo.onclick=()=>{
+
+let tipo = relTipo.value
+let ref = relRef.value
+
+if(!ref){
+alert("Escolha referência")
+return
+}
+
+let lista=[]
+
+if(tipo==="dia"){
+lista = agendamentos.filter(a=>a.data===ref)
+}
+
+if(tipo==="mes"){
+lista = agendamentos.filter(a=>a.data.startsWith(ref))
+}
+
+if(tipo==="ano"){
+lista = agendamentos.filter(a=>a.data.startsWith(ref))
+}
+
+let total=0
+let porTipo={
+pix:0,
+debito:0,
+credito:0,
+dinheiro:0
+}
+
+lista.forEach(a=>{
+let v=Number(a.preco||0)
+total+=v
+if(a.pagamento && porTipo[a.pagamento]!=null){
+porTipo[a.pagamento]+=v
+}
+})
+
+relPeriodo.innerHTML=`
+<b>Relatório ${tipo.toUpperCase()}</b><br><br>
+PIX: R$ ${formatarPreco(porTipo.pix)}<br>
+Débito: R$ ${formatarPreco(porTipo.debito)}<br>
+Crédito: R$ ${formatarPreco(porTipo.credito)}<br>
+Dinheiro: R$ ${formatarPreco(porTipo.dinheiro)}<br><br>
+<b>Total: R$ ${formatarPreco(total)}</b>
+`
+
+}
 
 // =====================================================
 // ================= EXPORTAR AGENDA ===================
@@ -1970,6 +2220,7 @@ data:hojeISO(),
 hora:"10:00",
 cliente:"Cliente Demo",
 fone:"11999999999",
+pagamento:"pix",
 ts:Date.now()
 })
 
@@ -1981,8 +2232,6 @@ alert("Agendamento demo criado")
 // ================= UX MOBILE LOCK ====================
 // =====================================================
 
-// bloquear zoom duplo toque
-
 let lastTouchEnd = 0
 
 document.addEventListener("touchend", function (event) {
@@ -1993,12 +2242,7 @@ event.preventDefault()
 lastTouchEnd = now
 }, { passive:false })
 
-// bloquear menu segurar/copiar
-
 document.addEventListener("contextmenu", e=>e.preventDefault())
-
-// bloquear seleção texto
-
 document.addEventListener("selectstart", e=>e.preventDefault())
 
 // =====================================================
@@ -2022,11 +2266,9 @@ console.log("💈 BARBARUJO — ARQUIVO FINAL COMPLETO OK")
 console.log("Cliente OK")
 console.log("Admin OK")
 console.log("Barbeiro OK")
-console.log("Gerador de horários OK")
-console.log("Reset guiado OK")
-console.log("Exclusão dedicada OK")
-console.log("Whats loja automático OK")
-console.log("Preços premium OK")
+console.log("Pagamentos OK")
+console.log("PIX automático OK")
+console.log("Relatórios OK")
 console.log("Firebase sync OK")
 console.log("PWA OK")
 
