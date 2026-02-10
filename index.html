@@ -19,8 +19,6 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
 
 <style>
 
-/* ================= RESET ================= */
-
 *{
 margin:0;
 padding:0;
@@ -36,15 +34,11 @@ user-select:text;
 -webkit-user-select:text;
 }
 
-/* ================= BODY ================= */
-
 body{
 background:#0e0e0e;
 color:#fff;
 overscroll-behavior:none;
 }
-
-/* ================= HEADER ================= */
 
 header{
 background:#111;
@@ -58,8 +52,6 @@ top:0;
 z-index:50;
 letter-spacing:.5px;
 }
-
-/* ================= BACK BUTTON ================= */
 
 .btn-back{
 position:fixed;
@@ -79,8 +71,6 @@ align-items:center;
 justify-content:center;
 }
 
-/* ================= ADMIN FAB ================= */
-
 .admin-fab{
 position:fixed;
 top:14px;
@@ -98,16 +88,12 @@ font-weight:900;
 z-index:9999;
 }
 
-/* ================= CONTAINER ================= */
-
 .container{
 max-width:1000px;
 margin:auto;
 padding:28px 18px 120px 18px;
 display:none;
 }
-
-/* ================= CARDS ================= */
 
 .card{
 background:#171717;
@@ -123,15 +109,11 @@ background:#141414;
 border:1px solid #262626;
 }
 
-/* ================= GRID ================= */
-
 .grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
 gap:16px;
 }
-
-/* ================= BUTTONS ================= */
 
 .btn{
 background:linear-gradient(135deg,#d4af37,#f1d77a);
@@ -167,8 +149,6 @@ border:2px solid #803030;
 color:#ffb3b3;
 }
 
-/* ================= INPUT ================= */
-
 input,select{
 width:100%;
 padding:16px;
@@ -179,8 +159,6 @@ margin-bottom:14px;
 color:#000;
 font-size:15px;
 }
-
-/* ================= PRICE PREMIUM ================= */
 
 .price{
 font-size:22px;
@@ -194,8 +172,6 @@ display:inline-block;
 margin-top:10px;
 box-shadow:0 8px 22px rgba(212,175,55,.35);
 }
-
-/* ================= SLOT ================= */
 
 .slot{
 background:#202020;
@@ -217,8 +193,6 @@ background:#402020;
 opacity:.45;
 pointer-events:none;
 }
-
-/* ================= SPLASH ================= */
 
 .splash{
 position:fixed;
@@ -339,10 +313,6 @@ Ver horários deste dia
 Reservar horário
 </button>
 
-<button id="btnConfirmar" class="btn-outline hidden">
-Confirmar agendamento
-</button>
-
 </div>
 
 </div>
@@ -418,18 +388,6 @@ Adicionar barbeiro
 <div id="adminBarbeiros"></div>
 </div>
 
-<!-- WHATS LOJA -->
-
-<div class="card card-sub">
-<h3>WhatsApp da barbearia</h3>
-
-<input id="cfgWhats" placeholder="5599999999999">
-
-<button id="btnSalvarWhats" class="btn">
-Salvar WhatsApp da loja
-</button>
-</div>
-
 <!-- DISPONIBILIDADE -->
 
 <div class="card">
@@ -454,6 +412,7 @@ Salvar disponibilidade
 <button id="btnLimparGerador" class="btn-outline">
 Limpar seleção
 </button>
+
 </div>
 <!-- ================= RESET GUIADO ================= -->
 
@@ -597,7 +556,9 @@ let horaSel=null
 let salvando=false
 
 let NOME_BARBEARIA="BARBARUJO"
-let WHATS_BARBEARIA=""
+
+/* ✅ WHATS FIXO DA LOJA — DEFINIDO DIRETO */
+const WHATS_LOJA_FIXO="5549999538762"
 
 const ADMIN_SENHA="barbarujo123"
 const BARBEIRO_SENHA="barbeiro123"
@@ -744,30 +705,12 @@ telaCliente.classList.remove("hidden")
 rolarPara(cardServico)
 }
 
-// ================= TELEFONE =================
+// ================= TELEFONE INPUT =================
 
 clienteFone.addEventListener("input",()=>{
 clienteFone.value =
 clienteFone.value.replace(/\D/g,"").slice(0,11)
 })
-
-// ================= WHATS LOJA SAVE =================
-
-btnSalvarWhats.onclick=()=>{
-
-let v = cfgWhats.value.replace(/\D/g,"")
-
-if(v.length<10){
-alert("Whats inválido")
-return
-}
-
-DB.config.child("whats").set(v)
-WHATS_BARBEARIA=v
-
-alert("WhatsApp salvo")
-
-}
 
 // ================= PWA INSTALL =================
 
@@ -788,6 +731,25 @@ return
 deferredPrompt.prompt()
 
 }
+
+// ================= UX MOBILE LOCK =================
+
+// bloquear zoom duplo toque
+let lastTouchEnd = 0
+
+document.addEventListener("touchend", function (event) {
+let now = Date.now()
+if (now - lastTouchEnd <= 300) {
+event.preventDefault()
+}
+lastTouchEnd = now
+}, { passive:false })
+
+// bloquear menu segurar/copiar
+document.addEventListener("contextmenu", e=>e.preventDefault())
+
+// bloquear seleção texto
+document.addEventListener("selectstart", e=>e.preventDefault())
 
 </script>
 <script>
@@ -823,15 +785,7 @@ b.innerHTML=`
 ${s.nome}
 </div>
 
-<div class="price"
-style="
-background:linear-gradient(135deg,#d4af37,#ffe38a);
-color:#000;
-box-shadow:
-0 8px 22px rgba(212,175,55,.35),
-inset 0 0 0 1px rgba(0,0,0,.15);
-margin-top:10px;
-">
+<div class="price">
 R$ ${formatarPreco(s.preco)}
 </div>
 `
@@ -964,8 +918,6 @@ let div=document.createElement("div")
 div.className="slot"
 div.innerText=hora
 
-// bloquear se ocupado
-
 let ocupado = agendamentos.find(a=>
 a.data===dataSel &&
 a.hora===hora &&
@@ -1023,35 +975,12 @@ resumoEscolha.innerHTML=`
 }
 
 // =====================================================
-// ================= RESERVAR ==========================
-// =====================================================
-
-btnReservar.onclick=()=>{
-
-if(!servicoSel || !barbeiroSel || !dataSel || !horaSel){
-alert("Complete todas as escolhas")
-return
-}
-
-if(!clienteNome.value || !clienteFone.value){
-alert("Preencha nome e WhatsApp")
-return
-}
-
-btnReservar.classList.add("hidden")
-btnConfirmar.classList.remove("hidden")
-
-alert("Confira os dados e confirme")
-
-}
-
-// =====================================================
-// ================= WHATS LOJA ========================
+// ================= WHATS FIXO LOJA ===================
 // =====================================================
 
 function enviarWhatsLoja(ag){
 
-if(!WHATS_BARBEARIA) return
+let numero = "5549999538762"
 
 let msg =
 `💈 ${NOME_BARBEARIA}
@@ -1066,23 +995,31 @@ Data: ${ag.data}
 Hora: ${ag.hora}`
 
 let url =
-"https://wa.me/"+WHATS_BARBEARIA+
+"https://wa.me/"+numero+
 "?text="+encodeURIComponent(msg)
 
 window.open(url,"_blank")
 
 }
 
-</script>
-<script>
-
 // =====================================================
-// ================= CONFIRMAR AGENDAMENTO =============
+// ================= RESERVAR DIRETO ===================
 // =====================================================
 
-btnConfirmar.onclick=async()=>{
+btnReservar.onclick=async()=>{
 
 if(salvando) return
+
+if(!servicoSel || !barbeiroSel || !dataSel || !horaSel){
+alert("Complete todas as escolhas")
+return
+}
+
+if(!clienteNome.value || !clienteFone.value){
+alert("Preencha nome e WhatsApp")
+return
+}
+
 salvando=true
 
 let snap = await DB.ag
@@ -1127,6 +1064,9 @@ location.reload()
 
 }
 
+</script>
+<script>
+
 // =====================================================
 // ================= ADMIN — SERVIÇOS ==================
 // =====================================================
@@ -1151,13 +1091,7 @@ div.innerHTML=`
 ${s.nome}
 </div>
 
-<div class="price"
-style="
-background:linear-gradient(135deg,#d4af37,#ffe38a);
-color:#000;
-margin:10px 0 16px 0;
-box-shadow:0 8px 22px rgba(212,175,55,.35);
-">
+<div class="price">
 R$ ${formatarPreco(s.preco)}
 </div>
 
@@ -1307,9 +1241,6 @@ alert("Whats salvo")
 
 }
 
-</script>
-<script>
-
 // =====================================================
 // ========== POPULAR SELECTS BARBEIRO (ADMIN) =========
 // =====================================================
@@ -1344,15 +1275,12 @@ function blocosDiaSemana(dataISO){
 let d = new Date(dataISO+"T00:00:00")
 let dia = d.getDay()
 
-// domingo
 if(dia===0) return []
 
-// sábado
 if(dia===6){
 return [["09:00","17:00"]]
 }
 
-// seg–sex
 return [
 ["09:00","12:00"],
 ["14:00","19:00"]
@@ -1368,7 +1296,6 @@ function gerarSlotsFixos(dataISO){
 
 let blocos = blocosDiaSemana(dataISO)
 let lista=[]
-
 let intervalo = config.intervalo || 30
 
 blocos.forEach(b=>{
@@ -1397,7 +1324,7 @@ return lista
 }
 
 // =====================================================
-// ======= ADMIN — BOTÃO GERAR HORÁRIOS (FIX) =========
+// ======= ADMIN — GERAR HORÁRIOS (BOTÃO) ==============
 // =====================================================
 
 btnGerarSlots.onclick=()=>{
@@ -1444,6 +1371,9 @@ rolarPara(adminSlotsGrid)
 
 }
 
+</script>
+<script>
+
 // =====================================================
 // ======= ADMIN — SALVAR DISPONIBILIDADE ==============
 // =====================================================
@@ -1476,8 +1406,7 @@ DB.disp
 
 alert("Disponibilidade salva")
 
-// limpeza automática (pedido seu)
-
+// limpeza automática
 adminSlotsGrid.innerHTML=""
 adminDataPick.value=""
 
@@ -1490,9 +1419,6 @@ adminDataPick.value=""
 btnLimparGerador.onclick=()=>{
 adminSlotsGrid.innerHTML=""
 }
-
-</script>
-<script>
 
 // =====================================================
 // ================= RESET GUIADO ADMIN =================
@@ -2007,15 +1933,6 @@ config.intervalo=c.intervalo
 
 })
 
-// ================= WHATS LOJA =================
-
-DB.config.child("whats").on("value",snap=>{
-if(snap.exists()){
-WHATS_BARBEARIA=snap.val()
-cfgWhats.value=WHATS_BARBEARIA
-}
-})
-
 // =====================================================
 // ================= SYNC DISPONIBILIDADE ==============
 // =====================================================
@@ -2058,7 +1975,6 @@ renderAgendaBarbeiro()
 // =====================================================
 
 // bloquear zoom duplo toque
-
 let lastTouchEnd = 0
 
 document.addEventListener("touchend", function (event) {
@@ -2070,11 +1986,9 @@ lastTouchEnd = now
 }, { passive:false })
 
 // bloquear menu segurar/copiar
-
 document.addEventListener("contextmenu", e=>e.preventDefault())
 
 // bloquear seleção texto
-
 document.addEventListener("selectstart", e=>e.preventDefault())
 
 // =====================================================
