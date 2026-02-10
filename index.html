@@ -253,18 +253,29 @@ text-align:center;
 
 .splash-logo{
 display:block;
-margin:0 auto 26px auto;
 
-width:70vw;
-max-width:420px;
+/* tamanho maior */
+width:86vw;
+max-width:520px;
 height:auto;
 
-/* remove sensação de caixa */
+/* centralização base */
+margin-left:50%;
+transform:translateX(-50%);
+
+/* ajuste visual fino para esquerda */
+position:relative;
+left:-18px;   /* ajuste fino — pode variar -14 até -26 */
+
 background:transparent;
 border:none;
 border-radius:0;
 box-shadow:none;
+
+/* respiro */
+margin-bottom:30px;
 }
+
 
 .hidden{display:none}
 
@@ -2129,6 +2140,7 @@ console.log("PWA OK")
 </div>
 </body>
 </html>
+
 
 
 
