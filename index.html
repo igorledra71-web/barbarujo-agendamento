@@ -194,17 +194,20 @@ color:#000;
 font-size:15px;
 }
 
-/* ================= PREÇO PREMIUM (SEM CAIXA PRETA) ================= */
+/* ================= PREÇO PREMIUM ================= */
 
 .price{
 font-size:22px;
 font-weight:900;
-letter-spacing:.5px;
 background:linear-gradient(135deg,#d4af37,#ffe38a);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-display:block;
+color:#000;
+border-radius:14px;
+padding:8px 14px;
+display:inline-block;
 margin-top:8px;
+box-shadow:
+0 10px 26px rgba(212,175,55,.35),
+inset 0 0 0 1px rgba(0,0,0,.15);
 }
 
 /* ================= SLOT ================= */
@@ -216,6 +219,7 @@ border-radius:14px;
 text-align:center;
 font-weight:800;
 border:1px solid #2b2b2b;
+cursor:pointer;
 }
 
 .slot.selected{
@@ -248,7 +252,6 @@ text-align:center;
 width:80vw;
 max-width:520px;
 margin-bottom:26px;
-/* removido fundo escuro — só sombra suave */
 box-shadow:0 20px 60px rgba(0,0,0,.6);
 border-radius:28px;
 }
@@ -386,7 +389,6 @@ Confirmar agendamento
 </div>
 
 </div>
-
 <!-- ===================================================== -->
 <!-- =================== MODO BARBEIRO =================== -->
 <!-- ===================================================== -->
@@ -485,7 +487,8 @@ Salvar WhatsApp da loja
 </button>
 
 </div>
-<!-- ================= DISPONIBILIDADE POR BARBEIRO ================= -->
+
+<!-- ================= DISPONIBILIDADE ================= -->
 
 <div class="card">
 
@@ -512,7 +515,6 @@ Limpar seleção
 </button>
 
 </div>
-
 <!-- ================= RESET GUIADO ================= -->
 
 <div class="card">
@@ -542,11 +544,11 @@ Excluir horários selecionados
 
 </div>
 
-<!-- ================= TELA EXCLUSÃO DE AGENDAMENTOS (SEPARADA) ================= -->
+<!-- ================= EXCLUSÃO DEDICADA ================= -->
 
 <div class="card">
 
-<h3>Excluir agendamentos (tela dedicada)</h3>
+<h3>Excluir agendamentos (tela separada)</h3>
 
 <button id="btnAbrirExclusao" class="btn-dark btn">
 Abrir tela de exclusão
@@ -637,6 +639,11 @@ let WHATS_BARBEARIA="5599999999999"
 const ADMIN_SENHA="barbarujo123"
 const BARBEIRO_SENHA="barbeiro123"
 
+// config base fixa
+let config = {
+intervalo:30
+}
+
 </script>
 <script>
 
@@ -647,6 +654,7 @@ return new Date().toISOString().split("T")[0]
 }
 
 function rolarPara(el){
+if(!el) return
 setTimeout(()=>{
 el.scrollIntoView({behavior:"smooth"})
 },120)
@@ -659,7 +667,7 @@ document.title=NOME_BARBEARIA+" • Agendamento"
 
 aplicarNome()
 
-// ================= NAVEGAÇÃO BACK =================
+// ================= BACK GLOBAL =================
 
 function mostrarBack(){
 btnBack.classList.remove("hidden")
@@ -671,6 +679,7 @@ btnBack.classList.add("hidden")
 
 btnBack.onclick=()=>{
 
+// exclusão → admin
 if(!telaExclusao.classList.contains("hidden")){
 telaExclusao.classList.add("hidden")
 telaAdmin.classList.remove("hidden")
@@ -678,6 +687,7 @@ rolarPara(telaAdmin)
 return
 }
 
+// admin → cliente
 if(!telaAdmin.classList.contains("hidden")){
 telaAdmin.classList.add("hidden")
 telaCliente.classList.remove("hidden")
@@ -685,6 +695,7 @@ rolarPara(cardServico)
 return
 }
 
+// barbeiro → cliente
 if(!telaBarbeiro.classList.contains("hidden")){
 telaBarbeiro.classList.add("hidden")
 telaCliente.classList.remove("hidden")
@@ -692,6 +703,7 @@ rolarPara(cardServico)
 return
 }
 
+// cliente → splash
 document.querySelector(".container").style.display="none"
 telaSplash.style.display="flex"
 esconderBack()
@@ -798,14 +810,16 @@ deferredPrompt.prompt()
 <script>
 
 // =====================================================
-// ================= RENDER SERVIÇOS ===================
+// ================= PREÇO FORMAT ======================
 // =====================================================
 
 function formatarPreco(v){
-return Number(v)
-.toFixed(2)
-.replace(".",",")
+return Number(v).toFixed(2).replace(".",",")
 }
+
+// =====================================================
+// ================= RENDER SERVIÇOS ===================
+// =====================================================
 
 function renderServicos(){
 
@@ -817,20 +831,25 @@ let b=document.createElement("button")
 b.className="btn"
 
 b.innerHTML=`
-<div style="font-size:16px;font-weight:800">
+
+<div style="font-size:16px;font-weight:900;margin-bottom:6px">
 ${s.nome}
 </div>
 
 <div class="price"
 style="
-background:linear-gradient(135deg,#d4af37,#f5e3a2);
+background:linear-gradient(135deg,#d4af37,#ffe7a6);
 color:#000;
 box-shadow:
-0 8px 22px rgba(212,175,55,.35),
-inset 0 0 0 1px rgba(0,0,0,.15);
+0 10px 24px rgba(212,175,55,.35),
+inset 0 0 0 1px rgba(0,0,0,.18);
+border-radius:14px;
+padding:10px 14px;
+display:inline-block;
 ">
 R$ ${formatarPreco(s.preco)}
 </div>
+
 `
 
 b.onclick=()=>{
@@ -946,7 +965,7 @@ let lista =
  disponibilidade[barbeiroSel][dataSel]) || []
 
 if(lista.length===0){
-listaHorarios.innerHTML="Sem horários liberados"
+listaHorarios.innerHTML="<div style='opacity:.7'>Sem horários liberados</div>"
 return
 }
 
@@ -956,7 +975,7 @@ let div=document.createElement("div")
 div.className="slot"
 div.innerText=hora
 
-// ===== BLOQUEIO SE OCUPADO =====
+// ===== BLOQUEAR SE OCUPADO =====
 
 let ocupado = agendamentos.find(a=>
 a.data===dataSel &&
@@ -1003,7 +1022,7 @@ function atualizarResumo(){
 
 resumoEscolha.innerHTML=`
 
-<div class="card-sub" style="padding:16px;border-radius:14px">
+<div class="card-sub" style="padding:18px;border-radius:16px">
 
 <b>Serviço:</b> ${servicoSel?.nome||"-"}<br>
 <b>Barbeiro:</b> ${barbeiroSel||"-"}<br>
@@ -1015,6 +1034,9 @@ resumoEscolha.innerHTML=`
 `
 
 }
+
+</script>
+<script>
 
 // =====================================================
 // ================= RESERVAR ==========================
@@ -1076,7 +1098,7 @@ btnConfirmar.onclick=async()=>{
 if(salvando) return
 salvando=true
 
-// conflito realtime
+// ===== CHECAR CONFLITO REALTIME =====
 
 let snap = await DB.ag
 .orderByChild("data")
@@ -1099,6 +1121,8 @@ salvando=false
 return
 }
 
+// ===== SALVAR =====
+
 let ag={
 servico:servicoSel.nome,
 preco:servicoSel.preco,
@@ -1112,6 +1136,8 @@ ts:Date.now()
 
 await DB.ag.push(ag)
 
+// ===== WHATS LOJA =====
+
 enviarWhatsLoja(ag)
 
 alert("Agendamento confirmado 💈")
@@ -1120,11 +1146,8 @@ location.reload()
 
 }
 
-</script>
-<script>
-
 // =====================================================
-// ================= ADMIN RENDERS =====================
+// ================= ADMIN — SERVIÇOS ==================
 // =====================================================
 
 function renderAdminServicos(){
@@ -1138,18 +1161,21 @@ div.className="card card-sub"
 
 div.innerHTML=`
 
-<div style="font-size:16px;font-weight:800">
+<div style="font-size:16px;font-weight:900;margin-bottom:6px">
 ${s.nome}
 </div>
 
 <div class="price"
 style="
-background:linear-gradient(135deg,#d4af37,#f5e3a2);
+background:linear-gradient(135deg,#d4af37,#ffe7a6);
 color:#000;
 box-shadow:
-0 8px 22px rgba(212,175,55,.35),
-inset 0 0 0 1px rgba(0,0,0,.15);
-margin:10px 0 16px 0;
+0 10px 24px rgba(212,175,55,.35),
+inset 0 0 0 1px rgba(0,0,0,.18);
+border-radius:14px;
+padding:10px 14px;
+display:inline-block;
+margin-bottom:14px;
 ">
 R$ ${formatarPreco(s.preco)}
 </div>
@@ -1162,88 +1188,6 @@ Excluir serviço
 `
 
 adminServicos.appendChild(div)
-
-})
-
-}
-
-// -----------------------------------------------------
-
-function renderAdminBarbeiros(){
-
-adminBarbeiros.innerHTML=""
-
-barbeiros.forEach((b,i)=>{
-
-let nome=b.nome||b
-let whats=b.whats||""
-
-let div=document.createElement("div")
-div.className="card card-sub"
-
-div.innerHTML=`
-
-<b>${nome}</b><br>
-Whats atual: ${whats || "-"}
-
-<input id="wb_${i}" placeholder="Whats barbeiro">
-
-<button class="btn-dark btn"
-onclick="salvarWhatsBarbeiro(${i})">
-Salvar Whats
-</button>
-
-<button class="btn-danger btn"
-onclick="removerBarbeiro(${i})">
-Excluir barbeiro
-</button>
-
-`
-
-adminBarbeiros.appendChild(div)
-
-})
-
-}
-
-// -----------------------------------------------------
-
-function renderAdminAgendamentos(){
-
-listaAgendamentos.innerHTML=""
-
-Object.entries(agendamentosMap)
-.sort((a,b)=> (a[1].data+a[1].hora)
-.localeCompare(b[1].data+b[1].hora))
-.forEach(([key,a])=>{
-
-let div=document.createElement("div")
-div.className="card card-sub"
-
-div.innerHTML=`
-
-<span class="badge">${a.data} ${a.hora}</span>
-
-<h4 style="margin:10px 0 4px 0">
-${a.cliente}
-</h4>
-
-Serviço: ${a.servico}<br>
-Barbeiro: ${a.barbeiro}<br>
-
-<div class="price"
-style="margin:10px 0">
-R$ ${formatarPreco(a.preco||0)}
-</div>
-
-<button class="btn-danger btn"
-onclick="abrirTelaExclusao('${key}')">
-Excluir agendamento
-</button>
-
-`
-
-listaAgendamentos.appendChild(div)
 
 })
 
@@ -1283,6 +1227,50 @@ DB.servicos.set(servicos)
 
 }
 
+</script>
+<script>
+
+// =====================================================
+// ================= ADMIN — BARBEIROS =================
+// =====================================================
+
+function renderAdminBarbeiros(){
+
+adminBarbeiros.innerHTML=""
+
+barbeiros.forEach((b,i)=>{
+
+let nome=b.nome||b
+let whats=b.whats||""
+
+let div=document.createElement("div")
+div.className="card card-sub"
+
+div.innerHTML=`
+
+<b style="font-size:16px">${nome}</b><br>
+Whats atual: ${whats || "-"}
+
+<input id="wb_${i}" placeholder="Whats barbeiro">
+
+<button class="btn-dark btn"
+onclick="salvarWhatsBarbeiro(${i})">
+Salvar Whats
+</button>
+
+<button class="btn-danger btn"
+onclick="removerBarbeiro(${i})">
+Excluir barbeiro
+</button>
+
+`
+
+adminBarbeiros.appendChild(div)
+
+})
+
+}
+
 // =====================================================
 // ================= CRUD BARBEIROS ====================
 // =====================================================
@@ -1316,8 +1304,6 @@ DB.barbeiros.set(barbeiros)
 
 }
 
-// -----------------------------------------------------
-
 function salvarWhatsBarbeiro(i){
 
 let v=document
@@ -1337,30 +1323,6 @@ alert("Whats do barbeiro salvo")
 }
 
 // =====================================================
-// ================= EXCLUSÃO DEDICADA =================
-// =====================================================
-
-function abrirTelaExclusao(key){
-
-let a = agendamentosMap[key]
-if(!a) return
-
-if(!confirm(
-"Excluir agendamento de "+
-a.cliente+
-" às "+a.hora+" ?"
-)) return
-
-DB.ag.child(key).remove()
-
-alert("Agendamento excluído")
-
-}
-
-</script>
-<script>
-
-// =====================================================
 // ========= POPULAR SELECTS BARBEIRO (ADMIN) ==========
 // =====================================================
 
@@ -1369,6 +1331,7 @@ function popularSelectsBarbeiro(){
 adminBarbeiroSel.innerHTML=""
 resetBarbeiro.innerHTML=""
 barbeiroModoSel.innerHTML=""
+excBarbeiro.innerHTML=""
 
 barbeiros.forEach(b=>{
 
@@ -1377,6 +1340,7 @@ let nome=b.nome||b
 adminBarbeiroSel.add(new Option(nome,nome))
 resetBarbeiro.add(new Option(nome,nome))
 barbeiroModoSel.add(new Option(nome,nome))
+excBarbeiro.add(new Option(nome,nome))
 
 })
 
@@ -1394,9 +1358,7 @@ function blocosDiaSemana(dataISO){
 let d = new Date(dataISO+"T00:00:00")
 let dia = d.getDay()
 
-if(dia===0){
-return [] // domingo
-}
+if(dia===0) return []
 
 if(dia===6){
 return [
@@ -1418,7 +1380,8 @@ return [
 function gerarSlotsFixos(dataISO){
 
 let blocos = blocosDiaSemana(dataISO)
-let intervalo = config.intervalo || 30
+
+let intervalo = 30 // fixo conforme regra da barbearia
 
 let lista=[]
 
@@ -1448,7 +1411,7 @@ return lista
 }
 
 // =====================================================
-// ========= ADMIN — GERAR HORÁRIOS (CORRIGIDO) ========
+// ========= ADMIN — GERAR HORÁRIOS (FIX DEFINITIVO) ===
 // =====================================================
 
 btnGerarSlots.onclick=()=>{
@@ -1456,8 +1419,13 @@ btnGerarSlots.onclick=()=>{
 let barbeiro = adminBarbeiroSel.value
 let data = adminDataPick.value
 
-if(!barbeiro || !data){
-alert("Escolha barbeiro e data")
+if(!barbeiro){
+alert("Escolha o barbeiro")
+return
+}
+
+if(!data){
+alert("Escolha a data")
 return
 }
 
@@ -1485,7 +1453,9 @@ if(ja.includes(hora)){
 div.classList.add("selected")
 }
 
-div.onclick=()=>div.classList.toggle("selected")
+div.onclick=()=>{
+div.classList.toggle("selected")
+}
 
 adminSlotsGrid.appendChild(div)
 
@@ -1530,7 +1500,7 @@ DB.disp
 
 alert("Disponibilidade salva com sucesso")
 
-// ✅ LIMPEZA AUTOMÁTICA — pedido seu
+// limpeza automática (pedido seu)
 
 adminSlotsGrid.innerHTML=""
 adminDataPick.value=""
@@ -1548,6 +1518,9 @@ if(!confirm("Limpar seleção atual?")) return
 adminSlotsGrid.innerHTML=""
 
 }
+
+</script>
+<script>
 
 // =====================================================
 // ================= RESET GUIADO ======================
@@ -1576,7 +1549,7 @@ resetHorarios.innerHTML=""
 let barbeiro = resetBarbeiro.value
 
 if(!barbeiro){
-resetDias.innerHTML="Escolha barbeiro"
+resetDias.innerHTML="Escolha o barbeiro"
 return
 }
 
@@ -1614,7 +1587,7 @@ let lista =
  disponibilidade[barbeiro][data]) || []
 
 if(lista.length===0){
-resetHorarios.innerHTML="Sem horários"
+resetHorarios.innerHTML="Sem horários neste dia"
 return
 }
 
@@ -1676,9 +1649,114 @@ DB.disp
 .child(data)
 .set(novos)
 
-alert("Horários removidos")
+alert("Horários removidos com sucesso")
 
 renderResetHorarios(barbeiro,data)
+
+}
+
+// =====================================================
+// ================= TELA EXCLUSÃO FULL =================
+// =====================================================
+
+btnAbrirExclusao.onclick=()=>{
+
+telaAdmin.classList.add("hidden")
+telaExclusao.classList.remove("hidden")
+
+mostrarBack()
+rolarPara(telaExclusao)
+
+}
+
+// =====================================================
+// ============== CARREGAR EXCLUSÃO FILTRADA ===========
+// =====================================================
+
+btnCarregarExc.onclick=()=>{
+
+let barb = excBarbeiro.value
+let data = excData.value
+
+listaExclusao.innerHTML=""
+
+if(!barb || !data){
+alert("Escolha barbeiro e data")
+return
+}
+
+let lista = Object.entries(agendamentosMap)
+.filter(([k,a])=>a.barbeiro===barb && a.data===data)
+.sort((a,b)=>a[1].hora.localeCompare(b[1].hora))
+
+if(lista.length===0){
+listaExclusao.innerHTML="Nenhum agendamento encontrado"
+return
+}
+
+lista.forEach(([key,a])=>{
+
+let div=document.createElement("div")
+div.className="card card-sub"
+div.style.marginBottom="18px"
+
+div.innerHTML=`
+
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+">
+
+<span class="badge">${a.hora}</span>
+
+<span class="price">
+R$ ${formatarPreco(a.preco||0)}
+</span>
+
+</div>
+
+<b style="font-size:16px">${a.cliente}</b><br>
+Serviço: ${a.servico}<br>
+Barbeiro: ${a.barbeiro}<br>
+Whats: ${a.fone}
+
+<br><br>
+
+<button class="btn-danger btn"
+onclick="confirmarExcluirAg('${key}')">
+Excluir este agendamento
+</button>
+
+`
+
+listaExclusao.appendChild(div)
+
+})
+
+}
+
+// =====================================================
+// ================= CONFIRMAR EXCLUSÃO =================
+// =====================================================
+
+function confirmarExcluirAg(key){
+
+let a = agendamentosMap[key]
+if(!a) return
+
+if(!confirm(
+"Excluir agendamento de "+
+a.cliente+
+" às "+a.hora+" ?"
+)) return
+
+DB.ag.child(key).remove()
+
+alert("Agendamento excluído")
+
+btnCarregarExc.onclick()
 
 }
 
@@ -1703,6 +1781,14 @@ o.textContent=nome
 
 barbeiroModoSel.appendChild(o)
 
+})
+
+// também popular select da tela de exclusão
+
+excBarbeiro.innerHTML=""
+barbeiros.forEach(b=>{
+let nome=b.nome||b
+excBarbeiro.add(new Option(nome,nome))
 })
 
 }
@@ -1738,18 +1824,28 @@ lista.forEach(a=>{
 
 let div=document.createElement("div")
 div.className="card card-sub"
+div.style.marginBottom="18px"
 
 div.innerHTML=`
 
-<span class="badge">${a.hora}</span>
-<br><br>
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+">
 
-<b>${a.cliente}</b><br>
-Serviço: ${a.servico}<br>
+<span class="badge">${a.hora}</span>
 
 <span class="price">
-R$ ${Number(a.preco).toFixed(2).replace(".",",")}
+R$ ${formatarPreco(a.preco||0)}
 </span>
+
+</div>
+
+<b style="font-size:16px">${a.cliente}</b><br>
+Serviço: ${a.servico}<br>
+Whats: ${a.fone}
 
 <br><br>
 
@@ -1764,7 +1860,13 @@ Copiar telefone
 </button>
 
 <button class="btn"
-onclick="enviarLembreteCliente('${a.cliente}','${a.fone}','${a.data}','${a.hora}','${a.servico}')">
+onclick="enviarLembreteCliente(
+'${a.cliente}',
+'${a.fone}',
+'${a.data}',
+'${a.hora}',
+'${a.servico}'
+)">
 Enviar lembrete
 </button>
 
@@ -1875,10 +1977,12 @@ popularModoBarbeiro()
 // ================= SYNC CONFIG =======================
 // =====================================================
 
+let config = { intervalo:30 }
+
 DB.config.on("value",snap=>{
 
 if(!snap.exists()){
-DB.config.set({intervalo:30})
+DB.config.set(config)
 return
 }
 
@@ -1935,79 +2039,13 @@ atualizarModoBarbeiroSeAberto()
 })
 
 // =====================================================
-// ================= EXPORTAR AGENDA ===================
-// =====================================================
-
-btnExportarDia.onclick=()=>{
-
-let hoje=hojeISO()
-
-let lista = agendamentos
-.filter(a=>a.data===hoje)
-.sort((a,b)=>a.hora.localeCompare(b.hora))
-
-if(lista.length===0){
-alert("Sem agendamentos hoje")
-return
-}
-
-let txt=`AGENDA ${NOME_BARBEARIA} — ${hoje}\n\n`
-
-lista.forEach(a=>{
-txt+=`${a.hora} — ${a.cliente} — ${a.servico}\n`
-})
-
-navigator.clipboard.writeText(txt)
-
-alert("Agenda copiada")
-
-}
-
-// =====================================================
-// ================= SETUP =============================
-// =====================================================
-
-btnSetup.onclick=()=>{
-
-let nome=prompt("Nome da barbearia:")
-
-if(nome){
-NOME_BARBEARIA=nome.toUpperCase()
-aplicarNome()
-}
-
-alert("Setup aplicado")
-
-}
-
-// =====================================================
-// ================= DEMO ==============================
-// =====================================================
-
-btnDemo.onclick=()=>{
-
-DB.ag.push({
-servico:"Corte",
-preco:40,
-barbeiro:"Carlos",
-data:hojeISO(),
-hora:"10:00",
-cliente:"Cliente Demo",
-fone:"11999999999",
-ts:Date.now()
-})
-
-alert("Demo criado")
-
-}
-
-// =====================================================
 // ================= UX MOBILE LOCK ====================
 // =====================================================
 
 // bloquear zoom duplo toque
 
 let lastTouchEnd = 0
+
 document.addEventListener("touchend", function (event) {
 let now = Date.now()
 if (now - lastTouchEnd <= 300) {
@@ -2041,11 +2079,12 @@ navigator.serviceWorker
 // ================= LOG FINAL =========================
 // =====================================================
 
-console.log("💈 BARBARUJO — PROJETO FINAL PREMIUM OK")
+console.log("💈 BARBARUJO — PROJETO FINAL PREMIUM")
 console.log("Gerar horários admin OK")
-console.log("Preços premium visíveis OK")
-console.log("Excluir agendamento separado OK")
+console.log("Preço premium visível OK")
+console.log("Tela exclusão dedicada OK")
 console.log("Modo barbeiro + lembrete OK")
+console.log("Reset guiado OK")
 console.log("Fluxo cliente completo OK")
 console.log("PWA OK")
 
@@ -2054,4 +2093,3 @@ console.log("PWA OK")
 </div>
 </body>
 </html>
-
