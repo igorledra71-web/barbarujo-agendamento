@@ -947,16 +947,33 @@ fone:clienteFone.value,
 ts:Date.now()
 }
 
-await DB.ag.push(ag)
+// ✅ monta URL ANTES (dentro do clique)
+let msg =
+`💈 BARBARUJO
 
-// ✅ DISPARO WHATS LOJA
-enviarWhatsLoja(ag)
+Novo agendamento:
+
+Cliente: ${ag.cliente}
+Whats: ${ag.fone}
+Serviço: ${ag.servico}
+Barbeiro: ${ag.barbeiro}
+Data: ${ag.data}
+Hora: ${ag.hora}`
+
+let url = "https://wa.me/5549999538762?text="+encodeURIComponent(msg)
+
+// ✅ abre WhatsApp IMEDIATO (não será bloqueado)
+window.open(url,"_blank")
+
+// grava no firebase depois
+await DB.ag.push(ag)
 
 alert("Agendamento confirmado 💈")
 
 location.reload()
 
 }
+
 
 </script>
 <script>
@@ -2018,5 +2035,6 @@ console.log("PWA OK")
 </div>
 </body>
 </html>
+
 
 
