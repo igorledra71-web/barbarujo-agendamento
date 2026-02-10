@@ -200,12 +200,18 @@ font-size:15px;
 font-size:22px;
 font-weight:900;
 letter-spacing:.5px;
-background:linear-gradient(135deg,#d4af37,#ffe38a);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-display:block;
-margin-top:8px;
+color:#1a1a1a;
+background:rgba(255,255,255,.35);
+padding:8px 14px;
+border-radius:12px;
+display:inline-block;
+margin-top:10px;
+backdrop-filter:blur(4px);
+box-shadow:
+0 6px 18px rgba(0,0,0,.25),
+inset 0 0 0 1px rgba(0,0,0,.15);
 }
+
 
 /* ================= SLOT ================= */
 
@@ -2116,3 +2122,4 @@ console.log("PWA OK")
 </div>
 </body>
 </html>
+
