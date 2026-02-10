@@ -899,7 +899,7 @@ resumoEscolha.innerHTML=`
 function enviarWhatsLoja(ag){
 
 let msg =
-`💈 ${NOME_BARBEARIA}
+`💈 BARBARUJO
 
 Novo agendamento:
 
@@ -911,10 +911,12 @@ Data: ${ag.data}
 Hora: ${ag.hora}`
 
 let url =
-"https://wa.me/"+WHATS_FIXO_LOJA+
-"?text="+encodeURIComponent(msg)
+"https://wa.me/5549999538762?text="+encodeURIComponent(msg)
 
+// delay pequeno evita bloqueio popup no iOS
+setTimeout(()=>{
 window.open(url,"_blank")
+},300)
 
 }
 
@@ -922,41 +924,15 @@ window.open(url,"_blank")
 // ============ RESERVAR + CONFIRMAR DIRETO ============
 // =====================================================
 
-btnReservar.onclick=async()=>{
+btnReservar.onclick = async ()=>{
 
 if(!servicoSel || !barbeiroSel || !dataSel || !horaSel){
-alert("Complete as escolhas")
+alert("Complete todas as escolhas")
 return
 }
 
 if(!clienteNome.value || !clienteFone.value){
 alert("Preencha nome e WhatsApp")
-return
-}
-
-if(salvando) return
-salvando=true
-
-// conflito realtime
-
-let snap = await DB.ag
-.orderByChild("data")
-.equalTo(dataSel)
-.get()
-
-let conflito=false
-
-snap.forEach(c=>{
-let a=c.val()
-if(a.hora===horaSel && a.barbeiro===barbeiroSel){
-conflito=true
-}
-})
-
-if(conflito){
-alert("Horário acabou de ser ocupado")
-renderHorariosCliente()
-salvando=false
 return
 }
 
@@ -973,7 +949,7 @@ ts:Date.now()
 
 await DB.ag.push(ag)
 
-// ✅ ENVIA WHATS LOJA FIXO
+// ✅ DISPARO WHATS LOJA
 enviarWhatsLoja(ag)
 
 alert("Agendamento confirmado 💈")
@@ -2042,4 +2018,5 @@ console.log("PWA OK")
 </div>
 </body>
 </html>
+
 
