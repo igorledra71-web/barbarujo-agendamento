@@ -254,23 +254,22 @@ text-align:center;
 .splash-logo{
 display:block;
 
-/* tamanho grande mas seguro */
-width:82vw;
-max-width:520px;
+/* tamanho */
+width:84vw;
+max-width:540px;
 height:auto;
 
-/* centralização perfeita */
+/* central base */
 margin:0 auto 30px auto;
 
-/* remove qualquer caixa */
+/* remove caixa */
 background:transparent;
 border:none;
 border-radius:0;
 box-shadow:none;
 
-/* ajuste visual fino */
-position:relative;
-left:-6px;   /* micro ajuste — não corta */
+/* 🎯 deslocamento para esquerda (zona do risco azul) */
+transform: translateX(-6vw);
 
 object-fit:contain;
 }
@@ -2138,6 +2137,7 @@ console.log("PWA OK")
 </div>
 </body>
 </html>
+
 
 
 
