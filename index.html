@@ -275,7 +275,6 @@ margin-bottom:12px;
 </style>
 </head>
 <body>
-
 <button id="btnBack" class="btn-back hidden">←</button>
 <div id="btnAdminFab" class="admin-fab">⚙️</div>
 
@@ -327,6 +326,7 @@ Sou barbeiro
 <header id="topo">💈 BARBARUJO</header>
 
 <div class="container">
+
 <!-- ================= CLIENTE ================= -->
 
 <div id="telaCliente">
@@ -519,7 +519,7 @@ Limpar seleção de horários
 
 </div>
 
-<!-- RESET GUIADO -->
+<!-- RESET GUIADO DISPONIBILIDADE -->
 
 <div class="card">
 
@@ -627,6 +627,7 @@ let horaSel=null
 let pagamentoSel=null
 
 let servicosMulti=[]
+let pixConfirmado=false
 
 let NOME_BARBEARIA="BARBARUJO"
 const PIX_CHAVE="49999538762"
@@ -765,6 +766,11 @@ clienteFone.value =
 clienteFone.value.replace(/\D/g,"").slice(0,11)
 })
 
+btnVoltarCliente.onclick=()=>{
+telaBarbeiro.classList.add("hidden")
+telaCliente.classList.remove("hidden")
+}
+
 </script>
 <script>
 
@@ -805,6 +811,7 @@ servicosMulti.splice(idx,1)
 servicosMulti.push(s)
 }
 
+// não perder horário já escolhido
 if(barbeiroSel && dataSel && horaSel){
 cardCliente.classList.remove("hidden")
 atualizarResumo()
@@ -971,6 +978,10 @@ listaHorarios.appendChild(div)
 }
 
 </script>
+<!-- ===================================================== -->
+<!-- BLOCO 6 — RESUMO + PAGAMENTO + PIX + WHATS + RESERVA -->
+<!-- ===================================================== -->
+
 <script>
 
 // =====================================================
@@ -1028,6 +1039,8 @@ mostrarPagamentoBoxSeguro()
 // ================= PAGAMENTO =========================
 // =====================================================
 
+let pixConfirmado = false
+
 function mostrarPagamentoBoxSeguro(){
 
 boxPagamento.classList.remove("hidden")
@@ -1048,7 +1061,7 @@ if(pagamentoSel==="pix"){
 pixInfo.classList.remove("hidden")
 }else{
 pixInfo.classList.add("hidden")
-pixConfirmado=false
+pixConfirmado = false
 }
 
 }
@@ -1095,7 +1108,7 @@ Valor: R$ ${formatarPreco(ag.preco)}
 `
 
 let url =
-"https://wa.me/5549999538762?text="+encodeURIComponent(msg)
+"https://wa.me/"+WHATS_LOJA+"?text="+encodeURIComponent(msg)
 
 let a=document.createElement("a")
 a.href=url
@@ -1182,6 +1195,10 @@ location.reload()
 }
 
 </script>
+<!-- ===================================================== -->
+<!-- BLOCO 7 — ADMIN SERVIÇOS + BARBEIROS + DISPONIBILIDADE -->
+<!-- ===================================================== -->
+
 <script>
 
 // =====================================================
@@ -1352,7 +1369,7 @@ alert("Whats salvo")
 }
 
 // =====================================================
-// ========== DISPONIBILIDADE — GERADOR ================
+// ========== POPULAR SELECTS BARBEIRO =================
 // =====================================================
 
 function popularSelectsBarbeiro(){
@@ -1360,6 +1377,7 @@ function popularSelectsBarbeiro(){
 adminBarbeiroSel.innerHTML=""
 resetBarbeiro.innerHTML=""
 barbeiroModoSel.innerHTML=""
+excBarbeiro.innerHTML=""
 
 barbeiros.forEach(b=>{
 
@@ -1368,10 +1386,15 @@ let nome=b.nome||b
 adminBarbeiroSel.add(new Option(nome,nome))
 resetBarbeiro.add(new Option(nome,nome))
 barbeiroModoSel.add(new Option(nome,nome))
+excBarbeiro.add(new Option(nome,nome))
 
 })
 
 }
+
+// =====================================================
+// ================= HORÁRIOS FIXOS ====================
+// =====================================================
 
 function blocosDiaSemana(dataISO){
 
@@ -1418,6 +1441,10 @@ return lista
 
 }
 
+// =====================================================
+// ================= GERAR SLOTS =======================
+// =====================================================
+
 btnGerarSlots.onclick=()=>{
 
 let barbeiro = adminBarbeiroSel.value
@@ -1462,11 +1489,8 @@ rolarPara(adminSlotsGrid)
 
 }
 
-</script>
-<script>
-
 // =====================================================
-// ======= ADMIN — SALVAR DISPONIBILIDADE ==============
+// ================= SALVAR DISP =======================
 // =====================================================
 
 btnSalvarSlotsDia.onclick=()=>{
@@ -1490,10 +1514,7 @@ alert("Selecione horários")
 return
 }
 
-DB.disp
-.child(barbeiro)
-.child(data)
-.set(sel)
+DB.disp.child(barbeiro).child(data).set(sel)
 
 alert("Disponibilidade salva")
 
@@ -1509,6 +1530,13 @@ adminDataPick.value=""
 btnLimparGerador.onclick=()=>{
 adminSlotsGrid.innerHTML=""
 }
+
+</script>
+<!-- ===================================================== -->
+<!-- BLOCO 8 — RESET + EXCLUSÕES + AGENDA + SYNC + RELATÓRIOS -->
+<!-- ===================================================== -->
+
+<script>
 
 // =====================================================
 // ================= RESET GUIADO ======================
@@ -1592,10 +1620,6 @@ resetHorarios.dataset.data = data
 rolarPara(resetHorarios)
 
 }
-
-// =====================================================
-// ================= EXCLUIR HORÁRIOS ==================
-// =====================================================
 
 btnExcluirSlots.onclick=()=>{
 
@@ -1700,6 +1724,131 @@ alert("Agendamento excluído")
 }
 
 // =====================================================
+// ================= TELA EXCLUSÃO =====================
+// =====================================================
+
+btnCarregarExc.onclick=()=>{
+
+let barb = excBarbeiro.value
+let data = excData.value
+
+if(!barb || !data){
+alert("Escolha barbeiro e data")
+return
+}
+
+listaExclusao.innerHTML=""
+
+let lista = Object.entries(agendamentosMap)
+.filter(([k,a])=>
+a.barbeiro===barb &&
+a.data===data
+)
+.sort((a,b)=>a[1].hora.localeCompare(b[1].hora))
+
+if(!lista.length){
+listaExclusao.innerHTML="Nenhum agendamento"
+return
+}
+
+lista.forEach(([key,a])=>{
+
+let div=document.createElement("div")
+div.className="card card-sub"
+
+div.innerHTML=`
+
+<b>${a.hora}</b><br>
+<b>${a.cliente}</b><br>
+Serviço: ${a.servico}<br>
+Pagamento: ${a.pagamento||"-"}<br>
+
+<button class="btn-danger btn"
+style="margin-top:12px"
+onclick="excluirAgendamentoAdmin('${key}')">
+Excluir agendamento
+</button>
+
+`
+
+listaExclusao.appendChild(div)
+
+})
+
+}
+
+// =====================================================
+// ================= MODO BARBEIRO =====================
+// =====================================================
+
+function popularModoBarbeiro(){
+
+barbeiroModoSel.innerHTML=""
+
+if(!barbeiros.length){
+let o=document.createElement("option")
+o.textContent="Sem barbeiros"
+barbeiroModoSel.appendChild(o)
+return
+}
+
+barbeiros.forEach(b=>{
+
+let nome=b.nome||b
+barbeiroModoSel.add(new Option(nome,nome))
+
+})
+
+}
+
+btnVerAgendaBarbeiro.onclick = renderAgendaBarbeiro
+
+function renderAgendaBarbeiro(){
+
+let nome = barbeiroModoSel.value
+let data = barbeiroModoData.value || hojeISO()
+
+listaBarbeiroAgenda.innerHTML=""
+
+if(!nome){
+listaBarbeiroAgenda.innerHTML="Escolha o barbeiro"
+return
+}
+
+let lista = agendamentos
+.filter(a=>a.barbeiro===nome && a.data===data)
+.sort((a,b)=>a.hora.localeCompare(b.hora))
+
+if(!lista.length){
+listaBarbeiroAgenda.innerHTML="Sem clientes neste dia"
+return
+}
+
+lista.forEach(a=>{
+
+let div=document.createElement("div")
+div.className="card card-sub"
+
+div.innerHTML=`
+
+<b>${a.hora}</b><br>
+<b>${a.cliente}</b><br>
+Serviço: ${a.servico}<br>
+
+<button class="btn-dark btn"
+onclick="window.open('https://wa.me/55${a.fone}','_blank')">
+Abrir WhatsApp
+</button>
+
+`
+
+listaBarbeiroAgenda.appendChild(div)
+
+})
+
+}
+
+// =====================================================
 // ================= SYNC FIREBASE =====================
 // =====================================================
 
@@ -1776,13 +1925,17 @@ if(!telaBarbeiro.classList.contains("hidden")){
 renderAgendaBarbeiro()
 }
 
+renderRelatorioHoje()
+
 })
 
 // =====================================================
-// ================= RELATÓRIO =========================
+// ================= RELATÓRIO HOJE ====================
 // =====================================================
 
 function renderRelatorioHoje(){
+
+if(!relatorioBox) return
 
 let hoje = hojeISO()
 let lista = agendamentos.filter(a=>a.data===hoje)
@@ -1798,7 +1951,11 @@ porTipo[a.pagamento]+=v
 }
 })
 
-relHoje.innerHTML=`
+relatorioBox.innerHTML=`
+
+<div style="font-weight:900;margin-bottom:10px">
+Hoje — ${hoje}
+</div>
 
 PIX: R$ ${formatarPreco(porTipo.pix)}<br>
 Débito: R$ ${formatarPreco(porTipo.debito)}<br>
@@ -1810,6 +1967,8 @@ Total: R$ ${formatarPreco(total)}
 </div>
 
 `
+
+relatorioBox.classList.remove("hidden")
 
 }
 
