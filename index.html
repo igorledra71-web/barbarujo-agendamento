@@ -1,8 +1,10 @@
+<!-- ========================= BLOCO 1 ========================= -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 
 <meta charset="UTF-8">
+
 <meta name="viewport"
 content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
@@ -274,10 +276,9 @@ margin-bottom:12px;
 </style>
 </head>
 <body>
-
+<!-- ========================= BLOCO 2 ========================= -->
 <button id="btnBack" class="btn-back hidden">←</button>
 <div id="btnAdminFab" class="admin-fab">⚙️</div>
-<!-- ================= SPLASH ================= -->
 
 <div id="telaSplash" class="splash">
 
@@ -407,37 +408,6 @@ Reservar horário
 
 </div>
 
-<!-- ================= MODO BARBEIRO ================= -->
-
-<div id="telaBarbeiro" class="hidden">
-
-<div class="card">
-
-<h3>Modo barbeiro</h3>
-
-<label>Seu nome</label>
-<select id="barbeiroModoSel"></select>
-
-<label>Data</label>
-<input type="date" id="barbeiroModoData">
-
-<button id="btnVerAgendaBarbeiro" class="btn">
-Ver minha agenda
-</button>
-
-<button id="btnVoltarCliente" class="btn-outline">
-Voltar para cliente
-</button>
-
-</div>
-
-<div class="card">
-<h3>Clientes do dia</h3>
-<div id="listaBarbeiroAgenda"></div>
-</div>
-
-</div>
-
 <!-- ================= ADMIN ================= -->
 
 <div id="telaAdmin" class="hidden">
@@ -458,11 +428,7 @@ Sair do painel
 Relatório de hoje
 </button>
 
-<button id="btnRelPeriodo" class="btn-dark btn">
-Relatório por período
-</button>
-
-<div id="relatorioBox" class="card-sub hidden" style="margin-top:16px"></div>
+<div id="relHoje" style="margin-top:16px"></div>
 
 </div>
 
@@ -492,7 +458,7 @@ Adicionar barbeiro
 </div>
 
 <div class="card">
-<h3>Disponibilidade por barbeiro</h3>
+<h3>Disponibilidade</h3>
 
 <label>Barbeiro</label>
 <select id="adminBarbeiroSel"></select>
@@ -501,45 +467,14 @@ Adicionar barbeiro
 <input type="date" id="adminDataPick">
 
 <button id="btnGerarSlots" class="btn-dark btn">
-Gerar horários base (grade do dia)
+Gerar horários
 </button>
 
 <div id="adminSlotsGrid" class="grid"></div>
 
 <button id="btnSalvarSlotsDia" class="btn">
-Salvar disponibilidade selecionada
+Salvar horários
 </button>
-
-<button id="btnLimparGerador" class="btn-outline">
-Limpar seleção de horários
-</button>
-
-</div>
-
-<div class="card">
-
-<h3>Gerenciar DISPONIBILIDADE (horários livres)</h3>
-
-<button id="btnAbrirReset" class="btn-outline">
-Abrir gerenciador de horários
-</button>
-
-<div id="resetBox" class="hidden">
-
-<label>Barbeiro</label>
-<select id="resetBarbeiro"></select>
-
-<h4>Dias com horários liberados</h4>
-<div id="resetDias"></div>
-
-<h4>Horários liberados no dia</h4>
-<div id="resetHorarios" class="grid"></div>
-
-<button id="btnExcluirSlots" class="btn-danger btn">
-Remover horários selecionados
-</button>
-
-</div>
 
 </div>
 
@@ -549,11 +484,12 @@ Remover horários selecionados
 </div>
 
 </div>
-
-<!-- ================= FIREBASE ================= -->
+<!-- ========================= BLOCO 3 ========================= -->
+<!-- FIREBASE + ESTADO GLOBAL + HELPERS -->
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
 <script>
 
 const firebaseConfig = {
@@ -573,39 +509,29 @@ const db = firebase.database()
 const DB = {
 servicos: db.ref("barbarujo/servicos"),
 barbeiros: db.ref("barbarujo/barbeiros"),
-config: db.ref("barbarujo/config"),
 ag: db.ref("barbarujo/agendamentos"),
 disp: db.ref("barbarujo/disponibilidade"),
 vendas: db.ref("barbarujo/vendas")
 }
 
-// ================= ESTADO GLOBAL =================
+// ================= ESTADO =================
 
 let servicos=[]
 let barbeiros=[]
+let disponibilidade={}
 let agendamentos=[]
 let agendamentosMap={}
-let disponibilidade={}
 
 let servicoSel=null
 let barbeiroSel=null
 let dataSel=null
 let horaSel=null
 let pagamentoSel=null
-
 let servicosMulti=[]
-
 let pixConfirmado=false
 
-let NOME_BARBEARIA="BARBARUJO"
 const PIX_CHAVE="49999538762"
 const WHATS_LOJA="5549999538762"
-
-let config={intervalo:30}
-
-</script>
-
-<script>
 
 // ================= HELPERS =================
 
@@ -613,112 +539,38 @@ function hojeISO(){
 return new Date().toISOString().split("T")[0]
 }
 
-function rolarPara(el){
-if(!el) return
-setTimeout(()=>{
-el.scrollIntoView({behavior:"smooth"})
-},120)
-}
-
-function aplicarNome(){
-topo.innerText="💈 "+NOME_BARBEARIA
-document.title=NOME_BARBEARIA+" • Agendamento"
-}
-
 function formatarPreco(v){
 return Number(v||0).toFixed(2).replace(".",",")
 }
 
-aplicarNome()
-
-// ================= BACK =================
-
-btnBack.onclick=()=>{
-
-if(!telaAdmin.classList.contains("hidden")){
-telaAdmin.classList.add("hidden")
-telaCliente.classList.remove("hidden")
-return
+function rolarPara(el){
+if(!el) return
+setTimeout(()=>el.scrollIntoView({behavior:"smooth"}),120)
 }
 
-if(!telaBarbeiro.classList.contains("hidden")){
-telaBarbeiro.classList.add("hidden")
-telaCliente.classList.remove("hidden")
-return
-}
-
-document.querySelector(".container").style.display="none"
-telaSplash.style.display="flex"
-btnBack.classList.add("hidden")
-
-}
-
-// ================= SPLASH → CLIENTE =================
+// ================= NAV =================
 
 btnEntrar.onclick=()=>{
-
 telaSplash.style.display="none"
 document.querySelector(".container").style.display="block"
-
 telaCliente.classList.remove("hidden")
-telaAdmin.classList.add("hidden")
-telaBarbeiro.classList.add("hidden")
-
 btnBack.classList.remove("hidden")
-
 }
-
-// ================= SPLASH → BARBEIRO =================
-
-btnModoBarbeiro.onclick=()=>{
-
-let s = prompt("Senha barbeiro")
-
-if(s!=="barbeiro123"){
-alert("Senha incorreta")
-return
-}
-
-telaSplash.style.display="none"
-document.querySelector(".container").style.display="block"
-
-telaCliente.classList.add("hidden")
-telaAdmin.classList.add("hidden")
-telaBarbeiro.classList.remove("hidden")
-
-btnBack.classList.remove("hidden")
-popularModoBarbeiro()
-
-}
-
-// ================= LOGIN ADMIN =================
 
 btnAdminFab.onclick=()=>{
-
 let s = prompt("Senha admin")
-
-if(s!=="barbarujo123"){
-if(s!==null) alert("Senha incorreta")
-return
-}
-
-telaSplash.style.display="none"
-document.querySelector(".container").style.display="block"
-
+if(s!=="barbarujo123") return
 telaCliente.classList.add("hidden")
-telaBarbeiro.classList.add("hidden")
 telaAdmin.classList.remove("hidden")
-
 btnBack.classList.remove("hidden")
-
 }
 
-btnLogout.onclick=()=>{
+btnBack.onclick=()=>{
 telaAdmin.classList.add("hidden")
 telaCliente.classList.remove("hidden")
 }
 
-// ================= TELEFONE INPUT =================
+// ================= TELEFONE =================
 
 clienteFone.addEventListener("input",()=>{
 clienteFone.value =
@@ -726,11 +578,12 @@ clienteFone.value.replace(/\D/g,"").slice(0,11)
 })
 
 </script>
+<!-- ========================= BLOCO 4 ========================= -->
+<!-- CLIENTE — SERVIÇOS / BARBEIROS / DATAS / HORÁRIOS -->
+
 <script>
 
-// =====================================================
-// ================= RENDER SERVIÇOS ===================
-// =====================================================
+// ================= SERVIÇOS =================
 
 function renderServicos(){
 
@@ -744,33 +597,24 @@ b.className="btn"
 let ja = servicosMulti.find(x=>x.nome===s.nome)
 
 b.innerHTML=`
-<div style="font-size:16px;font-weight:800">
-${s.nome}
-</div>
-<div class="price">
-R$ ${formatarPreco(s.preco)}
-</div>
-${ja ? "<div style='margin-top:6px;font-size:12px'>✔ selecionado</div>" : ""}
+<div style="font-weight:800">${s.nome}</div>
+<div class="price">R$ ${formatarPreco(s.preco)}</div>
+${ja?"<div style='font-size:12px;margin-top:6px'>✔ selecionado</div>":""}
 `
 
 b.onclick=()=>{
 
-servicoSel = s
+servicoSel=s
 
-let idx = servicosMulti.findIndex(x=>x.nome===s.nome)
-
-if(idx>=0){
-servicosMulti.splice(idx,1)
-}else{
-servicosMulti.push(s)
-}
+let i=servicosMulti.findIndex(x=>x.nome===s.nome)
+if(i>=0){ servicosMulti.splice(i,1) }
+else{ servicosMulti.push(s) }
 
 cardBarbeiro.classList.remove("hidden")
 renderBarbeiros()
 rolarPara(cardBarbeiro)
 
 renderServicos()
-
 }
 
 listaServicos.appendChild(b)
@@ -779,18 +623,11 @@ listaServicos.appendChild(b)
 
 }
 
-// =====================================================
-// ================= RENDER BARBEIROS ==================
-// =====================================================
+// ================= BARBEIROS =================
 
 function renderBarbeiros(){
 
 listaBarbeiros.innerHTML=""
-
-if(!barbeiros.length){
-listaBarbeiros.innerHTML="Sem barbeiros cadastrados"
-return
-}
 
 barbeiros.forEach(b=>{
 
@@ -801,12 +638,10 @@ btn.className="btn-outline"
 btn.innerText=nome
 
 btn.onclick=()=>{
-
 barbeiroSel=nome
 cardData.classList.remove("hidden")
-renderDatasCliente()
+renderDatas()
 rolarPara(cardData)
-
 }
 
 listaBarbeiros.appendChild(btn)
@@ -815,24 +650,17 @@ listaBarbeiros.appendChild(btn)
 
 }
 
-// =====================================================
-// ================= DATAS CLIENTE =====================
-// =====================================================
+// ================= DATAS =================
 
-function renderDatasCliente(){
+function renderDatas(){
 
 dataEscolhida.innerHTML=""
 
-let diasObj = disponibilidade[barbeiroSel] || {}
-let dias = Object.keys(diasObj).sort()
+let dias = Object.keys(disponibilidade[barbeiroSel]||{}).sort()
 
 if(!dias.length){
-
-let o=document.createElement("option")
-o.textContent="Sem dias disponíveis"
-dataEscolhida.appendChild(o)
+dataEscolhida.innerHTML="<option>Sem datas</option>"
 return
-
 }
 
 dias.forEach(d=>{
@@ -844,30 +672,20 @@ dataEscolhida.appendChild(o)
 
 }
 
-// =====================================================
-// ================= CONFIRMAR DATA ====================
-// =====================================================
-
 btnConfirmarData.onclick=()=>{
 
-dataSel = dataEscolhida.value
+dataSel=dataEscolhida.value
+if(!dataSel) return
 
-if(!dataSel){
-alert("Escolha um dia")
-return
-}
-
-renderHorariosCliente()
+renderHorarios()
 cardHorarios.classList.remove("hidden")
 rolarPara(cardHorarios)
 
 }
 
-// =====================================================
-// ================= HORÁRIOS CLIENTE ==================
-// =====================================================
+// ================= HORÁRIOS =================
 
-function renderHorariosCliente(){
+function renderHorarios(){
 
 listaHorarios.innerHTML=""
 horaSel=null
@@ -876,44 +694,33 @@ let lista =
 (disponibilidade[barbeiroSel] &&
  disponibilidade[barbeiroSel][dataSel]) || []
 
-if(!lista.length){
-listaHorarios.innerHTML="Sem horários liberados"
-return
-}
-
-lista.forEach(hora=>{
+lista.forEach(h=>{
 
 let div=document.createElement("div")
 div.className="slot"
-div.innerText=hora
+div.innerText=h
 
 let ocupado = agendamentos.find(a=>
 a.data===dataSel &&
-a.hora===hora &&
+a.hora===h &&
 a.barbeiro===barbeiroSel
 )
 
-if(ocupado){
-div.classList.add("booked")
-}
+if(ocupado) div.classList.add("booked")
 
 div.onclick=()=>{
 
 if(div.classList.contains("booked")) return
 
-document
-.querySelectorAll("#listaHorarios .slot")
-.forEach(s=>s.classList.remove("selected"))
+document.querySelectorAll(".slot")
+.forEach(x=>x.classList.remove("selected"))
 
 div.classList.add("selected")
-
-horaSel=hora
+horaSel=h
 
 cardCliente.classList.remove("hidden")
-
 atualizarResumo()
-mostrarPagamentoBoxSeguro()
-
+mostrarPagamento()
 rolarPara(cardCliente)
 
 }
@@ -925,77 +732,64 @@ listaHorarios.appendChild(div)
 }
 
 </script>
+<!-- ========================= BLOCO 5 ========================= -->
+<!-- CLIENTE — RESUMO / PAGAMENTO / PIX / WHATSAPP / FINALIZAR -->
+
 <script>
 
-// =====================================================
-// ================= RESUMO ============================
-// =====================================================
+// ================= RESUMO =================
 
-function totalServicosSelecionados(){
-
+function totalSelecionado(){
 if(servicosMulti.length){
 return servicosMulti.reduce((t,s)=>t+Number(s.preco||0),0)
 }
-
 return Number(servicoSel?.preco||0)
-
 }
 
-function nomesServicosSelecionados(){
-
+function nomesSelecionados(){
 if(servicosMulti.length){
 return servicosMulti.map(s=>s.nome).join(", ")
 }
-
 return servicoSel?.nome||"-"
-
 }
 
 function atualizarResumo(){
 
-let total = totalServicosSelecionados()
+let total = totalSelecionado()
 
 resumoEscolha.innerHTML=`
-
-<div class="card-sub" style="padding:16px;border-radius:14px">
-
-<b>Serviço(s):</b> ${nomesServicosSelecionados()}<br>
+<div class="card-sub" style="padding:16px">
+<b>Serviço(s):</b> ${nomesSelecionados()}<br>
 <b>Barbeiro:</b> ${barbeiroSel||"-"}<br>
 <b>Data:</b> ${dataSel||"-"}<br>
 <b>Hora:</b> ${horaSel||"-"}<br>
-
-<div class="price" style="margin-top:12px">
+<div class="price" style="margin-top:10px">
 R$ ${formatarPreco(total)}
 </div>
-
 </div>
-
 `
 
 pixValorView.innerText = formatarPreco(total)
 
 }
 
-// =====================================================
-// ================= PAGAMENTO UI ======================
-// =====================================================
+// ================= PAGAMENTO =================
 
-let pixConfirmado = false
+let pixConfirmado=false
 
-function mostrarPagamentoBoxSeguro(){
+function mostrarPagamento(){
 
 boxPagamento.classList.remove("hidden")
 
-document.querySelectorAll(".pagamento-btn").forEach(btn=>{
+document.querySelectorAll(".pagamento-btn")
+.forEach(btn=>{
 
 btn.onclick=()=>{
 
-document
-.querySelectorAll(".pagamento-btn")
+document.querySelectorAll(".pagamento-btn")
 .forEach(b=>b.classList.remove("sel"))
 
 btn.classList.add("sel")
-
 pagamentoSel = btn.dataset.pg
 
 if(pagamentoSel==="pix"){
@@ -1014,22 +808,16 @@ pixConfirmado=false
 // ================= PIX =================
 
 btnCopiarPix.onclick=()=>{
-
 navigator.clipboard.writeText(PIX_CHAVE)
-alert("Chave PIX copiada")
-
+alert("PIX copiado")
 }
 
 btnPixPago.onclick=()=>{
-
-pixConfirmado = true
-alert("PIX confirmado ✅")
-
+pixConfirmado=true
+alert("PIX confirmado")
 }
 
-// =====================================================
-// ================= WHATS LOJA ========================
-// =====================================================
+// ================= WHATS LOJA =================
 
 function enviarWhatsLoja(ag){
 
@@ -1049,7 +837,8 @@ Valor: R$ ${formatarPreco(ag.preco)}
 `
 
 let url =
-"https://wa.me/"+WHATS_LOJA+"?text="+encodeURIComponent(msg)
+"https://wa.me/"+WHATS_LOJA+
+"?text="+encodeURIComponent(msg)
 
 let a=document.createElement("a")
 a.href=url
@@ -1060,61 +849,32 @@ a.remove()
 
 }
 
-// =====================================================
-// ================= REGISTRAR VENDA ===================
-// =====================================================
-
-function registrarVenda(ag){
-
-DB.vendas
-.child(ag.data)
-.child(ag.pagamento)
-.transaction(v=>(v||0)+Number(ag.preco||0))
-
-}
-
-// =====================================================
-// ================= FINALIZAR RESERVA =================
-// =====================================================
+// ================= FINALIZAR =================
 
 btnReservar.onclick = async ()=>{
 
 if(!servicoSel && !servicosMulti.length){
-alert("Escolha o serviço")
-return
+alert("Escolha serviço"); return
 }
-
 if(!barbeiroSel){
-alert("Escolha o barbeiro")
-return
+alert("Escolha barbeiro"); return
 }
-
 if(!dataSel || !horaSel){
-alert("Escolha data e horário")
-return
+alert("Escolha horário"); return
 }
-
 if(!clienteNome.value || !clienteFone.value){
-alert("Preencha nome e WhatsApp")
-return
+alert("Preencha dados"); return
 }
-
 if(!pagamentoSel){
-alert("Escolha a forma de pagamento")
-return
+alert("Escolha pagamento"); return
 }
-
 if(pagamentoSel==="pix" && !pixConfirmado){
-alert("Confirme o PIX antes de finalizar")
-return
+alert("Confirme PIX"); return
 }
-
-let total = totalServicosSelecionados()
-let nomes = nomesServicosSelecionados()
 
 let ag = {
-servico: nomes,
-preco: total,
+servico: nomesSelecionados(),
+preco: totalSelecionado(),
 barbeiro: barbeiroSel,
 data: dataSel,
 hora: horaSel,
@@ -1126,10 +886,14 @@ ts: Date.now()
 
 await DB.ag.push(ag)
 
-registrarVenda(ag)
+DB.vendas
+.child(ag.data)
+.child(ag.pagamento)
+.transaction(v=>(v||0)+ag.preco)
+
 enviarWhatsLoja(ag)
 
-alert("Agendamento confirmado 💈")
+alert("Agendado com sucesso")
 
 location.reload()
 
@@ -1180,8 +944,6 @@ adminServicos.appendChild(div)
 
 }
 
-// ---------------- ADD SERVIÇO ----------------
-
 btnAddServico.onclick=()=>{
 
 if(!novoServicoNome.value || !novoServicoPreco.value){
@@ -1202,8 +964,6 @@ novoServicoPreco.value=""
 alert("Serviço adicionado")
 
 }
-
-// ---------------- REMOVER SERVIÇO ----------------
 
 function removerServico(i){
 
@@ -1262,8 +1022,6 @@ adminBarbeiros.appendChild(div)
 
 }
 
-// ---------------- ADD BARBEIRO ----------------
-
 btnAddBarbeiro.onclick=()=>{
 
 if(!novoBarbeiro.value){
@@ -1284,8 +1042,6 @@ alert("Barbeiro adicionado")
 
 }
 
-// ---------------- REMOVER BARBEIRO ----------------
-
 function removerBarbeiro(i){
 
 if(!confirm("Excluir barbeiro?")) return
@@ -1294,8 +1050,6 @@ barbeiros.splice(i,1)
 DB.barbeiros.set(barbeiros)
 
 }
-
-// ---------------- SALVAR WHATS BARBEIRO ----------------
 
 function salvarWhatsBarbeiro(i){
 
@@ -1315,11 +1069,8 @@ alert("Whats salvo")
 
 }
 
-</script>
-<script>
-
 // =====================================================
-// ======== DISPONIBILIDADE — SELECTS ADMIN ============
+// ================= ADMIN — DISPONIBILIDADE ===========
 // =====================================================
 
 function popularSelectsBarbeiro(){
@@ -1343,11 +1094,8 @@ excBarbeiro.add(new Option(nome,nome))
 }
 
 // =====================================================
-// ================= HORÁRIO FIXO LOJA =================
+// ================= GERADOR DE SLOTS ==================
 // =====================================================
-// SEG–SEX: 09–12 / 14–19
-// SÁBADO: 09–17
-// DOMINGO: fechado
 
 function blocosDiaSemana(dataISO){
 
@@ -1367,15 +1115,10 @@ return [
 
 }
 
-// =====================================================
-// ================= GERAR SLOTS FIXOS =================
-// =====================================================
-
 function gerarSlotsFixos(dataISO){
 
 let blocos = blocosDiaSemana(dataISO)
 let lista=[]
-
 let intervalo = config.intervalo || 30
 
 blocos.forEach(b=>{
@@ -1402,10 +1145,6 @@ lista.push(h+":"+m)
 return lista
 
 }
-
-// =====================================================
-// ======= ADMIN — GERAR HORÁRIOS BASE =================
-// =====================================================
 
 btnGerarSlots.onclick=()=>{
 
@@ -1451,10 +1190,6 @@ rolarPara(adminSlotsGrid)
 
 }
 
-// =====================================================
-// ======= ADMIN — SALVAR DISPONIBILIDADE ==============
-// =====================================================
-
 btnSalvarSlotsDia.onclick=()=>{
 
 let barbeiro = adminBarbeiroSel.value
@@ -1476,10 +1211,7 @@ alert("Selecione horários")
 return
 }
 
-DB.disp
-.child(barbeiro)
-.child(data)
-.set(sel)
+DB.disp.child(barbeiro).child(data).set(sel)
 
 alert("Disponibilidade salva")
 
@@ -1488,16 +1220,15 @@ adminDataPick.value=""
 
 }
 
-// =====================================================
-// ================= LIMPAR GERADOR ====================
-// =====================================================
-
 btnLimparGerador.onclick=()=>{
 adminSlotsGrid.innerHTML=""
 }
 
+</script>
+<script>
+
 // =====================================================
-// ================= RESET GUIADO ======================
+// ================= RESET GUIADO DISP =================
 // =====================================================
 
 btnAbrirReset.onclick=()=>{
@@ -1583,7 +1314,7 @@ rolarPara(resetHorarios)
 }
 
 // =====================================================
-// ================= EXCLUIR HORÁRIOS ==================
+// ================= EXCLUIR SLOTS =====================
 // =====================================================
 
 btnExcluirSlots.onclick=()=>{
@@ -1616,10 +1347,7 @@ let atuais =
 
 let novos = atuais.filter(h=>!remover.includes(h))
 
-DB.disp
-.child(barbeiro)
-.child(data)
-.set(novos)
+DB.disp.child(barbeiro).child(data).set(novos)
 
 alert("Horários removidos")
 
@@ -1631,80 +1359,24 @@ renderResetHorarios(barbeiro,data)
 <script>
 
 // =====================================================
-// ================= ADMIN — AGENDA ====================
+// ================= TELA EXCLUSÃO =====================
 // =====================================================
 
-function renderAdminAgendamentos(){
+btnAbrirExclusao.onclick = ()=>{
 
-listaAgendamentos.innerHTML=""
+telaAdmin.classList.add("hidden")
+telaExclusao.classList.remove("hidden")
 
-let lista = Object.entries(agendamentosMap)
+excBarbeiro.innerHTML=""
 
-if(!lista.length){
-listaAgendamentos.innerHTML="Sem agendamentos"
-return
-}
-
-lista
-.sort((a,b)=>
-(a[1].data+a[1].hora)
-.localeCompare(b[1].data+b[1].hora)
-)
-.forEach(([key,a])=>{
-
-let div=document.createElement("div")
-div.className="card card-sub"
-
-div.innerHTML=`
-
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-<div style="font-weight:900">${a.data} • ${a.hora}</div>
-<div class="price">R$ ${formatarPreco(a.preco||0)}</div>
-</div>
-
-<b>${a.cliente}</b><br>
-Serviço: ${a.servico}<br>
-Barbeiro: ${a.barbeiro}<br>
-Pagamento: ${a.pagamento||"-"}<br>
-
-<button class="btn-danger btn"
-style="margin-top:12px"
-onclick="excluirAgendamentoAdmin('${key}')">
-Excluir agendamento
-</button>
-
-`
-
-listaAgendamentos.appendChild(div)
-
+barbeiros.forEach(b=>{
+let nome=b.nome||b
+excBarbeiro.add(new Option(nome,nome))
 })
 
-}
-
-// =====================================================
-// ============ EXCLUIR AGENDAMENTO ADMIN ==============
-// =====================================================
-
-function excluirAgendamentoAdmin(key){
-
-let a = agendamentosMap[key]
-if(!a) return
-
-if(!confirm(
-"Excluir agendamento de "+
-a.cliente+
-" — "+a.data+" "+a.hora+" ?"
-)) return
-
-DB.ag.child(key).remove()
-
-alert("Agendamento excluído")
+rolarPara(telaExclusao)
 
 }
-
-// =====================================================
-// ============== TELA EXCLUSÃO DEDICADA ===============
-// =====================================================
 
 btnCarregarExc.onclick=()=>{
 
@@ -1719,10 +1391,7 @@ return
 listaExclusao.innerHTML=""
 
 let lista = Object.entries(agendamentosMap)
-.filter(([k,a])=>
-a.barbeiro===barb &&
-a.data===data
-)
+.filter(([k,a])=> a.barbeiro===barb && a.data===data)
 .sort((a,b)=>a[1].hora.localeCompare(b[1].hora))
 
 if(!lista.length){
@@ -1736,21 +1405,16 @@ let div=document.createElement("div")
 div.className="card card-sub"
 
 div.innerHTML=`
-
-<div style="display:flex;justify-content:space-between;margin-bottom:8px">
-<b>${a.hora}</b>
-<div class="price">R$ ${formatarPreco(a.preco||0)}</div>
-</div>
-
-<b>${a.cliente}</b><br>
+<b>${a.hora}</b><br>
+Cliente: ${a.cliente}<br>
 Serviço: ${a.servico}<br>
+Pagamento: ${a.pagamento}<br>
 
 <button class="btn-danger btn"
 style="margin-top:10px"
 onclick="excluirAgendamentoAdmin('${key}')">
 Excluir
 </button>
-
 `
 
 listaExclusao.appendChild(div)
@@ -1768,17 +1432,16 @@ function popularModoBarbeiro(){
 barbeiroModoSel.innerHTML=""
 
 barbeiros.forEach(b=>{
-
 let nome=b.nome||b
 barbeiroModoSel.add(new Option(nome,nome))
-
 })
 
 }
 
-// =====================================================
-// ================= VER AGENDA BARBEIRO ===============
-// =====================================================
+btnVoltarCliente.onclick=()=>{
+telaBarbeiro.classList.add("hidden")
+telaCliente.classList.remove("hidden")
+}
 
 btnVerAgendaBarbeiro.onclick = renderAgendaBarbeiro
 
@@ -1794,7 +1457,7 @@ let lista = agendamentos
 .sort((a,b)=>a.hora.localeCompare(b.hora))
 
 if(!lista.length){
-listaBarbeiroAgenda.innerHTML="Sem clientes neste dia"
+listaBarbeiroAgenda.innerHTML="Sem clientes"
 return
 }
 
@@ -1804,21 +1467,14 @@ let div=document.createElement("div")
 div.className="card card-sub"
 
 div.innerHTML=`
-
-<div style="display:flex;justify-content:space-between;margin-bottom:8px">
-<b>${a.hora}</b>
-<div class="price">R$ ${formatarPreco(a.preco||0)}</div>
-</div>
-
-<b>${a.cliente}</b><br>
-Serviço: ${a.servico}<br>
-Pagamento: ${a.pagamento||"-"}<br><br>
+<b>${a.hora}</b><br>
+${a.cliente}<br>
+${a.servico}<br>
 
 <button class="btn-dark btn"
 onclick="window.open('https://wa.me/55${a.fone}','_blank')">
-Abrir WhatsApp
+WhatsApp
 </button>
-
 `
 
 listaBarbeiroAgenda.appendChild(div)
@@ -1828,114 +1484,120 @@ listaBarbeiroAgenda.appendChild(div)
 }
 
 // =====================================================
-// ================= RELATÓRIO HOJE ====================
+// ================= RELATÓRIO PERÍODO =================
 // =====================================================
 
-function renderRelatorioHoje(){
-
-let hoje = hojeISO()
-
-let lista = agendamentos.filter(a=>a.data===hoje)
-
-let total=0
-let porTipo={pix:0,debito:0,credito:0,dinheiro:0}
-
-lista.forEach(a=>{
-let v=Number(a.preco||0)
-total+=v
-if(porTipo[a.pagamento]!=null){
-porTipo[a.pagamento]+=v
-}
-})
-
-relatorioBox.innerHTML=`
-
-<b>Hoje — ${hoje}</b><br><br>
-
-PIX: R$ ${formatarPreco(porTipo.pix)}<br>
-Débito: R$ ${formatarPreco(porTipo.debito)}<br>
-Crédito: R$ ${formatarPreco(porTipo.credito)}<br>
-Dinheiro: R$ ${formatarPreco(porTipo.dinheiro)}<br><br>
-
-<div class="price">
-Total: R$ ${formatarPreco(total)}
-</div>
-
-`
+btnRelPeriodo.onclick=()=>{
 
 relatorioBox.classList.remove("hidden")
 
+relatorioBox.innerHTML=`
+
+<select id="relTipoSel">
+<option value="dia">Dia</option>
+<option value="mes">Mês</option>
+<option value="ano">Ano</option>
+</select>
+
+<div id="relRefWrap" style="margin-top:10px"></div>
+
+<button id="btnGerarRelPeriodo" class="btn" style="margin-top:10px">
+Gerar
+</button>
+
+<div id="relPeriodoResultado" style="margin-top:14px"></div>
+
+`
+
+configurarRelRefUI()
+
+relTipoSel.onchange=configurarRelRefUI
+btnGerarRelPeriodo.onclick=gerarRelatorioPeriodoUI
+
 }
 
-btnRelHoje.onclick = renderRelatorioHoje
+function configurarRelRefUI(){
 
-// =====================================================
-// ================= SYNC FIREBASE =====================
-// =====================================================
+let tipo = relTipoSel.value
 
-DB.servicos.on("value",snap=>{
-
-if(snap.exists()){
-servicos = Object.values(snap.val())
-}else{
-DB.servicos.set([
-{nome:"Corte",preco:40},
-{nome:"Barba",preco:30}
-])
+if(tipo==="dia"){
+relRefWrap.innerHTML=`<input type="date" id="relRefInput">`
 return
 }
 
-renderServicos()
-renderAdminServicos()
+if(tipo==="mes"){
 
-})
+let ano=new Date().getFullYear()
 
-DB.barbeiros.on("value",snap=>{
+relRefWrap.innerHTML=`
+<select id="relMesSel">
+<option value="01">Jan</option>
+<option value="02">Fev</option>
+<option value="03">Mar</option>
+<option value="04">Abr</option>
+<option value="05">Mai</option>
+<option value="06">Jun</option>
+<option value="07">Jul</option>
+<option value="08">Ago</option>
+<option value="09">Set</option>
+<option value="10">Out</option>
+<option value="11">Nov</option>
+<option value="12">Dez</option>
+</select>
+<select id="relAnoSel"></select>
+`
 
-if(snap.exists()){
-barbeiros = Object.values(snap.val())
-}else{
-DB.barbeiros.set([
-{nome:"Carlos",whats:""}
-])
+for(let a=2026;a<=ano+5;a++){
+relAnoSel.add(new Option(a,a))
+}
+
 return
 }
 
-renderBarbeiros()
-renderAdminBarbeiros()
-popularSelectsBarbeiro()
-popularModoBarbeiro()
+if(tipo==="ano"){
 
-})
+let ano=new Date().getFullYear()
 
-DB.disp.on("value",snap=>{
+relRefWrap.innerHTML=`<select id="relAnoUnico"></select>`
 
-disponibilidade = snap.exists()? snap.val() : {}
-
-if(barbeiroSel){
-renderDatasCliente()
+for(let a=2026;a<=ano+5;a++){
+relAnoUnico.add(new Option(a,a))
 }
 
-renderResetDias()
-
-})
-
-DB.ag.on("value",snap=>{
-
-agendamentosMap = snap.exists()? snap.val() : {}
-agendamentos = Object.values(agendamentosMap)
-
-renderAdminAgendamentos()
-
-if(barbeiroSel && dataSel){
-renderHorariosCliente()
 }
 
-if(!telaBarbeiro.classList.contains("hidden")){
-renderAgendaBarbeiro()
 }
 
-})
+function gerarRelatorioPeriodoUI(){
+
+let tipo = relTipoSel.value
+let lista=[]
+
+if(tipo==="dia"){
+let d=relRefInput.value
+lista=agendamentos.filter(a=>a.data===d)
+}
+
+if(tipo==="mes"){
+let ref=relAnoSel.value+"-"+relMesSel.value
+lista=agendamentos.filter(a=>a.data.startsWith(ref))
+}
+
+if(tipo==="ano"){
+lista=agendamentos.filter(a=>a.data.startsWith(relAnoUnico.value))
+}
+
+let total=0
+
+lista.forEach(a=> total+=Number(a.preco||0))
+
+relPeriodoResultado.innerHTML=`
+<div class="price">
+Total: R$ ${formatarPreco(total)}
+</div>
+`
+
+}
 
 </script>
 
