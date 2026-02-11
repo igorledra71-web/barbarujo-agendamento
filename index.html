@@ -807,39 +807,49 @@ function renderServicos(){
 
 listaServicos.innerHTML=""
 
-if(!servicos.length){
-listaServicos.innerHTML="Sem serviços cadastrados"
-return
-}
+if(!window.servicosMulti) window.servicosMulti=[]
 
 servicos.forEach(s=>{
 
 let b=document.createElement("button")
 b.className="btn"
 
+let ja = servicosMulti.find(x=>x.nome===s.nome)
+
 b.innerHTML=`
 <div style="font-size:16px;font-weight:800">
 ${s.nome}
 </div>
-
 <div class="price">
 R$ ${formatarPreco(s.preco)}
 </div>
+${ja ? "<div style='margin-top:6px;font-size:12px'>✔ selecionado</div>" : ""}
 `
 
 b.onclick=()=>{
 
-servicoSel=s
+servicoSel = s
 
-// suporta múltipla escolha (não remove base — só adiciona)
-if(!window.servicosMulti) window.servicosMulti=[]
-if(!servicosMulti.find(x=>x.nome===s.nome)){
+let idx = servicosMulti.findIndex(x=>x.nome===s.nome)
+
+if(idx>=0){
+servicosMulti.splice(idx,1)
+}else{
 servicosMulti.push(s)
 }
 
+// 🔥 NÃO RESETAR horário se já escolhido
+if(barbeiroSel && dataSel && horaSel){
+cardCliente.classList.remove("hidden")
+atualizarResumo()
+rolarPara(cardCliente)
+}else{
 cardBarbeiro.classList.remove("hidden")
 renderBarbeiros()
 rolarPara(cardBarbeiro)
+}
+
+renderServicos()
 
 }
 
@@ -1157,8 +1167,13 @@ DB.vendas
 
 btnReservar.onclick = async ()=>{
 
-if(!servicoSel || !barbeiroSel || !dataSel || !horaSel){
-alert("Complete todas as escolhas")
+if(!barbeiroSel || !dataSel || !horaSel){
+alert("Escolha barbeiro, data e horário")
+return
+}
+
+if(!servicosMulti || !servicosMulti.length){
+alert("Escolha pelo menos um serviço")
 return
 }
 
@@ -1168,7 +1183,7 @@ return
 }
 
 if(!pagamentoSel){
-alert("Escolha a forma de pagamento")
+alert("Escolha forma de pagamento")
 return
 }
 
@@ -1190,16 +1205,16 @@ await DB.ag.push(ag)
 
 registrarVenda(ag,pagamentoSel)
 
-// 🔥 CHAMA WHATS AQUI
 setTimeout(()=>{
 enviarWhatsLoja(ag,pagamentoSel)
-},300)
+},200)
 
 alert("Agendamento confirmado 💈")
 
-setTimeout(()=>{
-location.reload()
-},1200)
+setTimeout(()=>location.reload(),800)
+
+}
+
 
 </script>
 <script>
@@ -2374,4 +2389,5 @@ Total: R$ ${formatarPreco(total)}
 </div>
 </body>
 </html>
+
 
