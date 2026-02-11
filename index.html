@@ -394,7 +394,10 @@ Valor: R$ <span id="pixValorView">0,00</span><br><br>
 
 <button id="btnCopiarPix" class="btn-outline">
 Copiar chave PIX
+<button id="btnPixPago" class="btn" style="margin-top:10px">
+Já paguei o PIX
 </button>
+
 </div>
 
 </div>
@@ -1120,9 +1123,9 @@ alert("Chave PIX copiada")
 function enviarWhatsLoja(ag,forma){
 
 let msg =
-`💈 ${NOME_BARBEARIA}
+`💈 BARBARUJO
 
-Novo agendamento:
+NOVO AGENDAMENTO
 
 Cliente: ${ag.cliente}
 Whats: ${ag.fone}
@@ -1131,18 +1134,18 @@ Barbeiro: ${ag.barbeiro}
 Data: ${ag.data}
 Hora: ${ag.hora}
 Pagamento: ${forma}
-Valor: R$ ${formatarPreco(ag.preco)}`
+Valor: R$ ${formatarPreco(ag.preco)}
+`
 
-let numero = "5549999538762"
+let url = "https://wa.me/5549999538762?text=" + encodeURIComponent(msg)
 
-let url = "https://wa.me/"+numero+"?text="+encodeURIComponent(msg)
-
-// força abrir mesmo em PWA / iOS
-let w = window.open(url,"_blank")
-
-if(!w){
-window.location.href = url
-}
+// iOS / PWA safe open
+let a = document.createElement("a")
+a.href = url
+a.target = "_blank"
+document.body.appendChild(a)
+a.click()
+a.remove()
 
 }
 
@@ -1166,6 +1169,7 @@ DB.vendas
 // =====================================================
 
 btnReservar.onclick = async ()=>{
+if(!exigirPixConfirmado()) return
 
 if(!barbeiroSel || !dataSel || !horaSel){
 alert("Escolha barbeiro, data e horário")
@@ -1212,6 +1216,42 @@ enviarWhatsLoja(ag,pagamentoSel)
 alert("Agendamento confirmado 💈")
 
 setTimeout(()=>location.reload(),800)
+
+}
+// ================= PIX CONFIRMAÇÃO OBRIGATÓRIA =================
+
+let pixConfirmado = false
+
+function exigirPixConfirmado(){
+
+if(pagamentoSel !== "pix") return true
+
+if(!pixConfirmado){
+alert("⚠️ Confirme o pagamento PIX antes de finalizar")
+return false
+}
+
+return true
+
+}
+
+// botão confirmar pix (cria se não existir)
+
+if(!document.getElementById("btnConfirmarPixPago")){
+
+let btn = document.createElement("button")
+btn.id = "btnConfirmarPixPago"
+btn.className = "btn"
+btn.style.marginTop = "10px"
+btn.innerText = "Já paguei no PIX"
+
+btn.onclick = ()=>{
+pixConfirmado = true
+alert("Pagamento PIX confirmado ✅")
+}
+
+if(typeof pixInfo !== "undefined"){
+pixInfo.appendChild(btn)
 
 }
 
@@ -2389,5 +2429,6 @@ Total: R$ ${formatarPreco(total)}
 </div>
 </body>
 </html>
+
 
 
