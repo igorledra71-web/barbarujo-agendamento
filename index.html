@@ -408,6 +408,35 @@
         </div>
       </div>
 
+      <!-- TELA CONFIRMAÇÃO PIX -->
+      <div id="telaConfirmaPix" class="card hidden">
+        <div class="step">PAGAMENTO</div>
+        <h3>Confirmação de PIX</h3>
+        <p style="font-size: 14px; opacity: 0.8; margin-bottom: 15px">
+          Para concluir sua reserva, realize o pagamento via PIX e clique no
+          botão abaixo para confirmar.
+        </p>
+        <div class="pix-box" style="margin-bottom: 15px">
+          <b>Chave PIX:</b> <span id="pixChaveConfirm">49999538762</span><br />
+          <b>Valor:</b> R$ <span id="pixValorConfirm">0,00</span><br />
+          <button
+            id="btnCopiarPixConfirm"
+            class="btn-outline"
+            style="margin-top: 10px; font-size: 12px; padding: 8px"
+          >
+            Copiar Chave
+          </button>
+        </div>
+        <button id="btnJaFizPix" class="btn">Já realizei o pagamento</button>
+        <button
+          id="btnVoltarPagamento"
+          class="btn-outline"
+          style="margin-top: 10px"
+        >
+          Alterar pagamento
+        </button>
+      </div>
+
       <!-- ================= MODO BARBEIRO ================= -->
 
       <div id="telaBarbeiro" class="hidden">
@@ -778,6 +807,17 @@
           alert("Chave PIX copiada");
         };
 
+        btnCopiarPixConfirm.onclick = () => {
+          navigator.clipboard.writeText(PIX_CHAVE);
+          alert("Chave PIX copiada");
+        };
+
+        btnVoltarPagamento.onclick = () => {
+          telaConfirmaPix.classList.add("hidden");
+          cardCliente.classList.remove("hidden");
+          rolarPara(cardCliente);
+        };
+
         // ================= PAGAMENTO UI =================
 
         function ativarPagamentoUI(total) {
@@ -1116,9 +1156,27 @@ Valor: R$ ${formatarPreco(ag.preco)}
             return;
           }
 
+          if (pagamentoSel === "pix") {
+            cardCliente.classList.add("hidden");
+            telaConfirmaPix.classList.remove("hidden");
+            pixValorConfirm.innerText = formatarPreco(totalServicos());
+            rolarPara(telaConfirmaPix);
+            return;
+          }
+
+          executarReserva();
+        };
+
+        btnJaFizPix.onclick = () => {
+          executarReserva();
+        };
+
+        async function executarReserva() {
+          if (reservando) return;
           reservando = true;
-          btnReservar.innerText = "Verificando...";
-          btnReservar.disabled = true;
+          const btnAcao = pagamentoSel === "pix" ? btnJaFizPix : btnReservar;
+          btnAcao.innerText = "Verificando...";
+          btnAcao.disabled = true;
 
           try {
             // TRAVA ANTI DUPLA RESERVA
@@ -1134,9 +1192,16 @@ Valor: R$ ${formatarPreco(ag.preco)}
             if (ocupado) {
               alert("Este horário já foi reservado. Escolha outro.");
               reservando = false;
-              btnReservar.innerText = "Reservar horário";
-              btnReservar.disabled = false;
+              btnAcao.innerText =
+                pagamentoSel === "pix"
+                  ? "Já realizei o pagamento"
+                  : "Reservar horário";
+              btnAcao.disabled = false;
               renderHorariosCliente();
+              if (pagamentoSel === "pix") {
+                telaConfirmaPix.classList.add("hidden");
+                cardHorarios.classList.remove("hidden");
+              }
               return;
             }
 
@@ -1159,10 +1224,13 @@ Valor: R$ ${formatarPreco(ag.preco)}
           } catch (e) {
             alert("Erro ao salvar agendamento");
             reservando = false;
-            btnReservar.innerText = "Reservar horário";
-            btnReservar.disabled = false;
+            btnAcao.innerText =
+              pagamentoSel === "pix"
+                ? "Já realizei o pagamento"
+                : "Reservar horário";
+            btnAcao.disabled = false;
           }
-        };
+        }
 
         // =====================================================
         // ================= ADMIN SERVIÇOS ====================
