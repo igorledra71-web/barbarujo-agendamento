@@ -1110,7 +1110,7 @@ alert("Chave PIX copiada")
 function enviarWhatsLoja(ag,forma){
 
 let msg =
-`💈 BARBARUJO
+`💈 ${NOME_BARBEARIA}
 
 Novo agendamento:
 
@@ -1123,10 +1123,16 @@ Hora: ${ag.hora}
 Pagamento: ${forma}
 Valor: R$ ${formatarPreco(ag.preco)}`
 
-let url =
-"https://wa.me/5549999538762?text="+encodeURIComponent(msg)
+let numero = "5549999538762"
 
-window.open(url,"_blank")
+let url = "https://wa.me/"+numero+"?text="+encodeURIComponent(msg)
+
+// força abrir mesmo em PWA / iOS
+let w = window.open(url,"_blank")
+
+if(!w){
+window.location.href = url
+}
 
 }
 
@@ -1184,13 +1190,16 @@ await DB.ag.push(ag)
 
 registrarVenda(ag,pagamentoSel)
 
+// 🔥 CHAMA WHATS AQUI
+setTimeout(()=>{
 enviarWhatsLoja(ag,pagamentoSel)
+},300)
 
 alert("Agendamento confirmado 💈")
 
+setTimeout(()=>{
 location.reload()
-
-}
+},1200)
 
 </script>
 <script>
@@ -2269,7 +2278,7 @@ wrap.innerHTML = `
 
 let anoSel = document.getElementById("relAnoSel")
 
-for(let a=ano-5;a<=ano+1;a++){
+for(let a=2026;a<=ano+5;a++){
 anoSel.add(new Option(a,a))
 }
 
@@ -2287,7 +2296,7 @@ wrap.innerHTML = `
 
 let s = document.getElementById("relAnoUnico")
 
-for(let a=ano-8;a<=ano+1;a++){
+for(let a=2026;a<=ano+5;a++){
 s.add(new Option(a,a))
 }
 
@@ -2365,3 +2374,4 @@ Total: R$ ${formatarPreco(total)}
 </div>
 </body>
 </html>
+
