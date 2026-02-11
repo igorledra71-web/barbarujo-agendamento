@@ -456,6 +456,14 @@
             Relatório por período
           </button>
 
+          <button
+            id="btnZerarVendas"
+            class="btn-danger btn"
+            style="margin-top: 12px; font-size: 12px; padding: 10px"
+          >
+            Zerar todos os relatórios
+          </button>
+
           <div
             id="relHojeBox"
             class="card-sub hidden"
@@ -1769,6 +1777,26 @@ Total: R$ ${formatarPreco(total)}
 
         btnRelHoje.onclick = renderRelHoje;
 
+        btnZerarVendas.onclick = () => {
+          if (
+            confirm(
+              "ATENÇÃO: Isso apagará TODOS os dados de vendas permanentemente. Você tem certeza absoluta?"
+            )
+          ) {
+            if (
+              confirm(
+                "ÚLTIMA CHANCE: Confirmar exclusão total de relatórios de vendas?"
+              )
+            ) {
+              DB.vendas.remove().then(() => {
+                alert("Relatórios zerados com sucesso.");
+                relHojeBox.classList.add("hidden");
+                relPeriodoBox.classList.add("hidden");
+              });
+            }
+          }
+        };
+
         // =====================================================
         // ================= RELATÓRIO PERÍODO =================
         // =====================================================
@@ -1797,19 +1825,23 @@ Total: R$ ${formatarPreco(total)}
           relTipoSel.onchange = () => {
             const tipo = relTipoSel.value;
             if (tipo === "dia") {
-              relInputContainer.innerHTML = `<input type="date" id="relRefDia">`;
+              relInputContainer.innerHTML = `<input type="date" id="relRefDia" style="width:100%; padding:16px; border-radius:14px; border:none; margin-top:8px; margin-bottom:14px; color:#000; font-size:15px;">`;
             } else if (tipo === "mes") {
-              relInputContainer.innerHTML = `<input type="month" id="relRefDia">`;
+              relInputContainer.innerHTML = `<input type="month" id="relRefDia" style="width:100%; padding:16px; border-radius:14px; border:none; margin-top:8px; margin-bottom:14px; color:#000; font-size:15px;">`;
             } else if (tipo === "ano") {
               const anos = [
                 ...new Set(agendamentos.map((a) => a.data.split("-")[0])),
               ]
                 .sort()
                 .reverse();
+              if (anos.length === 0) {
+                const anoAtual = new Date().getFullYear();
+                anos.push(anoAtual.toString());
+              }
               let options = anos
                 .map((a) => `<option value="${a}">${a}</option>`)
                 .join("");
-              relInputContainer.innerHTML = `<select id="relRefDia">${options}</select>`;
+              relInputContainer.innerHTML = `<select id="relRefDia" style="width:100%; padding:16px; border-radius:14px; border:none; margin-top:8px; margin-bottom:14px; color:#000; font-size:15px;">${options}</select>`;
             }
           };
 
