@@ -996,8 +996,14 @@ div.classList.add("selected")
 horaSel=hora
 
 cardCliente.classList.remove("hidden")
+
 atualizarResumo()
+
+// 🔥 FORÇA EXIBIÇÃO PAGAMENTO
+if(typeof mostrarPagamentoBoxSeguro === "function"){
 mostrarPagamentoBoxSeguro()
+}
+
 rolarPara(cardCliente)
 
 }
@@ -1055,7 +1061,10 @@ R$ ${formatarPreco(total)}
 
 atualizarPixBoxValor(total)
 
+if(typeof mostrarPagamentoBoxSeguro === "function"){
+mostrarPagamentoBoxSeguro()
 }
+
 
 </script>
 <script>
@@ -1169,15 +1178,21 @@ DB.vendas
 // =====================================================
 
 btnReservar.onclick = async ()=>{
-if(!exigirPixConfirmado()) return
 
-if(!barbeiroSel || !dataSel || !horaSel){
-alert("Escolha barbeiro, data e horário")
+// ================= VALIDAÇÕES =================
+
+if(!servicoSel && (!window.servicosMulti || !servicosMulti.length)){
+alert("Escolha o serviço")
 return
 }
 
-if(!servicosMulti || !servicosMulti.length){
-alert("Escolha pelo menos um serviço")
+if(!barbeiroSel){
+alert("Escolha o barbeiro")
+return
+}
+
+if(!dataSel || !horaSel){
+alert("Escolha data e horário")
 return
 }
 
@@ -1187,37 +1202,76 @@ return
 }
 
 if(!pagamentoSel){
-alert("Escolha forma de pagamento")
+alert("Escolha a forma de pagamento")
 return
 }
 
-let total = totalServicosSelecionados()
+// ================= PIX CONFIRMADO =================
 
-let ag={
-servico:nomesServicosSelecionados(),
-preco:total,
-barbeiro:barbeiroSel,
-data:dataSel,
-hora:horaSel,
-cliente:clienteNome.value,
-fone:clienteFone.value,
-pagamento:pagamentoSel,
-ts:Date.now()
+if(pagamentoSel === "pix"){
+
+if(!window.pixConfirmado){
+alert("Confirme que o PIX foi pago antes de finalizar")
+return
 }
+
+}
+
+// ================= DADOS SERVIÇOS =================
+
+let total = 0
+let nomes = ""
+
+if(window.servicosMulti && servicosMulti.length){
+
+total = servicosMulti.reduce((t,s)=>t+Number(s.preco||0),0)
+nomes = servicosMulti.map(s=>s.nome).join(", ")
+
+}else{
+
+total = Number(servicoSel.preco||0)
+nomes = servicoSel.nome
+
+}
+
+// ================= OBJ AGENDAMENTO =================
+
+let ag = {
+servico: nomes,
+preco: total,
+barbeiro: barbeiroSel,
+data: dataSel,
+hora: horaSel,
+cliente: clienteNome.value,
+fone: clienteFone.value,
+pagamento: pagamentoSel,
+ts: Date.now()
+}
+
+// ================= SALVA FIREBASE =================
 
 await DB.ag.push(ag)
 
-registrarVenda(ag,pagamentoSel)
+// ================= REGISTRA VENDA =================
 
-setTimeout(()=>{
+if(typeof registrarVenda === "function"){
+registrarVenda(ag,pagamentoSel)
+}
+
+// ================= WHATSAPP LOJA =================
+
+if(typeof enviarWhatsLoja === "function"){
 enviarWhatsLoja(ag,pagamentoSel)
-},200)
+}
+
+// ================= FINAL =================
 
 alert("Agendamento confirmado 💈")
 
-setTimeout(()=>location.reload(),800)
+location.reload()
 
 }
+
 // ================= PIX CONFIRMAÇÃO OBRIGATÓRIA =================
 
 let pixConfirmado = false
@@ -2429,6 +2483,7 @@ Total: R$ ${formatarPreco(total)}
 </div>
 </body>
 </html>
+
 
 
 
