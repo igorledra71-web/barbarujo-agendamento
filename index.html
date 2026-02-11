@@ -990,10 +990,6 @@ rolarPara(cardHorarios)
 
 }
 
-// =====================================================
-// ================= HORÁRIOS CLIENTE ==================
-// =====================================================
-
 function renderHorariosCliente(){
 
 listaHorarios.innerHTML=""
@@ -1118,16 +1114,12 @@ window.location.href = url
 // ================= REGISTRAR VENDA ===================
 // =====================================================
 
-function registrarVenda(ag){
-
+function registrarVenda(ag, estorno = false){
 let dia = ag.data
 let forma = ag.pagamento
-
-DB.vendas
-.child(dia)
-.child(forma)
-.transaction(v=>(v||0)+Number(ag.preco||0))
-
+let valor = Number(ag.preco || 0)
+if(estorno) valor = -valor
+DB.vendas.child(dia).child(forma).transaction(v=>(v||0)+valor)
 }
 
 // =====================================================
@@ -1135,40 +1127,33 @@ DB.vendas
 // =====================================================
 
 btnReservar.onclick = async ()=>{
-
 if(reservando) return
-
-if(!servicosMulti.length){
-alert("Escolha ao menos um serviço")
-return
-}
-
-if(!barbeiroSel || !dataSel || !horaSel){
-alert("Complete as escolhas")
-return
-}
-
-if(!clienteNome.value || clienteNome.value.length<2){
-alert("Digite o nome")
-return
-}
-
-if(clienteFone.value.length<10){
-alert("WhatsApp inválido")
-return
-}
-
-if(!pagamentoSel){
-alert("Escolha a forma de pagamento")
-return
-}
+if(!servicosMulti.length){ alert("Escolha ao menos um serviço"); return; }
+if(!barbeiroSel || !dataSel || !horaSel){ alert("Complete as escolhas"); return; }
+if(!clienteNome.value || clienteNome.value.length<2){ alert("Digite o nome"); return; }
+if(clienteFone.value.length<10){ alert("WhatsApp inválido"); return; }
+if(!pagamentoSel){ alert("Escolha a forma de pagamento"); return; }
 
 reservando=true
-btnReservar.innerText="Salvando..."
+btnReservar.innerText="Verificando..."
 btnReservar.disabled=true
 
-let total = totalServicos()
+try{
+// TRAVA ANTI DUPLA RESERVA
+let snap = await DB.ag.orderByChild("data").equalTo(dataSel).once("value")
+let ags = snap.val() || {}
+let ocupado = Object.values(ags).find(a => a.hora === horaSel && a.barbeiro === barbeiroSel)
 
+if(ocupado){
+alert("Este horário já foi reservado. Escolha outro.")
+reservando=false
+btnReservar.innerText="Reservar horário"
+btnReservar.disabled=false
+renderHorariosCliente()
+return
+}
+
+let total = totalServicos()
 let ag={
 servico:nomesServicos(),
 preco:total,
@@ -1181,26 +1166,15 @@ pagamento:pagamentoSel,
 ts:Date.now()
 }
 
-try{
-
 await DB.ag.push(ag)
-
 registrarVenda(ag)
-
-// ⚠️ WhatsApp abre aqui — última ação
 enviarWhatsLoja(ag)
-
 }catch(e){
-
 alert("Erro ao salvar agendamento")
-console.error(e)
-
 reservando=false
 btnReservar.innerText="Reservar horário"
 btnReservar.disabled=false
-
 }
-
 }
 
 // =====================================================
@@ -1697,10 +1671,12 @@ listaAgendamentos.appendChild(div)
 }
 
 function excluirAgendamentoAdmin(key){
-
 if(!confirm("Excluir agendamento?")) return
+let ag = agendamentosMap[key]
+if(ag){
+registrarVenda(ag, true) // Refund
+}
 DB.ag.child(key).remove()
-
 }
 
 // =====================================================
@@ -1895,37 +1871,33 @@ relHojeBox.classList.add("hidden")
 relPeriodoBox.classList.remove("hidden")
 
 relPeriodoBox.innerHTML=`
-
 <select id="relTipoSel">
 <option value="dia">Dia</option>
 <option value="mes">Mês</option>
 <option value="ano">Ano</option>
 </select>
-
 <input type="date" id="relRefDia" style="margin-top:10px">
-
-<button id="btnGerarRel" class="btn" style="margin-top:10px">
-Gerar
-</button>
-
+<button id="btnGerarRel" class="btn" style="margin-top:10px"> Gerar </button>
 <div id="relOut" style="margin-top:12px"></div>
 `
 
 document.getElementById("btnGerarRel").onclick=()=>{
-
 let d=document.getElementById("relRefDia").value
+let tipo=document.getElementById("relTipoSel").value
 if(!d) return
 
-let lista = agendamentos.filter(a=>a.data===d)
+let refParts = d.split("-") // [YYYY, MM, DD]
+let lista = agendamentos.filter(a => {
+  let aParts = a.data.split("-")
+  if(tipo === "dia") return a.data === d
+  if(tipo === "mes") return aParts[0] === refParts[0] && aParts[1] === refParts[1]
+  if(tipo === "ano") return aParts[0] === refParts[0]
+  return false
+})
 
 let total=lista.reduce((t,a)=>t+Number(a.preco||0),0)
-
-document.getElementById("relOut").innerHTML=`
-Total: <b>R$ ${formatarPreco(total)}</b>
-`
-
+document.getElementById("relOut").innerHTML=`Total: <b>R$ ${formatarPreco(total)}</b>`
 }
-
 }
 
 // =====================================================
@@ -1991,4 +1963,3 @@ config = snap.val()
 </div>
 </body>
 </html>
-
