@@ -207,20 +207,32 @@
         z-index: 99999;
         padding: 24px;
         padding-top: 20px;
+        padding-bottom: env(safe-area-inset-bottom, 20px);
         text-align: center;
+        height: 100dvh;
+        height: 100vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      @supports (height: 100dvh) {
+        .splash {
+          height: 100dvh;
+        }
       }
 
       .splash-logo {
         display: block;
-        width: 84vw;
-        max-width: 540px;
+        width: 70vw;
+        max-width: 400px;
         height: auto;
-        margin: 30px auto 8px auto;
+        margin: 15px auto 8px auto;
         background: transparent;
         border: none;
         box-shadow: none;
-        transform: translateX(-6vw);
+        transform: translateX(-4vw);
         object-fit: contain;
+        flex-shrink: 0;
       }
 
       .hidden {
@@ -292,10 +304,10 @@
 
       <h1
         style="
-          font-size: 34px;
+          font-size: 30px;
           font-weight: 900;
-          margin-bottom: 10px;
-          margin-top: -60px;
+          margin-bottom: 8px;
+          margin-top: -40px;
         "
       >
         💈 BARBARUJO
@@ -304,17 +316,14 @@
       <div
         style="
           opacity: 0.9;
-          margin-bottom: 22px;
-          font-size: 14px;
-          line-height: 1.6;
+          margin-bottom: 16px;
+          font-size: 13px;
+          line-height: 1.5;
         "
       >
         <b>Horário de atendimento</b><br /><br />
-        Seg–Sex<br />
-        09:00–12:00<br />
-        14:00–19:00<br /><br />
-        Sábado<br />
-        09:00–17:00<br /><br />
+        Seg–Sex: 09:00–12:00 / 14:00–19:00<br />
+        Sábado: 09:00–17:00<br />
         Domingo — Fechado
       </div>
 
@@ -325,7 +334,7 @@
       <button
         id="btnModoBarbeiro"
         class="btn btn-dark"
-        style="max-width: 360px; margin-top: 12px"
+        style="max-width: 360px; margin-top: 12px; margin-bottom: 30px"
       >
         Sou barbeiro
       </button>
