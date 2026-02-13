@@ -239,8 +239,6 @@
         display: none;
       }
 
-      /* PAGAMENTO */
-
       .pagamento-box {
         background: #141414;
         border: 1px solid #262626;
@@ -291,6 +289,59 @@
         width: 100%;
         margin-bottom: 12px;
       }
+
+      .alert-banner {
+        background: #8B6914;
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+        color: #fff;
+      }
+
+      .comissao-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 13px;
+      }
+      .comissao-table th, .comissao-table td {
+        padding: 8px 6px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+      }
+      .comissao-table th {
+        background: #222;
+        color: #d4af37;
+        font-weight: 800;
+      }
+      .comissao-table tr:nth-child(even) {
+        background: #1a1a1a;
+      }
+      .comissao-table .subtotal-row {
+        background: #2b2616;
+        font-weight: 800;
+      }
+      .comissao-table .grand-total-row {
+        background: linear-gradient(135deg, #d4af37, #f1d77a);
+        color: #000;
+        font-weight: 900;
+        font-size: 15px;
+      }
+
+      .btn-export {
+        background: linear-gradient(135deg, #1565c0, #42a5f5);
+        color: #fff;
+        border: none;
+        padding: 14px;
+        border-radius: 16px;
+        font-weight: 800;
+        width: 100%;
+        margin-top: 12px;
+        font-size: 14px;
+      }
     </style>
   </head>
   <body>
@@ -327,6 +378,11 @@
         Domingo — Fechado
       </div>
 
+      <div id="msgOrdemChegada" style="display:none;" class="alert-banner">
+        ⚠️ Hoje é dia de atendimento por ORDEM DE CHEGADA.<br>
+        Agendamento disponível apenas com Juninho.
+      </div>
+
       <button id="btnEntrar" class="btn" style="max-width: 360px">
         Agendar horário
       </button>
@@ -346,6 +402,11 @@
       <!-- ================= CLIENTE ================= -->
 
       <div id="telaCliente">
+        <div id="alertOrdemChegadaCliente" class="alert-banner" style="display:none;">
+          ⚠️ Sexta e Sábado: Atendimento por ORDEM DE CHEGADA.<br>
+          Agendamento disponível apenas com Juninho.
+        </div>
+
         <div class="card" id="cardServico">
           <div class="step">PASSO 1</div>
           <h3>Escolha o serviço</h3>
@@ -471,6 +532,59 @@
           <h3>Clientes do dia</h3>
           <div id="listaBarbeiroAgenda"></div>
         </div>
+
+        <!-- DISPONIBILIDADE (moved from admin) -->
+        <div class="card">
+          <h3>Disponibilidade por barbeiro</h3>
+
+          <label>Barbeiro</label>
+          <select id="barbDispBarbeiroSel"></select>
+
+          <div id="barbDispNomeAtual" style="margin:8px 0;padding:10px;border-radius:10px;background:rgba(212,175,55,0.15);text-align:center;font-weight:bold;display:none;"></div>
+
+          <label>Data</label>
+          <input type="date" id="barbDispDataPick" />
+
+          <button id="btnBarbGerarSlots" class="btn-dark btn">
+            Gerar horários base
+          </button>
+
+          <div id="barbSlotsGrid" class="grid"></div>
+
+          <button id="btnBarbSalvarSlotsDia" class="btn">
+            Salvar disponibilidade
+          </button>
+
+          <button id="btnBarbLimparGerador" class="btn-outline">
+            Limpar seleção
+          </button>
+        </div>
+
+        <!-- RESET HORÁRIOS (moved from admin) -->
+        <div class="card">
+          <h3>Gerenciar DISPONIBILIDADE</h3>
+
+          <label>Barbeiro</label>
+          <select id="barbResetBarbeiroSel"></select>
+
+          <div id="barbResetNomeAtual" style="margin:8px 0;padding:10px;border-radius:10px;background:rgba(212,175,55,0.15);text-align:center;font-weight:bold;display:none;"></div>
+
+          <button id="btnBarbAbrirReset" class="btn-outline">
+            Abrir gerenciador
+          </button>
+
+          <div id="barbResetBox" class="hidden">
+            <h4>Dias</h4>
+            <div id="barbResetDias"></div>
+
+            <h4>Horários</h4>
+            <div id="barbResetHorarios" class="grid"></div>
+
+            <button id="btnBarbExcluirSlots" class="btn-danger btn">
+              Remover horários
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- ================= ADMIN ================= -->
@@ -514,6 +628,61 @@
           ></div>
         </div>
 
+        <!-- COMISSÕES -->
+        <div class="card">
+          <h3>Comissões</h3>
+
+          <select id="comissaoTipoSel">
+            <option value="dia">Dia</option>
+            <option value="mes">Mês</option>
+            <option value="ano">Ano</option>
+          </select>
+
+          <div id="comissaoInputContainer">
+            <input type="date" id="comissaoRefDia" />
+          </div>
+
+          <label style="margin-top:8px;display:block;">Filtrar por barbeiro</label>
+          <select id="comissaoBarbeiroFiltro">
+            <option value="todos">Todos os barbeiros</option>
+          </select>
+
+          <button id="btnGerarComissao" class="btn" style="margin-top:8px;">Gerar relatório de comissões</button>
+
+          <div id="comissaoOut" style="margin-top:16px;"></div>
+        </div>
+
+        <!-- DESPESAS -->
+        <div class="card">
+          <h3>Despesas</h3>
+
+          <input id="despesaProduto" placeholder="Nome do produto" />
+          <input id="despesaQtd" placeholder="Quantidade" type="number" min="1" />
+          <input id="despesaValor" placeholder="Valor (R$)" type="number" step="0.01" />
+          <input id="despesaData" type="date" />
+
+          <button id="btnAddDespesa" class="btn">Adicionar despesa</button>
+
+          <div style="margin-top:12px;">
+            <select id="despesaFiltroTipo">
+              <option value="todos">Todos</option>
+              <option value="dia">Dia</option>
+              <option value="mes">Mês</option>
+              <option value="ano">Ano</option>
+            </select>
+            <div id="despesaFiltroContainer" style="margin-top:8px;"></div>
+          </div>
+
+          <div id="listaDespesas" style="margin-top:16px;"></div>
+          <div id="totalDespesas" style="margin-top:12px;font-weight:900;font-size:18px;"></div>
+        </div>
+
+        <!-- CLIENTES -->
+        <div class="card">
+          <h3>Clientes</h3>
+          <div id="listaClientes"></div>
+        </div>
+
         <!-- SERVIÇOS -->
 
         <div class="card">
@@ -537,57 +706,6 @@
           <button id="btnAddBarbeiro" class="btn">Adicionar barbeiro</button>
 
           <div id="adminBarbeiros"></div>
-        </div>
-
-        <!-- DISPONIBILIDADE -->
-
-        <div class="card">
-          <h3>Disponibilidade por barbeiro</h3>
-
-          <label>Barbeiro</label>
-          <select id="adminBarbeiroSel"></select>
-
-          <label>Data</label>
-          <input type="date" id="adminDataPick" />
-
-          <button id="btnGerarSlots" class="btn-dark btn">
-            Gerar horários base
-          </button>
-
-          <div id="adminSlotsGrid" class="grid"></div>
-
-          <button id="btnSalvarSlotsDia" class="btn">
-            Salvar disponibilidade
-          </button>
-
-          <button id="btnLimparGerador" class="btn-outline">
-            Limpar seleção
-          </button>
-        </div>
-
-        <!-- RESET HORÁRIOS -->
-
-        <div class="card">
-          <h3>Gerenciar DISPONIBILIDADE</h3>
-
-          <button id="btnAbrirReset" class="btn-outline">
-            Abrir gerenciador
-          </button>
-
-          <div id="resetBox" class="hidden">
-            <label>Barbeiro</label>
-            <select id="resetBarbeiro"></select>
-
-            <h4>Dias</h4>
-            <div id="resetDias"></div>
-
-            <h4>Horários</h4>
-            <div id="resetHorarios" class="grid"></div>
-
-            <button id="btnExcluirSlots" class="btn-danger btn">
-              Remover horários
-            </button>
-          </div>
         </div>
 
         <!-- AGENDA ADMIN -->
@@ -624,8 +742,6 @@
       <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
       <script>
-        // ================= FIREBASE CONFIG =================
-
         const firebaseConfig = {
           apiKey: "AIzaSyBDffb23AqSOoT-8Z94Ao9leB5nTSdIv78",
           authDomain: "agenda-barbarujo.firebaseapp.com",
@@ -647,6 +763,8 @@
           ag: db.ref("barbarujo/agendamentos"),
           disp: db.ref("barbarujo/disponibilidade"),
           vendas: db.ref("barbarujo/vendas"),
+          despesas: db.ref("barbarujo/despesas"),
+          clientes: db.ref("barbarujo/clientes"),
         };
 
         // ================= ESTADO GLOBAL =================
@@ -656,6 +774,8 @@
         let disponibilidade = {};
         let agendamentos = [];
         let agendamentosMap = {};
+        let despesas = {};
+        let clientes = {};
 
         let servicosMulti = [];
 
@@ -670,6 +790,14 @@
         const PIX_CHAVE = "49999538762";
 
         let config = { intervalo: 30 };
+
+        const COMISSOES = {
+          "Juninho": 50,
+          "Gabriel": 42,
+          "Adrian": 42,
+          "José": 42,
+          "Carlos": 100,
+        };
 
         // ================= HELPERS =================
 
@@ -694,6 +822,53 @@
         }
 
         aplicarNome();
+
+        function isSextaOuSabado(dateStr) {
+          if (!dateStr) {
+            let d = new Date();
+            return d.getDay() === 5 || d.getDay() === 6;
+          }
+          let d = new Date(dateStr + "T00:00:00");
+          return d.getDay() === 5 || d.getDay() === 6;
+        }
+
+        function checkSplashOrdemChegada() {
+          let hoje = new Date();
+          let dia = hoje.getDay();
+          if (dia === 5 || dia === 6) {
+            msgOrdemChegada.style.display = "block";
+          } else {
+            msgOrdemChegada.style.display = "none";
+          }
+        }
+
+        function checkClienteOrdemChegada() {
+          let hoje = new Date();
+          let dia = hoje.getDay();
+          if (dia === 5 || dia === 6) {
+            alertOrdemChegadaCliente.style.display = "block";
+          } else {
+            alertOrdemChegadaCliente.style.display = "none";
+          }
+        }
+
+        checkSplashOrdemChegada();
+
+        function exportarExcel(dados, nomeArquivo) {
+          let csv = "\uFEFF";
+          dados.forEach((linha) => {
+            csv += linha.map((cel) => {
+              let v = String(cel == null ? "" : cel);
+              v = v.replace(/"/g, '""');
+              return '"' + v + '"';
+            }).join(";") + "\n";
+          });
+          let blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
+          let link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = nomeArquivo + ".csv";
+          link.click();
+        }
 
         // ================= RESET ESTADO =================
 
@@ -730,6 +905,7 @@
 
           btnBack.classList.remove("hidden");
 
+          checkClienteOrdemChegada();
           resetEscolha();
         };
 
@@ -775,6 +951,9 @@
           telaAdmin.classList.remove("hidden");
 
           btnBack.classList.remove("hidden");
+
+          renderDespesas();
+          renderClientes();
         };
 
         // ================= BACK =================
@@ -850,6 +1029,7 @@
             };
           });
         }
+
         // =====================================================
         // ================= SERVIÇOS CLIENTE ==================
         // =====================================================
@@ -947,8 +1127,14 @@ Remover
             return;
           }
 
+          let hoje = new Date();
+          let diaHoje = hoje.getDay();
+          let hojeEhSextaSabado = (diaHoje === 5 || diaHoje === 6);
+
           barbeiros.forEach((b) => {
             let nome = b.nome || b;
+
+            if (hojeEhSextaSabado && nome.toLowerCase() !== "juninho") return;
 
             let btn = document.createElement("button");
             btn.className = "btn-outline";
@@ -964,6 +1150,10 @@ Remover
 
             listaBarbeiros.appendChild(btn);
           });
+
+          if (hojeEhSextaSabado && listaBarbeiros.children.length === 0) {
+            listaBarbeiros.innerHTML = "Nenhum barbeiro disponível para agendamento hoje. Entre em contato com a barbearia.";
+          }
         }
 
         // =====================================================
@@ -979,6 +1169,10 @@ Remover
           let hoje = hojeISO();
 
           dias = dias.filter((d) => d >= hoje);
+
+          if (barbeiroSel.toLowerCase() !== "juninho") {
+            dias = dias.filter((d) => !isSextaOuSabado(d));
+          }
 
           if (!dias.length) {
             let o = document.createElement("option");
@@ -1004,6 +1198,11 @@ Remover
 
           if (!dataSel) {
             alert("Escolha um dia");
+            return;
+          }
+
+          if (isSextaOuSabado(dataSel) && barbeiroSel.toLowerCase() !== "juninho") {
+            alert("Sexta e Sábado: Atendimento por ORDEM DE CHEGADA. Agendamento disponível apenas com Juninho.");
             return;
           }
 
@@ -1097,6 +1296,7 @@ R$ ${formatarPreco(total)}
 
           pixValorView.innerText = formatarPreco(total);
         }
+
         // =====================================================
         // ================= WHATSAPP LOJA =====================
         // =====================================================
@@ -1119,7 +1319,6 @@ Valor: R$ ${formatarPreco(ag.preco)}
           let url =
             "https://wa.me/5549999538762?text=" + encodeURIComponent(msg);
 
-          // redireciona — não é popup → não bloqueia
           window.location.href = url;
         }
 
@@ -1188,7 +1387,6 @@ Valor: R$ ${formatarPreco(ag.preco)}
           btnAcao.disabled = true;
 
           try {
-            // TRAVA ANTI DUPLA RESERVA
             let snap = await DB.ag
               .orderByChild("data")
               .equalTo(dataSel)
@@ -1229,6 +1427,16 @@ Valor: R$ ${formatarPreco(ag.preco)}
 
             await DB.ag.push(ag);
             registrarVenda(ag);
+
+            let foneKey = clienteFone.value.replace(/\D/g, "");
+            if (foneKey) {
+              DB.clientes.child(foneKey).set({
+                nome: clienteNome.value,
+                fone: clienteFone.value,
+                ultimoAgendamento: dataSel,
+              });
+            }
+
             enviarWhatsLoja(ag);
           } catch (e) {
             alert("Erro ao salvar agendamento");
@@ -1364,32 +1572,35 @@ Excluir
           servicos.splice(i, 1);
           DB.servicos.set(servicos);
         }
+
         // =====================================================
         // ============ POPULAR SELECTS BARBEIRO ===============
         // =====================================================
 
         function popularSelectsBarbeiro() {
-          adminBarbeiroSel.innerHTML = "";
-          resetBarbeiro.innerHTML = "";
           barbeiroModoSel.innerHTML = "";
           excBarbeiro.innerHTML = "";
+
+          let barbDispSel = document.getElementById("barbDispBarbeiroSel");
+          let barbResetSel = document.getElementById("barbResetBarbeiroSel");
+          if (barbDispSel) barbDispSel.innerHTML = "";
+          if (barbResetSel) barbResetSel.innerHTML = "";
 
           barbeiros.forEach((b) => {
             let nome = b.nome || b;
 
-            adminBarbeiroSel.add(new Option(nome, nome));
-            resetBarbeiro.add(new Option(nome, nome));
             barbeiroModoSel.add(new Option(nome, nome));
             excBarbeiro.add(new Option(nome, nome));
+            if (barbDispSel) barbDispSel.add(new Option(nome, nome));
+            if (barbResetSel) barbResetSel.add(new Option(nome, nome));
           });
+
+          popularComissaoBarbeiroFiltro();
         }
 
         // =====================================================
         // ================= HORÁRIOS BASE =====================
         // =====================================================
-        // SEG–SEX: 09–12 / 14–19
-        // SÁBADO: 09–17
-        // DOMINGO: fechado
 
         function blocosDiaSemana(dataISO) {
           let d = new Date(dataISO + "T00:00:00");
@@ -1439,24 +1650,28 @@ Excluir
         }
 
         // =====================================================
-        // =============== GERAR SLOTS ADMIN ===================
+        // ========= BARBER MODE: GERAR SLOTS ==================
         // =====================================================
 
-        btnGerarSlots.onclick = () => {
-          let barbeiro = adminBarbeiroSel.value;
-          let data = adminDataPick.value;
+        btnBarbGerarSlots.onclick = () => {
+          let barbeiro = document.getElementById("barbDispBarbeiroSel").value;
+          let data = barbDispDataPick.value;
 
-          if (!barbeiro || !data) {
-            alert("Escolha barbeiro e data");
+          if (!barbeiro) {
+            alert("Escolha o barbeiro");
+            return;
+          }
+          if (!data) {
+            alert("Escolha a data");
             return;
           }
 
           let base = gerarSlotsFixos(data);
 
-          adminSlotsGrid.innerHTML = "";
+          barbSlotsGrid.innerHTML = "";
 
           if (!base.length) {
-            adminSlotsGrid.innerHTML = "Domingo fechado";
+            barbSlotsGrid.innerHTML = "Domingo fechado";
             return;
           }
 
@@ -1475,29 +1690,33 @@ Excluir
 
             div.onclick = () => div.classList.toggle("selected");
 
-            adminSlotsGrid.appendChild(div);
+            barbSlotsGrid.appendChild(div);
           });
 
-          rolarPara(adminSlotsGrid);
+          rolarPara(barbSlotsGrid);
         };
 
         // =====================================================
-        // ============== SALVAR DISPONIBILIDADE ===============
+        // ======= BARBER MODE: SALVAR DISPONIBILIDADE =========
         // =====================================================
 
-        btnSalvarSlotsDia.onclick = () => {
-          let barbeiro = adminBarbeiroSel.value;
-          let data = adminDataPick.value;
+        btnBarbSalvarSlotsDia.onclick = () => {
+          let barbeiro = document.getElementById("barbDispBarbeiroSel").value;
+          let data = barbDispDataPick.value;
 
-          if (!barbeiro || !data) {
-            alert("Escolha barbeiro e data");
+          if (!barbeiro) {
+            alert("Escolha o barbeiro");
+            return;
+          }
+          if (!data) {
+            alert("Escolha a data");
             return;
           }
 
           let sel = [];
 
           document
-            .querySelectorAll("#adminSlotsGrid .slot.selected")
+            .querySelectorAll("#barbSlotsGrid .slot.selected")
             .forEach((s) => sel.push(s.innerText));
 
           if (!sel.length) {
@@ -1509,41 +1728,35 @@ Excluir
 
           alert("Disponibilidade salva");
 
-          adminSlotsGrid.innerHTML = "";
-          adminDataPick.value = "";
+          barbSlotsGrid.innerHTML = "";
+          barbDispDataPick.value = "";
+        };
+
+        btnBarbLimparGerador.onclick = () => {
+          barbSlotsGrid.innerHTML = "";
         };
 
         // =====================================================
-        // ================= LIMPAR GERADOR ====================
+        // ======= BARBER MODE: RESET GUIADO ===================
         // =====================================================
 
-        btnLimparGerador.onclick = () => {
-          adminSlotsGrid.innerHTML = "";
-        };
+        btnBarbAbrirReset.onclick = () => {
+          barbResetBox.classList.toggle("hidden");
 
-        // =====================================================
-        // ================= RESET GUIADO ======================
-        // =====================================================
-
-        btnAbrirReset.onclick = () => {
-          resetBox.classList.toggle("hidden");
-
-          if (!resetBox.classList.contains("hidden")) {
-            renderResetDias();
-            rolarPara(resetBox);
+          if (!barbResetBox.classList.contains("hidden")) {
+            renderBarbResetDias();
+            rolarPara(barbResetBox);
           }
         };
 
-        resetBarbeiro.onchange = renderResetDias;
+        function renderBarbResetDias() {
+          barbResetDias.innerHTML = "";
+          barbResetHorarios.innerHTML = "";
 
-        function renderResetDias() {
-          resetDias.innerHTML = "";
-          resetHorarios.innerHTML = "";
-
-          let barbeiro = resetBarbeiro.value;
+          let barbeiro = document.getElementById("barbResetBarbeiroSel").value;
 
           if (!barbeiro) {
-            resetDias.innerHTML = "Escolha o barbeiro";
+            barbResetDias.innerHTML = "Escolha o barbeiro";
             return;
           }
 
@@ -1551,7 +1764,7 @@ Excluir
           let dias = Object.keys(diasObj).sort();
 
           if (!dias.length) {
-            resetDias.innerHTML = "Sem dias";
+            barbResetDias.innerHTML = "Sem dias";
             return;
           }
 
@@ -1561,23 +1774,21 @@ Excluir
             b.style.marginBottom = "8px";
             b.textContent = d;
 
-            b.onclick = () => renderResetHorarios(barbeiro, d);
+            b.onclick = () => renderBarbResetHorarios(barbeiro, d);
 
-            resetDias.appendChild(b);
+            barbResetDias.appendChild(b);
           });
         }
 
-        // -----------------------------------------------------
-
-        function renderResetHorarios(barbeiro, data) {
-          resetHorarios.innerHTML = "";
+        function renderBarbResetHorarios(barbeiro, data) {
+          barbResetHorarios.innerHTML = "";
 
           let lista =
             (disponibilidade[barbeiro] && disponibilidade[barbeiro][data]) ||
             [];
 
           if (!lista.length) {
-            resetHorarios.innerHTML = "Sem horários";
+            barbResetHorarios.innerHTML = "Sem horários";
             return;
           }
 
@@ -1587,22 +1798,18 @@ Excluir
             div.innerText = h;
             div.onclick = () => div.classList.toggle("selected");
 
-            resetHorarios.appendChild(div);
+            barbResetHorarios.appendChild(div);
           });
 
-          resetHorarios.dataset.barbeiro = barbeiro;
-          resetHorarios.dataset.data = data;
+          barbResetHorarios.dataset.barbeiro = barbeiro;
+          barbResetHorarios.dataset.data = data;
 
-          rolarPara(resetHorarios);
+          rolarPara(barbResetHorarios);
         }
 
-        // =====================================================
-        // ================= EXCLUIR SLOTS =====================
-        // =====================================================
-
-        btnExcluirSlots.onclick = () => {
-          let barbeiro = resetHorarios.dataset.barbeiro;
-          let data = resetHorarios.dataset.data;
+        btnBarbExcluirSlots.onclick = () => {
+          let barbeiro = barbResetHorarios.dataset.barbeiro;
+          let data = barbResetHorarios.dataset.data;
 
           if (!barbeiro || !data) {
             alert("Escolha barbeiro e dia");
@@ -1612,7 +1819,7 @@ Excluir
           let remover = [];
 
           document
-            .querySelectorAll("#resetHorarios .slot.selected")
+            .querySelectorAll("#barbResetHorarios .slot.selected")
             .forEach((s) => remover.push(s.innerText));
 
           if (!remover.length) {
@@ -1632,8 +1839,9 @@ Excluir
 
           alert("Horários removidos");
 
-          renderResetHorarios(barbeiro, data);
+          renderBarbResetHorarios(barbeiro, data);
         };
+
         // =====================================================
         // ================= ADMIN AGENDA ======================
         // =====================================================
@@ -1679,7 +1887,7 @@ Excluir
           if (!confirm("Excluir agendamento?")) return;
           let ag = agendamentosMap[key];
           if (ag) {
-            registrarVenda(ag, true); // Refund
+            registrarVenda(ag, true);
           }
           DB.ag.child(key).remove();
         }
@@ -1736,10 +1944,30 @@ Excluir
 
         function popularModoBarbeiro() {
           barbeiroModoSel.innerHTML = "";
+          let barbDispSel = document.getElementById("barbDispBarbeiroSel");
+          let barbResetSel = document.getElementById("barbResetBarbeiroSel");
+          if (barbDispSel) barbDispSel.innerHTML = "";
+          if (barbResetSel) barbResetSel.innerHTML = "";
+
           barbeiros.forEach((b) => {
             let nome = b.nome || b;
             barbeiroModoSel.add(new Option(nome, nome));
+            if (barbDispSel) barbDispSel.add(new Option(nome, nome));
+            if (barbResetSel) barbResetSel.add(new Option(nome, nome));
           });
+          popularComissaoBarbeiroFiltro();
+        }
+
+        function popularComissaoBarbeiroFiltro() {
+          let sel = document.getElementById("comissaoBarbeiroFiltro");
+          if (!sel) return;
+          let current = sel.value;
+          sel.innerHTML = '<option value="todos">Todos os barbeiros</option>';
+          barbeiros.forEach((b) => {
+            let nome = b.nome || b;
+            sel.add(new Option(nome, nome));
+          });
+          if (current) sel.value = current;
         }
 
         function renderAgendaBarbeiro() {
@@ -1823,11 +2051,11 @@ Hora: ${hora}
 
         function renderRelHoje() {
           let hoje = hojeISO();
-
           let lista = agendamentos.filter((a) => a.data === hoje);
 
           let total = 0;
           let porTipo = { pix: 0, debito: 0, credito: 0, dinheiro: 0 };
+          let porBarbeiro = {};
 
           lista.forEach((a) => {
             let v = Number(a.preco || 0);
@@ -1835,21 +2063,51 @@ Hora: ${hora}
             if (porTipo[a.pagamento] != null) {
               porTipo[a.pagamento] += v;
             }
+            if (!porBarbeiro[a.barbeiro]) porBarbeiro[a.barbeiro] = 0;
+            porBarbeiro[a.barbeiro] += v;
           });
 
           relHojeBox.classList.remove("hidden");
           relPeriodoBox.classList.add("hidden");
 
+          let barbeiroHtml = Object.entries(porBarbeiro).map(([n,v]) => `${n}: R$ ${formatarPreco(v)}`).join("<br>");
+
           relHojeBox.innerHTML = `
 <b>Hoje — ${hoje}</b><br><br>
+<b>Por forma de pagamento:</b><br>
 PIX: R$ ${formatarPreco(porTipo.pix)}<br>
 Débito: R$ ${formatarPreco(porTipo.debito)}<br>
 Crédito: R$ ${formatarPreco(porTipo.credito)}<br>
 Dinheiro: R$ ${formatarPreco(porTipo.dinheiro)}<br><br>
+<b>Por barbeiro:</b><br>
+${barbeiroHtml || "Nenhum"}<br><br>
 <div class="price">
 Total: R$ ${formatarPreco(total)}
 </div>
+<button class="btn-export" style="margin-top:12px" onclick="exportarRelHoje()">📊 Exportar para Excel</button>
 `;
+
+          window._relHojeDados = [
+            ["Relatório do dia", hoje],
+            [],
+            ["Cliente", "Barbeiro", "Serviço", "Hora", "Pagamento", "Valor (R$)"]
+          ];
+          lista.sort((a,b) => a.hora.localeCompare(b.hora));
+          lista.forEach((a) => {
+            window._relHojeDados.push([a.cliente, a.barbeiro, a.servico, a.hora, a.pagamento, formatarPreco(a.preco)]);
+          });
+          window._relHojeDados.push([]);
+          window._relHojeDados.push(["PIX", "", "", "", "", formatarPreco(porTipo.pix)]);
+          window._relHojeDados.push(["Débito", "", "", "", "", formatarPreco(porTipo.debito)]);
+          window._relHojeDados.push(["Crédito", "", "", "", "", formatarPreco(porTipo.credito)]);
+          window._relHojeDados.push(["Dinheiro", "", "", "", "", formatarPreco(porTipo.dinheiro)]);
+          window._relHojeDados.push(["TOTAL", "", "", "", "", formatarPreco(total)]);
+        }
+
+        function exportarRelHoje() {
+          if (window._relHojeDados) {
+            exportarExcel(window._relHojeDados, "vendas_hoje_" + hojeISO());
+          }
         }
 
         btnRelHoje.onclick = renderRelHoje;
@@ -1927,21 +2185,334 @@ Total: R$ ${formatarPreco(total)}
             let tipo = relTipoSel.value;
             if (!d) return;
 
-            let refParts = d.split("-"); // [YYYY, MM, DD] ou [YYYY, MM] ou [YYYY]
+            let refParts = d.split("-");
             let lista = agendamentos.filter((a) => {
               let aParts = a.data.split("-");
               if (tipo === "dia") return a.data === d;
               if (tipo === "mes")
                 return aParts[0] === refParts[0] && aParts[1] === refParts[1];
-              if (tipo === "ano") return aParts[0] === d; // No select do ano, o value é o ano
+              if (tipo === "ano") return aParts[0] === d;
               return false;
             });
 
-            let total = lista.reduce((t, a) => t + Number(a.preco || 0), 0);
-            document.getElementById("relOut").innerHTML =
-              `Total: <b>R$ ${formatarPreco(total)}</b>`;
+            let total = 0;
+            let porTipo = { pix: 0, debito: 0, credito: 0, dinheiro: 0 };
+            let porBarbeiro = {};
+
+            lista.forEach((a) => {
+              let v = Number(a.preco || 0);
+              total += v;
+              if (porTipo[a.pagamento] != null) porTipo[a.pagamento] += v;
+              if (!porBarbeiro[a.barbeiro]) porBarbeiro[a.barbeiro] = 0;
+              porBarbeiro[a.barbeiro] += v;
+            });
+
+            let barbeiroHtml = Object.entries(porBarbeiro).map(([n,v]) => `${n}: R$ ${formatarPreco(v)}`).join("<br>");
+
+            let relOut = document.getElementById("relOut");
+            relOut.innerHTML = `
+<b>Por forma de pagamento:</b><br>
+PIX: R$ ${formatarPreco(porTipo.pix)}<br>
+Débito: R$ ${formatarPreco(porTipo.debito)}<br>
+Crédito: R$ ${formatarPreco(porTipo.credito)}<br>
+Dinheiro: R$ ${formatarPreco(porTipo.dinheiro)}<br><br>
+<b>Por barbeiro:</b><br>
+${barbeiroHtml || "Nenhum"}<br><br>
+<div class="price">Total: R$ ${formatarPreco(total)}</div>
+<button class="btn-export" style="margin-top:12px" onclick="exportarRelPeriodo()">📊 Exportar para Excel</button>
+`;
+
+            window._relPeriodoDados = [
+              ["Relatório - Período: " + d],
+              [],
+              ["Cliente", "Barbeiro", "Serviço", "Data", "Hora", "Pagamento", "Valor (R$)"]
+            ];
+            lista.sort((a,b) => (a.data + a.hora).localeCompare(b.data + b.hora));
+            lista.forEach((a) => {
+              window._relPeriodoDados.push([a.cliente, a.barbeiro, a.servico, a.data, a.hora, a.pagamento, formatarPreco(a.preco)]);
+            });
+            window._relPeriodoDados.push([]);
+            window._relPeriodoDados.push(["TOTAL", "", "", "", "", "", formatarPreco(total)]);
+
+            window._relPeriodoRef = d;
           };
         };
+
+        function exportarRelPeriodo() {
+          if (window._relPeriodoDados) {
+            exportarExcel(window._relPeriodoDados, "vendas_periodo_" + (window._relPeriodoRef || "relatorio"));
+          }
+        }
+
+        // =====================================================
+        // ================= COMISSÕES =========================
+        // =====================================================
+
+        comissaoTipoSel.onchange = () => {
+          let tipo = comissaoTipoSel.value;
+          let container = document.getElementById("comissaoInputContainer");
+          if (tipo === "dia") {
+            container.innerHTML = `<input type="date" id="comissaoRefDia" />`;
+          } else if (tipo === "mes") {
+            container.innerHTML = `<input type="month" id="comissaoRefDia" style="width:100%; padding:16px; border-radius:14px; border:none; margin-top:8px; margin-bottom:14px; color:#000; font-size:15px;" />`;
+          } else if (tipo === "ano") {
+            const anos = [...new Set(agendamentos.map((a) => a.data.split("-")[0]))].sort().reverse();
+            if (anos.length === 0) {
+              const anoAtual = new Date().getFullYear();
+              anos.push(anoAtual.toString());
+            }
+            let options = anos.map((a) => `<option value="${a}">${a}</option>`).join("");
+            container.innerHTML = `<select id="comissaoRefDia" style="width:100%; padding:16px; border-radius:14px; border:none; margin-top:8px; margin-bottom:14px; color:#000; font-size:15px;">${options}</select>`;
+          }
+        };
+
+        btnGerarComissao.onclick = () => {
+          let d = document.getElementById("comissaoRefDia").value;
+          let tipo = comissaoTipoSel.value;
+          if (!d) { alert("Selecione o período"); return; }
+
+          let refParts = d.split("-");
+          let lista = agendamentos.filter((a) => {
+            let aParts = a.data.split("-");
+            if (tipo === "dia") return a.data === d;
+            if (tipo === "mes") return aParts[0] === refParts[0] && aParts[1] === refParts[1];
+            if (tipo === "ano") return aParts[0] === d;
+            return false;
+          });
+
+          let porBarbeiro = {};
+          lista.forEach((a) => {
+            let nome = a.barbeiro;
+            if (!porBarbeiro[nome]) porBarbeiro[nome] = [];
+            porBarbeiro[nome].push(a);
+          });
+
+          let html = "";
+          let grandTotal = 0;
+          let grandComissaoTotal = 0;
+          let csvDados = [["Barbeiro", "Serviço", "Data", "Hora", "Valor (R$)", "% Comissão", "Comissão (R$)"]];
+
+          let nomesBarbeiros = Object.keys(porBarbeiro).sort();
+
+          let filtBarbeiro = document.getElementById("comissaoBarbeiroFiltro").value;
+          if (filtBarbeiro !== "todos") {
+            let filtered = {};
+            if (porBarbeiro[filtBarbeiro]) filtered[filtBarbeiro] = porBarbeiro[filtBarbeiro];
+            porBarbeiro = filtered;
+            nomesBarbeiros = Object.keys(porBarbeiro).sort();
+          }
+
+          nomesBarbeiros.forEach((nome) => {
+            let ags = porBarbeiro[nome];
+            let subtotal = 0;
+            let pct = COMISSOES[nome] != null ? COMISSOES[nome] : 42;
+
+            html += `<table class="comissao-table">`;
+            html += `<tr><th colspan="4" style="font-size:15px;">💈 ${nome} — Comissão: ${pct}%</th></tr>`;
+            html += `<tr><th>Serviço</th><th>Data</th><th>Hora</th><th>Valor</th></tr>`;
+
+            ags.sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora));
+
+            ags.forEach((a) => {
+              let v = Number(a.preco || 0);
+              subtotal += v;
+              html += `<tr><td>${a.servico}</td><td>${a.data}</td><td>${a.hora}</td><td>R$ ${formatarPreco(v)}</td></tr>`;
+              csvDados.push([nome, a.servico, a.data, a.hora, formatarPreco(v), pct + "%", formatarPreco(v * pct / 100)]);
+            });
+
+            let comissaoVal = subtotal * pct / 100;
+            grandTotal += subtotal;
+            grandComissaoTotal += comissaoVal;
+
+            html += `<tr class="subtotal-row"><td colspan="3">Subtotal / Comissão</td><td>R$ ${formatarPreco(subtotal)} → R$ ${formatarPreco(comissaoVal)}</td></tr>`;
+            html += `</table><br>`;
+
+            csvDados.push([nome, "SUBTOTAL", "", "", formatarPreco(subtotal), pct + "%", formatarPreco(comissaoVal)]);
+            csvDados.push([]);
+          });
+
+          if (nomesBarbeiros.length === 0) {
+            html = "<p>Nenhum agendamento encontrado no período.</p>";
+          } else {
+            html += `<table class="comissao-table"><tr class="grand-total-row"><td colspan="3">TOTAL GERAL</td><td>R$ ${formatarPreco(grandTotal)}</td></tr>`;
+            html += `<tr class="grand-total-row"><td colspan="3">TOTAL COMISSÕES</td><td>R$ ${formatarPreco(grandComissaoTotal)}</td></tr></table>`;
+
+            csvDados.push(["TOTAL GERAL", "", "", "", formatarPreco(grandTotal), "", formatarPreco(grandComissaoTotal)]);
+
+            html += `<button class="btn-export" onclick="exportarComissaoCSV()">📊 Exportar para Excel</button>`;
+
+            window._comissaoCsvDados = csvDados;
+            window._comissaoPeriodo = d;
+          }
+
+          comissaoOut.innerHTML = html;
+        };
+
+        function exportarComissaoCSV() {
+          if (window._comissaoCsvDados) {
+            exportarExcel(window._comissaoCsvDados, "comissoes_" + (window._comissaoPeriodo || "relatorio"));
+          }
+        }
+
+        // =====================================================
+        // ================= DESPESAS ==========================
+        // =====================================================
+
+        btnAddDespesa.onclick = () => {
+          let produto = despesaProduto.value.trim();
+          let qtd = Number(despesaQtd.value) || 1;
+          let valor = Number(despesaValor.value) || 0;
+          let data = despesaData.value;
+
+          if (!produto) { alert("Informe o nome do produto"); return; }
+          if (!valor) { alert("Informe o valor"); return; }
+          if (!data) { alert("Informe a data"); return; }
+
+          DB.despesas.push({
+            produto: produto,
+            quantidade: qtd,
+            valor: valor,
+            data: data,
+            ts: Date.now(),
+          });
+
+          despesaProduto.value = "";
+          despesaQtd.value = "";
+          despesaValor.value = "";
+          despesaData.value = "";
+
+          alert("Despesa adicionada");
+        };
+
+        despesaFiltroTipo.onchange = () => {
+          let tipo = despesaFiltroTipo.value;
+          let container = document.getElementById("despesaFiltroContainer");
+          if (tipo === "todos") {
+            container.innerHTML = "";
+          } else if (tipo === "dia") {
+            container.innerHTML = `<input type="date" id="despesaFiltroRef" onchange="renderDespesas()" />`;
+          } else if (tipo === "mes") {
+            container.innerHTML = `<input type="month" id="despesaFiltroRef" style="width:100%; padding:16px; border-radius:14px; border:none; color:#000; font-size:15px;" onchange="renderDespesas()" />`;
+          } else if (tipo === "ano") {
+            let anos = [];
+            Object.values(despesas).forEach((d) => {
+              if (d.data) {
+                let y = d.data.split("-")[0];
+                if (!anos.includes(y)) anos.push(y);
+              }
+            });
+            anos.sort().reverse();
+            if (!anos.length) anos.push(new Date().getFullYear().toString());
+            let opts = anos.map((a) => `<option value="${a}">${a}</option>`).join("");
+            container.innerHTML = `<select id="despesaFiltroRef" style="width:100%; padding:16px; border-radius:14px; border:none; color:#000; font-size:15px;" onchange="renderDespesas()">${opts}</select>`;
+          }
+          renderDespesas();
+        };
+
+        function renderDespesas() {
+          listaDespesas.innerHTML = "";
+          totalDespesas.innerHTML = "";
+
+          let tipo = despesaFiltroTipo.value;
+          let ref = "";
+          let refEl = document.getElementById("despesaFiltroRef");
+          if (refEl) ref = refEl.value;
+
+          let entries = Object.entries(despesas);
+          let filtered = entries.filter(([k, d]) => {
+            if (tipo === "todos") return true;
+            if (!d.data || !ref) return false;
+            let parts = d.data.split("-");
+            let refParts = ref.split("-");
+            if (tipo === "dia") return d.data === ref;
+            if (tipo === "mes") return parts[0] === refParts[0] && parts[1] === refParts[1];
+            if (tipo === "ano") return parts[0] === ref;
+            return false;
+          });
+
+          let total = 0;
+
+          filtered.sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
+
+          filtered.forEach(([key, d]) => {
+            let v = Number(d.valor || 0) * Number(d.quantidade || 1);
+            total += v;
+
+            let div = document.createElement("div");
+            div.className = "card card-sub";
+            div.style.marginBottom = "10px";
+
+            div.innerHTML = `
+<b>${d.produto}</b><br>
+Qtd: ${d.quantidade || 1} | Valor: R$ ${formatarPreco(d.valor)} | Total: R$ ${formatarPreco(v)}<br>
+Data: ${d.data || "-"}
+<button class="btn-danger btn" style="margin-top:8px" onclick="excluirDespesa('${key}')">Excluir</button>
+`;
+
+            listaDespesas.appendChild(div);
+          });
+
+          if (!filtered.length) {
+            listaDespesas.innerHTML = "Nenhuma despesa encontrada.";
+          }
+
+          totalDespesas.innerHTML = `<div class="price">Total despesas: R$ ${formatarPreco(total)}</div>
+<button class="btn-export" style="margin-top:12px" onclick="exportarDespesas()">📊 Exportar para Excel</button>`;
+
+          window._despesasDados = [["Produto", "Quantidade", "Valor Unit.", "Total", "Data"]];
+          filtered.forEach(([key, d]) => {
+            let v = Number(d.valor || 0) * Number(d.quantidade || 1);
+            window._despesasDados.push([d.produto, d.quantidade || 1, formatarPreco(d.valor), formatarPreco(v), d.data || "-"]);
+          });
+          window._despesasDados.push([]);
+          window._despesasDados.push(["TOTAL", "", "", formatarPreco(total), ""]);
+        }
+
+        function excluirDespesa(key) {
+          if (!confirm("Excluir despesa?")) return;
+          DB.despesas.child(key).remove();
+        }
+
+        function exportarDespesas() {
+          if (window._despesasDados) {
+            exportarExcel(window._despesasDados, "despesas_relatorio");
+          }
+        }
+
+        // =====================================================
+        // ================= CLIENTES ==========================
+        // =====================================================
+
+        function renderClientes() {
+          listaClientes.innerHTML = "";
+
+          let entries = Object.entries(clientes);
+
+          if (!entries.length) {
+            listaClientes.innerHTML = "Nenhum cliente registrado.";
+            return;
+          }
+
+          entries.sort((a, b) => (a[1].nome || "").localeCompare(b[1].nome || ""));
+
+          entries.forEach(([key, c]) => {
+            let div = document.createElement("div");
+            div.className = "card card-sub";
+            div.style.marginBottom = "10px";
+
+            div.innerHTML = `
+<b>${c.nome || "-"}</b><br>
+📱 ${c.fone || key}
+
+<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+<button class="btn-outline" style="flex:1;min-width:120px;font-size:12px;padding:10px;" onclick="copiarFone('${c.fone || key}')">Copiar telefone</button>
+<button class="btn-dark btn" style="flex:1;min-width:120px;font-size:12px;padding:10px;" onclick="window.open('https://wa.me/55${(c.fone || key).replace(/\\D/g,'')}')">WhatsApp</button>
+</div>
+`;
+
+            listaClientes.appendChild(div);
+          });
+        }
 
         // =====================================================
         // ================= SYNC FIREBASE =====================
@@ -1966,7 +2537,7 @@ Total: R$ ${formatarPreco(total)}
           if (snap.exists()) {
             barbeiros = Object.values(snap.val());
           } else {
-            DB.barbeiros.set([{ nome: "Carlos" }]);
+            DB.barbeiros.set([{nome:"Juninho"},{nome:"Gabriel"},{nome:"Adrian"},{nome:"José"},{nome:"Carlos"}]);
             return;
           }
 
@@ -1979,7 +2550,9 @@ Total: R$ ${formatarPreco(total)}
         DB.disp.on("value", (snap) => {
           disponibilidade = snap.exists() ? snap.val() : {};
           if (barbeiroSel) renderDatasCliente();
-          renderResetDias();
+          if (!telaBarbeiro.classList.contains("hidden")) {
+            renderBarbResetDias();
+          }
         });
 
         DB.ag.on("value", (snap) => {
@@ -1995,6 +2568,20 @@ Total: R$ ${formatarPreco(total)}
         DB.config.on("value", (snap) => {
           if (snap.exists()) {
             config = snap.val();
+          }
+        });
+
+        DB.despesas.on("value", (snap) => {
+          despesas = snap.exists() ? snap.val() : {};
+          if (!telaAdmin.classList.contains("hidden")) {
+            renderDespesas();
+          }
+        });
+
+        DB.clientes.on("value", (snap) => {
+          clientes = snap.exists() ? snap.val() : {};
+          if (!telaAdmin.classList.contains("hidden")) {
+            renderClientes();
           }
         });
       </script>
