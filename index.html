@@ -2305,7 +2305,11 @@ ${barbeiroHtml || "Nenhum"}<br><br>
           nomesBarbeiros.forEach((nome) => {
             let ags = porBarbeiro[nome];
             let subtotal = 0;
-            let pct = COMISSOES[nome] != null ? COMISSOES[nome] : 42;
+            let pct = null;
+            for (let key in COMISSOES) {
+              if (key.toLowerCase() === nome.toLowerCase()) { pct = COMISSOES[key]; break; }
+            }
+            if (pct == null) pct = 42;
 
             html += `<table class="comissao-table">`;
             html += `<tr><th colspan="4" style="font-size:15px;">💈 ${nome} — Comissão: ${pct}%</th></tr>`;
