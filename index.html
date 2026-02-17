@@ -585,6 +585,18 @@
             </button>
           </div>
         </div>
+
+        <!-- TODOS AGENDAMENTOS (per barber) -->
+        <div class="card">
+          <h3>Todos agendamentos</h3>
+
+          <label>Filtrar por barbeiro</label>
+          <select id="agendBarbeiroFiltro">
+            <option value="todos">Todos</option>
+          </select>
+
+          <div id="listaAgendamentos"></div>
+        </div>
       </div>
 
       <!-- ================= ADMIN ================= -->
@@ -708,12 +720,6 @@
           <div id="adminBarbeiros"></div>
         </div>
 
-        <!-- AGENDA ADMIN -->
-
-        <div class="card">
-          <h3>Todos agendamentos</h3>
-          <div id="listaAgendamentos"></div>
-        </div>
       </div>
 
       <!-- ================= EXCLUSÃO ================= -->
@@ -930,6 +936,7 @@
           btnBack.classList.remove("hidden");
 
           popularModoBarbeiro();
+          renderAdminAgendamentos();
         };
 
         // ================= ADMIN LOGIN =================
@@ -1596,6 +1603,17 @@ Excluir
           });
 
           popularComissaoBarbeiroFiltro();
+
+          let agendFiltro = document.getElementById("agendBarbeiroFiltro");
+          if (agendFiltro) {
+            let currentVal = agendFiltro.value;
+            agendFiltro.innerHTML = '<option value="todos">Todos</option>';
+            barbeiros.forEach((b) => {
+              let nome = b.nome || b;
+              agendFiltro.add(new Option(nome, nome));
+            });
+            if (currentVal) agendFiltro.value = currentVal;
+          }
         }
 
         // =====================================================
@@ -1749,6 +1767,16 @@ Excluir
           }
         };
 
+        document.getElementById("barbResetBarbeiroSel").onchange = () => {
+          if (!barbResetBox.classList.contains("hidden")) {
+            renderBarbResetDias();
+          }
+        };
+
+        document.getElementById("barbDispBarbeiroSel").onchange = () => {
+          barbSlotsGrid.innerHTML = "";
+        };
+
         function renderBarbResetDias() {
           barbResetDias.innerHTML = "";
           barbResetHorarios.innerHTML = "";
@@ -1847,12 +1875,21 @@ Excluir
         // =====================================================
 
         function renderAdminAgendamentos() {
-          listaAgendamentos.innerHTML = "";
+          let container = document.getElementById("listaAgendamentos");
+          if (!container) return;
+          container.innerHTML = "";
+
+          let filtro = document.getElementById("agendBarbeiroFiltro");
+          let barbeiroFiltro = filtro ? filtro.value : "todos";
 
           let lista = Object.entries(agendamentosMap);
 
+          if (barbeiroFiltro !== "todos") {
+            lista = lista.filter(([key, a]) => a.barbeiro === barbeiroFiltro);
+          }
+
           if (!lista.length) {
-            listaAgendamentos.innerHTML = "Sem agendamentos";
+            container.innerHTML = "Sem agendamentos";
             return;
           }
 
@@ -1879,9 +1916,11 @@ Excluir
 </button>
 `;
 
-              listaAgendamentos.appendChild(div);
+              container.appendChild(div);
             });
         }
+
+        document.getElementById("agendBarbeiroFiltro").onchange = renderAdminAgendamentos;
 
         function excluirAgendamentoAdmin(key) {
           if (!confirm("Excluir agendamento?")) return;
@@ -1956,6 +1995,17 @@ Excluir
             if (barbResetSel) barbResetSel.add(new Option(nome, nome));
           });
           popularComissaoBarbeiroFiltro();
+
+          let agendFiltro = document.getElementById("agendBarbeiroFiltro");
+          if (agendFiltro) {
+            let currentVal = agendFiltro.value;
+            agendFiltro.innerHTML = '<option value="todos">Todos</option>';
+            barbeiros.forEach((b) => {
+              let nome = b.nome || b;
+              agendFiltro.add(new Option(nome, nome));
+            });
+            if (currentVal) agendFiltro.value = currentVal;
+          }
         }
 
         function popularComissaoBarbeiroFiltro() {
@@ -2511,11 +2561,17 @@ Data: ${d.data || "-"}
 <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
 <button class="btn-outline" style="flex:1;min-width:120px;font-size:12px;padding:10px;" onclick="copiarFone('${c.fone || key}')">Copiar telefone</button>
 <button class="btn-dark btn" style="flex:1;min-width:120px;font-size:12px;padding:10px;" onclick="window.open('https://wa.me/55${(c.fone || key).replace(/\\D/g,'')}')">WhatsApp</button>
+<button class="btn-danger btn" style="flex:1;min-width:120px;font-size:12px;padding:10px;" onclick="excluirCliente('${key}')">Excluir</button>
 </div>
 `;
 
             listaClientes.appendChild(div);
           });
+        }
+
+        function excluirCliente(key) {
+          if (!confirm("Excluir este cliente da lista?")) return;
+          DB.clientes.child(key).remove();
         }
 
         // =====================================================
@@ -2562,11 +2618,11 @@ Data: ${d.data || "-"}
         DB.ag.on("value", (snap) => {
           agendamentosMap = snap.exists() ? snap.val() : {};
           agendamentos = Object.values(agendamentosMap);
-          renderAdminAgendamentos();
-          if (barbeiroSel && dataSel) renderHorariosCliente();
           if (!telaBarbeiro.classList.contains("hidden")) {
+            renderAdminAgendamentos();
             renderAgendaBarbeiro();
           }
+          if (barbeiroSel && dataSel) renderHorariosCliente();
         });
 
         DB.config.on("value", (snap) => {
