@@ -1925,10 +1925,11 @@ Excluir
           }
 
           let diasObj = disponibilidade[barbeiro] || {};
-          let dias = Object.keys(diasObj).sort();
+          let hoje = hojeISO();
+          let dias = Object.keys(diasObj).filter((d) => d >= hoje).sort();
 
           if (!dias.length) {
-            barbResetDias.innerHTML = "Sem dias";
+            barbResetDias.innerHTML = "Sem dias disponíveis";
             return;
           }
 
