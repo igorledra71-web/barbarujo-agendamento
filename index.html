@@ -291,16 +291,6 @@
         margin-bottom: 12px;
       }
 
-      .alert-banner {
-        background: #8B6914;
-        padding: 12px;
-        border-radius: 12px;
-        margin-bottom: 12px;
-        font-size: 13px;
-        font-weight: 700;
-        text-align: center;
-        color: #fff;
-      }
 
       .comissao-table {
         width: 100%;
@@ -445,10 +435,6 @@
         Domingo — Fechado
       </div>
 
-      <div id="msgOrdemChegada" style="display:none;" class="alert-banner">
-        ⚠️ Hoje é dia de atendimento por ORDEM DE CHEGADA.<br>
-        Agendamento disponível apenas com Juninho.
-      </div>
 
       <button id="btnEntrar" class="btn" style="max-width: 360px">
         Agendar horário
@@ -469,10 +455,6 @@
       <!-- ================= CLIENTE ================= -->
 
       <div id="telaCliente">
-        <div id="alertOrdemChegadaCliente" class="alert-banner" style="display:none;">
-          ⚠️ Sexta e Sábado: Atendimento por ORDEM DE CHEGADA.<br>
-          Agendamento disponível apenas com Juninho.
-        </div>
 
         <div class="card" id="cardServico">
           <div class="step">PASSO 1</div>
@@ -947,36 +929,6 @@
 
         aplicarNome();
 
-        function isSextaOuSabado(dateStr) {
-          if (!dateStr) {
-            let d = new Date();
-            return d.getDay() === 5 || d.getDay() === 6;
-          }
-          let d = new Date(dateStr + "T00:00:00");
-          return d.getDay() === 5 || d.getDay() === 6;
-        }
-
-        function checkSplashOrdemChegada() {
-          let hoje = new Date();
-          let dia = hoje.getDay();
-          if (dia === 5 || dia === 6) {
-            msgOrdemChegada.style.display = "block";
-          } else {
-            msgOrdemChegada.style.display = "none";
-          }
-        }
-
-        function checkClienteOrdemChegada() {
-          let hoje = new Date();
-          let dia = hoje.getDay();
-          if (dia === 5 || dia === 6) {
-            alertOrdemChegadaCliente.style.display = "block";
-          } else {
-            alertOrdemChegadaCliente.style.display = "none";
-          }
-        }
-
-        checkSplashOrdemChegada();
 
         function exportarExcel(dados, nomeArquivo) {
           let csv = "\uFEFF";
@@ -1029,7 +981,6 @@
 
           btnBack.classList.remove("hidden");
 
-          checkClienteOrdemChegada();
           resetEscolha();
         };
 
@@ -1267,14 +1218,8 @@ Remover
             return;
           }
 
-          let hoje = new Date();
-          let diaHoje = hoje.getDay();
-          let hojeEhSextaSabado = (diaHoje === 5 || diaHoje === 6);
-
           barbeiros.forEach((b) => {
             let nome = b.nome || b;
-
-            if (hojeEhSextaSabado && nome.toLowerCase() !== "juninho") return;
 
             let btn = document.createElement("button");
             btn.className = "btn-outline";
@@ -1290,10 +1235,6 @@ Remover
 
             listaBarbeiros.appendChild(btn);
           });
-
-          if (hojeEhSextaSabado && listaBarbeiros.children.length === 0) {
-            listaBarbeiros.innerHTML = "Nenhum barbeiro disponível para agendamento hoje. Entre em contato com a barbearia.";
-          }
         }
 
         // =====================================================
@@ -1309,10 +1250,6 @@ Remover
           let hoje = hojeISO();
 
           dias = dias.filter((d) => d >= hoje);
-
-          if (barbeiroSel.toLowerCase() !== "juninho") {
-            dias = dias.filter((d) => !isSextaOuSabado(d));
-          }
 
           if (!dias.length) {
             let o = document.createElement("option");
@@ -1338,11 +1275,6 @@ Remover
 
           if (!dataSel) {
             alert("Escolha um dia");
-            return;
-          }
-
-          if (isSextaOuSabado(dataSel) && barbeiroSel.toLowerCase() !== "juninho") {
-            alert("Sexta e Sábado: Atendimento por ORDEM DE CHEGADA. Agendamento disponível apenas com Juninho.");
             return;
           }
 
