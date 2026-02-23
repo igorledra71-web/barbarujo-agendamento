@@ -264,7 +264,8 @@
         cursor: pointer;
       }
 
-      .pagamento-btn.sel {
+      .pagamento-btn.sel,
+      .oc-pag-btn.sel {
         border: 2px solid #d4af37;
         background: #2b2616;
       }
@@ -341,6 +342,72 @@
         width: 100%;
         margin-top: 12px;
         font-size: 14px;
+      }
+
+      .admin-menu-btn {
+        background: #1c1c1c;
+        border: 1px solid #333;
+        color: #fff;
+        padding: 18px 20px;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 15px;
+        width: 100%;
+        text-align: left;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+      }
+      .admin-menu-btn:active {
+        background: #2b2616;
+        border-color: #d4af37;
+      }
+      .admin-menu-btn .menu-icon {
+        font-size: 20px;
+        width: 28px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .admin-overlay {
+        position: fixed;
+        inset: 0;
+        background: #0e0e0e;
+        z-index: 9000;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        display: none;
+        padding: 60px 16px 40px 16px;
+      }
+      .admin-overlay.active {
+        display: block;
+      }
+      .admin-overlay-close {
+        position: fixed;
+        left: 14px;
+        top: 14px;
+        z-index: 9500;
+        background: #1c1c1c;
+        border: 1px solid #333;
+        color: #fff;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        font-size: 18px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .admin-overlay-title {
+        font-size: 20px;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 20px;
+        color: #d4af37;
       }
     </style>
   </head>
@@ -533,9 +600,49 @@
           <div id="listaBarbeiroAgenda"></div>
         </div>
 
+        <!-- REGISTRO ORDEM DE CHEGADA (WIZARD) -->
+        <div class="card">
+          <h3>✏️ Registrar atendimento</h3>
+          <p style="font-size:12px;opacity:0.7;margin-bottom:10px;">Cortes por ordem de chegada ou sem agendamento.</p>
+
+          <div id="ocStep1">
+            <label>Barbeiro</label>
+            <select id="ocBarbeiroSel"></select>
+            <button class="btn" onclick="ocAvancar(2)" style="margin-top:8px;">Próximo →</button>
+          </div>
+
+          <div id="ocStep2" class="hidden">
+            <label>Serviços</label>
+            <div id="ocServicosGrid" class="grid"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button class="btn-outline" onclick="ocVoltar(1)" style="flex:1;">← Voltar</button>
+              <button class="btn" onclick="ocAvancar(3)" style="flex:1;">Próximo →</button>
+            </div>
+          </div>
+
+          <div id="ocStep3" class="hidden">
+            <label>Nome do cliente</label>
+            <input id="ocClienteNome" placeholder="Nome do cliente" />
+            <label>Telefone</label>
+            <input id="ocClienteFone" placeholder="(00) 00000-0000" />
+            <label>Pagamento</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+              <button class="btn-outline oc-pag-btn" data-pag="pix">PIX</button>
+              <button class="btn-outline oc-pag-btn" data-pag="debito">Débito</button>
+              <button class="btn-outline oc-pag-btn" data-pag="credito">Crédito</button>
+              <button class="btn-outline oc-pag-btn" data-pag="dinheiro">Dinheiro</button>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-outline" onclick="ocVoltar(2)" style="flex:1;">← Voltar</button>
+              <button id="btnRegistrarOC" class="btn" style="flex:1;">Registrar ✓</button>
+            </div>
+          </div>
+        </div>
+
         <!-- DISPONIBILIDADE (moved from admin) -->
         <div class="card">
-          <h3>Disponibilidade por barbeiro</h3>
+          <h3>📅 Abrir horários para clientes</h3>
+          <p style="font-size:12px;opacity:0.7;margin-bottom:10px;">Crie os horários que os clientes poderão agendar.</p>
 
           <label>Barbeiro</label>
           <select id="barbDispBarbeiroSel"></select>
@@ -562,7 +669,8 @@
 
         <!-- RESET HORÁRIOS (moved from admin) -->
         <div class="card">
-          <h3>Gerenciar DISPONIBILIDADE</h3>
+          <h3>🗑️ Remover horários abertos</h3>
+          <p style="font-size:12px;opacity:0.7;margin-bottom:10px;">Veja e remova horários que já foram abertos para agendamento.</p>
 
           <label>Barbeiro</label>
           <select id="barbResetBarbeiroSel"></select>
@@ -586,16 +694,18 @@
           </div>
         </div>
 
-        <!-- TODOS AGENDAMENTOS (per barber) -->
+        <!-- TODOS AGENDAMENTOS DO DIA -->
         <div class="card">
-          <h3>Todos agendamentos</h3>
+          <h3>📋 Agendamentos do dia</h3>
+          <button id="btnToggleAgendDia" class="btn-outline" style="margin-bottom:10px;">Ver agendamentos de hoje</button>
 
-          <label>Filtrar por barbeiro</label>
-          <select id="agendBarbeiroFiltro">
-            <option value="todos">Todos</option>
-          </select>
-
-          <div id="listaAgendamentos"></div>
+          <div id="agendDiaBox" class="hidden">
+            <label>Filtrar por barbeiro</label>
+            <select id="agendBarbeiroFiltro">
+              <option value="todos">Todos</option>
+            </select>
+            <div id="listaAgendamentos"></div>
+          </div>
         </div>
       </div>
 
@@ -607,74 +717,71 @@
           <button id="btnLogout" class="btn-outline">Sair do painel</button>
         </div>
 
-        <!-- RELATÓRIOS -->
-
         <div class="card">
-          <h3>Relatórios de vendas</h3>
-
-          <button id="btnRelHoje" class="relatorio-btn">
-            Relatório de hoje
+          <button class="admin-menu-btn" onclick="abrirAdminOverlay('overlayVendas')">
+            <span class="menu-icon">📊</span> Relatórios de vendas
           </button>
-
-          <button id="btnRelPeriodo" class="btn-dark btn">
-            Relatório por período
+          <button class="admin-menu-btn" onclick="abrirAdminOverlay('overlayComissoes')">
+            <span class="menu-icon">💰</span> Comissões
           </button>
-
-          <button
-            id="btnZerarVendas"
-            class="btn-danger btn"
-            style="margin-top: 12px; font-size: 12px; padding: 10px"
-          >
-            Zerar todos os relatórios
+          <button class="admin-menu-btn" onclick="abrirAdminOverlay('overlayDespesas')">
+            <span class="menu-icon">📋</span> Despesas
           </button>
-
-          <div
-            id="relHojeBox"
-            class="card-sub hidden"
-            style="margin-top: 16px"
-          ></div>
-          <div
-            id="relPeriodoBox"
-            class="card-sub hidden"
-            style="margin-top: 16px"
-          ></div>
+          <button class="admin-menu-btn" onclick="abrirAdminOverlay('overlayClientes')">
+            <span class="menu-icon">👥</span> Clientes
+          </button>
+          <button class="admin-menu-btn" onclick="abrirAdminOverlay('overlayServicos')">
+            <span class="menu-icon">✂️</span> Serviços
+          </button>
+          <button class="admin-menu-btn" onclick="abrirAdminOverlay('overlayBarbeiros')">
+            <span class="menu-icon">💈</span> Barbeiros
+          </button>
         </div>
+      </div>
 
-        <!-- COMISSÕES -->
-        <div class="card">
-          <h3>Comissões</h3>
+      <!-- ADMIN OVERLAYS -->
+      <div id="overlayVendas" class="admin-overlay">
+        <button class="admin-overlay-close" onclick="fecharAdminOverlay('overlayVendas')">←</button>
+        <div class="admin-overlay-title">Relatórios de vendas</div>
+        <div style="max-width:600px;margin:auto;">
+          <button id="btnRelHoje" class="relatorio-btn">Relatório de hoje</button>
+          <button id="btnRelPeriodo" class="btn-dark btn">Relatório por período</button>
+          <button id="btnZerarVendas" class="btn-danger btn" style="margin-top:12px;font-size:12px;padding:10px">Zerar todos os relatórios</button>
+          <div id="relHojeBox" class="card-sub hidden" style="margin-top:16px"></div>
+          <div id="relPeriodoBox" class="card-sub hidden" style="margin-top:16px"></div>
+        </div>
+      </div>
 
+      <div id="overlayComissoes" class="admin-overlay">
+        <button class="admin-overlay-close" onclick="fecharAdminOverlay('overlayComissoes')">←</button>
+        <div class="admin-overlay-title">Comissões</div>
+        <div style="max-width:600px;margin:auto;">
           <select id="comissaoTipoSel">
             <option value="dia">Dia</option>
             <option value="mes">Mês</option>
             <option value="ano">Ano</option>
           </select>
-
           <div id="comissaoInputContainer">
             <input type="date" id="comissaoRefDia" />
           </div>
-
           <label style="margin-top:8px;display:block;">Filtrar por barbeiro</label>
           <select id="comissaoBarbeiroFiltro">
             <option value="todos">Todos os barbeiros</option>
           </select>
-
           <button id="btnGerarComissao" class="btn" style="margin-top:8px;">Gerar relatório de comissões</button>
-
           <div id="comissaoOut" style="margin-top:16px;"></div>
         </div>
+      </div>
 
-        <!-- DESPESAS -->
-        <div class="card">
-          <h3>Despesas</h3>
-
+      <div id="overlayDespesas" class="admin-overlay">
+        <button class="admin-overlay-close" onclick="fecharAdminOverlay('overlayDespesas')">←</button>
+        <div class="admin-overlay-title">Despesas</div>
+        <div style="max-width:600px;margin:auto;">
           <input id="despesaProduto" placeholder="Nome do produto" />
           <input id="despesaQtd" placeholder="Quantidade" type="number" min="1" />
           <input id="despesaValor" placeholder="Valor (R$)" type="number" step="0.01" />
           <input id="despesaData" type="date" />
-
           <button id="btnAddDespesa" class="btn">Adicionar despesa</button>
-
           <div style="margin-top:12px;">
             <select id="despesaFiltroTipo">
               <option value="todos">Todos</option>
@@ -684,42 +791,38 @@
             </select>
             <div id="despesaFiltroContainer" style="margin-top:8px;"></div>
           </div>
-
           <div id="listaDespesas" style="margin-top:16px;"></div>
           <div id="totalDespesas" style="margin-top:12px;font-weight:900;font-size:18px;"></div>
         </div>
+      </div>
 
-        <!-- CLIENTES -->
-        <div class="card">
-          <h3>Clientes</h3>
+      <div id="overlayClientes" class="admin-overlay">
+        <button class="admin-overlay-close" onclick="fecharAdminOverlay('overlayClientes')">←</button>
+        <div class="admin-overlay-title">Clientes</div>
+        <div style="max-width:600px;margin:auto;">
           <div id="listaClientes"></div>
         </div>
+      </div>
 
-        <!-- SERVIÇOS -->
-
-        <div class="card">
-          <h3>Serviços</h3>
-
+      <div id="overlayServicos" class="admin-overlay">
+        <button class="admin-overlay-close" onclick="fecharAdminOverlay('overlayServicos')">←</button>
+        <div class="admin-overlay-title">Serviços</div>
+        <div style="max-width:600px;margin:auto;">
           <input id="novoServicoNome" placeholder="Nome do serviço" />
           <input id="novoServicoPreco" placeholder="Preço" />
-
           <button id="btnAddServico" class="btn">Adicionar serviço</button>
-
           <div id="adminServicos"></div>
         </div>
+      </div>
 
-        <!-- BARBEIROS -->
-
-        <div class="card">
-          <h3>Barbeiros</h3>
-
+      <div id="overlayBarbeiros" class="admin-overlay">
+        <button class="admin-overlay-close" onclick="fecharAdminOverlay('overlayBarbeiros')">←</button>
+        <div class="admin-overlay-title">Barbeiros</div>
+        <div style="max-width:600px;margin:auto;">
           <input id="novoBarbeiro" placeholder="Nome do barbeiro" />
-
           <button id="btnAddBarbeiro" class="btn">Adicionar barbeiro</button>
-
           <div id="adminBarbeiros"></div>
         </div>
-
       </div>
 
       <!-- ================= EXCLUSÃO ================= -->
@@ -814,6 +917,21 @@
         function rolarPara(el) {
           if (!el) return;
           setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 120);
+        }
+
+        function abrirAdminOverlay(id) {
+          document.getElementById(id).classList.add("active");
+          document.body.style.overflow = "hidden";
+        }
+        function fecharAdminOverlay(id) {
+          document.getElementById(id).classList.remove("active");
+          document.body.style.overflow = "";
+        }
+        function fecharTodosOverlays() {
+          document.querySelectorAll(".admin-overlay.active").forEach(el => {
+            el.classList.remove("active");
+          });
+          document.body.style.overflow = "";
         }
 
         function formatarPreco(v) {
@@ -920,7 +1038,7 @@
         btnModoBarbeiro.onclick = () => {
           let s = prompt("Senha barbeiro");
 
-          if (s !== "barbeiro123") {
+          if (!s || s.toLowerCase() !== "barbeiro123") {
             alert("Senha incorreta");
             return;
           }
@@ -936,7 +1054,15 @@
           btnBack.classList.remove("hidden");
 
           popularModoBarbeiro();
-          renderAdminAgendamentos();
+          document.getElementById("agendDiaBox").classList.add("hidden");
+        };
+
+        btnLogout.onclick = () => {
+          fecharTodosOverlays();
+          telaAdmin.classList.add("hidden");
+          document.querySelector(".container").style.display = "none";
+          telaSplash.style.display = "";
+          btnBack.classList.add("hidden");
         };
 
         // ================= ADMIN LOGIN =================
@@ -944,7 +1070,7 @@
         btnAdminFab.onclick = () => {
           let s = prompt("Senha admin");
 
-          if (s !== "barbarujo123") {
+          if (!s || s.toLowerCase() !== "barbarujo123") {
             if (s !== null) alert("Senha incorreta");
             return;
           }
@@ -966,6 +1092,13 @@
         // ================= BACK =================
 
         btnBack.onclick = () => {
+          let overlayAberto = document.querySelector(".admin-overlay.active");
+          if (overlayAberto) {
+            overlayAberto.classList.remove("active");
+            document.body.style.overflow = "";
+            return;
+          }
+
           if (!telaExclusao.classList.contains("hidden")) {
             telaExclusao.classList.add("hidden");
             telaAdmin.classList.remove("hidden");
@@ -1590,8 +1723,10 @@ Excluir
 
           let barbDispSel = document.getElementById("barbDispBarbeiroSel");
           let barbResetSel = document.getElementById("barbResetBarbeiroSel");
+          let ocBarbSel = document.getElementById("ocBarbeiroSel");
           if (barbDispSel) barbDispSel.innerHTML = "";
           if (barbResetSel) barbResetSel.innerHTML = "";
+          if (ocBarbSel) ocBarbSel.innerHTML = "";
 
           barbeiros.forEach((b) => {
             let nome = b.nome || b;
@@ -1600,6 +1735,7 @@ Excluir
             excBarbeiro.add(new Option(nome, nome));
             if (barbDispSel) barbDispSel.add(new Option(nome, nome));
             if (barbResetSel) barbResetSel.add(new Option(nome, nome));
+            if (ocBarbSel) ocBarbSel.add(new Option(nome, nome));
           });
 
           popularComissaoBarbeiroFiltro();
@@ -1874,6 +2010,14 @@ Excluir
         // ================= ADMIN AGENDA ======================
         // =====================================================
 
+        document.getElementById("btnToggleAgendDia").onclick = () => {
+          let box = document.getElementById("agendDiaBox");
+          box.classList.toggle("hidden");
+          if (!box.classList.contains("hidden")) {
+            renderAdminAgendamentos();
+          }
+        };
+
         function renderAdminAgendamentos() {
           let container = document.getElementById("listaAgendamentos");
           if (!container) return;
@@ -1882,30 +2026,31 @@ Excluir
           let filtro = document.getElementById("agendBarbeiroFiltro");
           let barbeiroFiltro = filtro ? filtro.value : "todos";
 
-          let lista = Object.entries(agendamentosMap);
+          let hoje = hojeISO();
+          let lista = Object.entries(agendamentosMap).filter(([key, a]) => a.data === hoje);
 
           if (barbeiroFiltro !== "todos") {
             lista = lista.filter(([key, a]) => a.barbeiro === barbeiroFiltro);
           }
 
           if (!lista.length) {
-            container.innerHTML = "Sem agendamentos";
+            container.innerHTML = `<div style="text-align:center;padding:20px;opacity:0.6;font-size:14px;">Nenhum agendamento para hoje.</div>`;
             return;
           }
 
           lista
             .sort((a, b) =>
-              (a[1].data + a[1].hora).localeCompare(b[1].data + b[1].hora),
+              ((a[1].hora || "")).localeCompare((b[1].hora || "")),
             )
             .forEach(([key, a]) => {
               let div = document.createElement("div");
               div.className = "card card-sub";
 
               div.innerHTML = `
-<b>${a.data} • ${a.hora}</b><br>
-Cliente: ${a.cliente}<br>
-Serviços: ${a.servico}<br>
-Barbeiro: ${a.barbeiro}<br>
+<b>${a.hora || "-"}</b><br>
+Cliente: ${a.cliente || "-"}<br>
+Serviços: ${a.servico || "-"}<br>
+Barbeiro: ${a.barbeiro || "-"}<br>
 Pagamento: ${a.pagamento || "-"}<br>
 <div class="price">R$ ${formatarPreco(a.preco)}</div>
 
@@ -1989,16 +2134,20 @@ Excluir
           barbeiroModoSel.innerHTML = "";
           let barbDispSel = document.getElementById("barbDispBarbeiroSel");
           let barbResetSel = document.getElementById("barbResetBarbeiroSel");
+          let ocBarbSel = document.getElementById("ocBarbeiroSel");
           if (barbDispSel) barbDispSel.innerHTML = "";
           if (barbResetSel) barbResetSel.innerHTML = "";
+          if (ocBarbSel) ocBarbSel.innerHTML = "";
 
           barbeiros.forEach((b) => {
             let nome = b.nome || b;
             barbeiroModoSel.add(new Option(nome, nome));
             if (barbDispSel) barbDispSel.add(new Option(nome, nome));
             if (barbResetSel) barbResetSel.add(new Option(nome, nome));
+            if (ocBarbSel) ocBarbSel.add(new Option(nome, nome));
           });
           popularComissaoBarbeiroFiltro();
+          renderOCServicos();
 
           let agendFiltro = document.getElementById("agendBarbeiroFiltro");
           if (agendFiltro) {
@@ -2011,6 +2160,128 @@ Excluir
             if (currentVal) agendFiltro.value = currentVal;
           }
         }
+
+        // =====================================================
+        // ========= REGISTRO ORDEM DE CHEGADA ================
+        // =====================================================
+
+        let ocPagSel = null;
+
+        function ocAvancar(step) {
+          if (step === 2) {
+            let barb = document.getElementById("ocBarbeiroSel").value;
+            if (!barb) { alert("Escolha o barbeiro"); return; }
+          }
+          if (step === 3) {
+            let grid = document.getElementById("ocServicosGrid");
+            let sel = grid.querySelectorAll(".slot.selected");
+            if (!sel.length) { alert("Escolha pelo menos um serviço"); return; }
+          }
+          document.getElementById("ocStep1").classList.add("hidden");
+          document.getElementById("ocStep2").classList.add("hidden");
+          document.getElementById("ocStep3").classList.add("hidden");
+          document.getElementById("ocStep" + step).classList.remove("hidden");
+        }
+        function ocVoltar(step) {
+          document.getElementById("ocStep1").classList.add("hidden");
+          document.getElementById("ocStep2").classList.add("hidden");
+          document.getElementById("ocStep3").classList.add("hidden");
+          document.getElementById("ocStep" + step).classList.remove("hidden");
+        }
+        function ocResetWizard() {
+          document.getElementById("ocStep1").classList.remove("hidden");
+          document.getElementById("ocStep2").classList.add("hidden");
+          document.getElementById("ocStep3").classList.add("hidden");
+        }
+
+        document.querySelectorAll(".oc-pag-btn").forEach((btn) => {
+          btn.onclick = () => {
+            document.querySelectorAll(".oc-pag-btn").forEach((b) => b.classList.remove("sel"));
+            btn.classList.add("sel");
+            ocPagSel = btn.dataset.pag;
+          };
+        });
+
+        function renderOCServicos() {
+          let grid = document.getElementById("ocServicosGrid");
+          if (!grid) return;
+          grid.innerHTML = "";
+          servicos.forEach((s) => {
+            let div = document.createElement("div");
+            div.className = "slot";
+            div.innerHTML = `${s.nome}<br><small>R$ ${formatarPreco(s.preco)}</small>`;
+            div.onclick = () => div.classList.toggle("selected");
+            grid.appendChild(div);
+          });
+        }
+
+        document.getElementById("btnRegistrarOC").onclick = async () => {
+          let barbeiro = document.getElementById("ocBarbeiroSel").value;
+          let grid = document.getElementById("ocServicosGrid");
+          let nome = document.getElementById("ocClienteNome").value.trim();
+          let fone = document.getElementById("ocClienteFone").value.trim();
+
+          if (!barbeiro) { alert("Escolha o barbeiro"); return; }
+
+          let selServicos = [];
+          let totalPreco = 0;
+          grid.querySelectorAll(".slot.selected").forEach((s) => {
+            let txt = s.innerText.split("\n")[0].trim();
+            let svc = servicos.find((sv) => sv.nome === txt);
+            if (svc) {
+              selServicos.push(svc.nome);
+              totalPreco += Number(svc.preco || 0);
+            }
+          });
+
+          if (!selServicos.length) { alert("Escolha pelo menos um serviço"); return; }
+          if (!nome) { alert("Informe o nome do cliente"); return; }
+          if (!ocPagSel) { alert("Escolha a forma de pagamento"); return; }
+
+          let agora = new Date();
+          let dataHoje = agora.toISOString().split("T")[0];
+          let horaAgora = agora.getHours().toString().padStart(2, "0") + ":" + agora.getMinutes().toString().padStart(2, "0");
+
+          let ag = {
+            servico: selServicos.join(", "),
+            preco: totalPreco,
+            barbeiro: barbeiro,
+            data: dataHoje,
+            hora: horaAgora,
+            cliente: nome,
+            fone: fone || "",
+            pagamento: ocPagSel,
+            ts: Date.now(),
+            ordemChegada: true,
+          };
+
+          try {
+            await DB.ag.push(ag);
+            registrarVenda(ag);
+
+            if (fone) {
+              let foneKey = fone.replace(/\D/g, "");
+              if (foneKey) {
+                DB.clientes.child(foneKey).set({
+                  nome: nome,
+                  fone: fone,
+                  ultimoAgendamento: dataHoje,
+                });
+              }
+            }
+
+            alert("Atendimento registrado!");
+
+            document.getElementById("ocClienteNome").value = "";
+            document.getElementById("ocClienteFone").value = "";
+            ocPagSel = null;
+            document.querySelectorAll(".oc-pag-btn").forEach((b) => b.classList.remove("sel"));
+            grid.querySelectorAll(".slot.selected").forEach((s) => s.classList.remove("selected"));
+            ocResetWizard();
+          } catch (e) {
+            alert("Erro ao registrar: " + e.message);
+          }
+        };
 
         function popularComissaoBarbeiroFiltro() {
           let sel = document.getElementById("comissaoBarbeiroFiltro");
@@ -2105,7 +2376,15 @@ Hora: ${hora}
 
         function renderRelHoje() {
           let hoje = hojeISO();
-          let lista = agendamentos.filter((a) => a.data === hoje);
+          let lista = agendamentos.filter((a) => a.data && a.data === hoje);
+
+          relHojeBox.classList.remove("hidden");
+          relPeriodoBox.classList.add("hidden");
+
+          if (lista.length === 0) {
+            relHojeBox.innerHTML = `<div style="text-align:center;padding:20px;opacity:0.6;font-size:14px;">Nenhum registro encontrado para hoje.</div>`;
+            return;
+          }
 
           let total = 0;
           let porTipo = { pix: 0, debito: 0, credito: 0, dinheiro: 0 };
@@ -2120,9 +2399,6 @@ Hora: ${hora}
             if (!porBarbeiro[a.barbeiro]) porBarbeiro[a.barbeiro] = 0;
             porBarbeiro[a.barbeiro] += v;
           });
-
-          relHojeBox.classList.remove("hidden");
-          relPeriodoBox.classList.add("hidden");
 
           let barbeiroHtml = Object.entries(porBarbeiro).map(([n,v]) => `${n}: R$ ${formatarPreco(v)}`).join("<br>");
 
@@ -2195,13 +2471,13 @@ Total: R$ ${formatarPreco(total)}
           relPeriodoBox.classList.remove("hidden");
 
           relPeriodoBox.innerHTML = `
-<select id="relTipoSel">
+<select id="relTipoSel" style="width:100%; padding:16px; border-radius:14px; border:none; margin-bottom:8px; color:#000; font-size:15px;">
 <option value="dia">Dia</option>
 <option value="mes">Mês</option>
 <option value="ano">Ano</option>
 </select>
 <div id="relInputContainer" style="margin-top:10px">
-<input type="date" id="relRefDia">
+<input type="date" id="relRefDia" style="width:100%; padding:16px; border-radius:14px; border:none; margin-top:8px; margin-bottom:14px; color:#000; font-size:15px;">
 </div>
 <button id="btnGerarRel" class="btn" style="margin-top:10px"> Gerar </button>
 <div id="relOut" style="margin-top:12px"></div>
@@ -2241,6 +2517,7 @@ Total: R$ ${formatarPreco(total)}
 
             let refParts = d.split("-");
             let lista = agendamentos.filter((a) => {
+              if (!a.data) return false;
               let aParts = a.data.split("-");
               if (tipo === "dia") return a.data === d;
               if (tipo === "mes")
@@ -2248,6 +2525,13 @@ Total: R$ ${formatarPreco(total)}
               if (tipo === "ano") return aParts[0] === d;
               return false;
             });
+
+            let relOut = document.getElementById("relOut");
+
+            if (lista.length === 0) {
+              relOut.innerHTML = `<div style="text-align:center;padding:20px;opacity:0.6;font-size:14px;">Nenhum registro encontrado para este período.</div>`;
+              return;
+            }
 
             let total = 0;
             let porTipo = { pix: 0, debito: 0, credito: 0, dinheiro: 0 };
@@ -2263,7 +2547,6 @@ Total: R$ ${formatarPreco(total)}
 
             let barbeiroHtml = Object.entries(porBarbeiro).map(([n,v]) => `${n}: R$ ${formatarPreco(v)}`).join("<br>");
 
-            let relOut = document.getElementById("relOut");
             relOut.innerHTML = `
 <b>Por forma de pagamento:</b><br>
 PIX: R$ ${formatarPreco(porTipo.pix)}<br>
@@ -2327,6 +2610,7 @@ ${barbeiroHtml || "Nenhum"}<br><br>
 
           let refParts = d.split("-");
           let lista = agendamentos.filter((a) => {
+            if (!a.data) return false;
             let aParts = a.data.split("-");
             if (tipo === "dia") return a.data === d;
             if (tipo === "mes") return aParts[0] === refParts[0] && aParts[1] === refParts[1];
@@ -2610,6 +2894,7 @@ Data: ${d.data || "-"}
 
           renderServicos();
           renderAdminServicos();
+          renderOCServicos();
         });
 
         DB.barbeiros.on("value", (snap) => {
